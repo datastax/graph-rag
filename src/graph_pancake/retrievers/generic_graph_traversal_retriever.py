@@ -244,7 +244,7 @@ class GenericGraphTraversalRetriever(BaseRetriever):
             node_selector_factory=self.node_selector_factory,
             query_embedding=query_embedding,
             edge_helper=self.edge_helper,
-            **{**(self.model_extra or {}), **kwargs},
+            **{**self.extra_args, **kwargs},
         )
         state.add_docs(initial_docs, depth=0)
 
@@ -328,7 +328,7 @@ class GenericGraphTraversalRetriever(BaseRetriever):
             node_selector_factory=self.node_selector_factory,
             query_embedding=query_embedding,
             edge_helper=self.edge_helper,
-            **{**(self.model_extra or {}), **kwargs},
+            **{**self.extra_args, **kwargs},
         )
         state.add_docs(initial_docs, depth=0)
 
