@@ -4,6 +4,7 @@ from typing import (
     Dict,
     Iterable,
     Optional,
+    Sequence,
 )
 
 from langchain_core.documents import Document
@@ -23,6 +24,12 @@ class InMemoryStoreAdapter(StoreAdapter[InMemoryVectorStore]):
     ):
         self.vector_store = vector_store
         self.support_normalized_metadata = support_normalized_metadata
+
+    def get(self, ids: Sequence[str], /, **kwargs) -> list[Document]:
+        return self.vector_store.get_by_ids(ids)
+
+    async def aget(self, ids: Sequence[str], /, **kwargs) -> list[Document]:
+        return await self.vector_store.aget_by_ids(ids)
 
     def similarity_search_with_embedding_by_vector(
         self,
@@ -49,7 +56,7 @@ class InMemoryStoreAdapter(StoreAdapter[InMemoryVectorStore]):
         self,
         key: str,
         value: Any,
-        metadata: dict[str:Any],
+        metadata: dict[str, Any],
     ) -> bool:
         """Tests if the key->value exists or is contained in the metadata."""
         actual = metadata.get(key, SENTINEL)

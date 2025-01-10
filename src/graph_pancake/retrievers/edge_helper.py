@@ -86,7 +86,7 @@ class EdgeHelper:
     def _normalize_metadata(
         self, denormalized_metadata: dict[str, Any]
     ) -> dict[str, Any]:
-        normalized = {}
+        normalized: dict[str, Any] = {}
         for key, value in denormalized_metadata.items():
             if value != self.denormalized_static_value:
                 continue

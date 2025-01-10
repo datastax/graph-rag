@@ -73,8 +73,10 @@ def test_parser_eager_sync(parser_adapter: InMemoryStoreAdapter):
         edges=[("out", "in"), "tag"],
         node_selector_factory=EagerNodeSelector,
         k=10,
-        max_depth=2,
         start_k=2,
+        extra_args={
+            "max_depth": 2
+        },
     )
 
     docs = retriever.invoke(input="[2, 10]", max_depth=0)
@@ -96,8 +98,10 @@ async def test_parser_eager_async(parser_adapter: InMemoryStoreAdapter):
         edges=[("out", "in"), "tag"],
         node_selector_factory=EagerNodeSelector,
         k=10,
-        max_depth=2,
         start_k=2,
+        extra_args={
+            "max_depth": 2
+        },
     )
     docs = await retriever.ainvoke(input="[2, 10]", max_depth=0)
     ss_labels = {doc.metadata["label"] for doc in docs}
@@ -259,7 +263,9 @@ def test_mmr_traversal() -> None:
         node_selector_factory=MmrScoringNodeSelector,
         start_k=2,
         k=2,
-        max_depth=2,
+        extra_args={
+            "max_depth": 2
+        },
     )
 
     # docs = retriever.invoke("0.0", k=2, start_k=2)

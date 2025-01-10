@@ -19,7 +19,6 @@ testpaths = ["tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "T201"]
-
 [tool.ruff.format]
 docstring-code-format = true
 

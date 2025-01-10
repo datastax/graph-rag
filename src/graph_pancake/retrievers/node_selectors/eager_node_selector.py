@@ -8,7 +8,7 @@ class EagerNodeSelector(NodeSelector):
     """Node selection that selects all nodes at each step."""
 
     def __init__(self, **kwargs: dict[str, Any]) -> None:
-        self._nodes = []
+        self._nodes: list[Node] = []
 
     def add_nodes(self, nodes: dict[str, Node]) -> None:
         self._nodes.extend(nodes.values())

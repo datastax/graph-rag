@@ -115,5 +115,10 @@ class TraversalAdapter:
             List of Documents most similar to the query vector.
         """
         return await run_in_executor(
-            None, self.similarity_search_by_vector, embedding, k, filter, **kwargs
+            None,
+            self.similarity_search_by_vector,
+            embedding,
+            k=k,
+            filter=filter,
+            **kwargs,
         )

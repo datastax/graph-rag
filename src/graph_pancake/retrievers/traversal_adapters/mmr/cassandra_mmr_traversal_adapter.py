@@ -1,3 +1,5 @@
+# type: ignore
+
 from typing import (
     Any,
     List,
@@ -21,6 +23,7 @@ class CassandraMMRTraversalAdapter(MMRTraversalAdapter):
     def similarity_search_with_embedding(  # type: ignore
         self, **kwargs: Any
     ) -> Tuple[List[float], List[Document]]:
+        self._vector_store.asimilarity_search_with_embedding_id_by_vector
         return self._vector_store.similarity_search_with_embedding(**kwargs)
 
     async def asimilarity_search_with_embedding(  # type: ignore

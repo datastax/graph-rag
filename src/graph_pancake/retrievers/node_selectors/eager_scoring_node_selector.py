@@ -8,18 +8,16 @@ from .node_selector import NodeSelector
 class EagerScoringNodeSelector(NodeSelector):
     """Node selection based on an eager scoring function."""
 
-    @staticmethod
-    def factory(
-        scorer: Callable[[Node], int], *, select_k: int = 1
-    ) -> Callable[[list[float]], NodeSelector]:
-        return lambda _k, _query_embedding: EagerScoringNodeSelector(
-            scorer,
-            select_k=select_k,
-        )
+    def __init__(self, scorer: Callable[[Node], float], *, select_k: int = 1) -> None:
+        """Node selector choosing the top `select_k` nodes according to `scorer` each iteration.
 
-    def __init__(self, scorer: Callable[[Node], int], *, select_k: int = 1) -> None:
+        Args:
+            - scorer: The scoring function to apply. Will only be applied when the node is added,
+              which means it is not re-executed if the `depth` changes.
+            - select_k: The numebr of nodes to select at each iteration.
+        """
         self._scorer = scorer
-        self._nodes = []
+        self._nodes: list[tuple[float, Node]] = []
         self._select_k = select_k
 
     def add_nodes(self, nodes: dict[str, Node]) -> None:
@@ -27,7 +25,7 @@ class EagerScoringNodeSelector(NodeSelector):
             heapq.heappush(self._nodes, (self._scorer(node), node))
 
     def select_nodes(self, *, limit: int) -> Iterable[Node]:
-        selected = []
+        selected: list[Node] = []
         for _ in range(0, min(limit, self._select_k)):
             if len(self._nodes) == 0:
                 break

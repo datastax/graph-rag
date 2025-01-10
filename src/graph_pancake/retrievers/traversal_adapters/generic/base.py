@@ -15,7 +15,7 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.runnables import run_in_executor
 from langchain_core.vectorstores import VectorStore
 
-StoreT = TypeVar("StoerT", bound=VectorStore)
+StoreT = TypeVar("StoreT", bound=VectorStore)
 
 METADATA_EMBEDDING_KEY = "__embedding"
 
@@ -147,6 +147,7 @@ class StoreAdapter(Generic[StoreT]):
         returned documents.
         This method should **NOT** raise exceptions if no documents are found for
         some IDs.
+
         Args:
             ids: List of IDs to get.
             kwargs: Additional keyword arguments. These are up to the implementation.
@@ -168,6 +169,7 @@ class StoreAdapter(Generic[StoreT]):
         returned documents.
         This method should **NOT** raise exceptions if no documents are found for
         some IDs.
+
         Args:
             ids: List of IDs to get.
             kwargs: Additional keyword arguments. These are up to the implementation.

@@ -244,16 +244,16 @@ def get_adapter(
 @pytest.mark.parametrize("vector_store_type", vector_store_types)
 @pytest.mark.parametrize("embedding_type", ["angular-embeddings"])
 def test_mmr_traversal(vector_store: VectorStore, vector_store_type: str) -> None:
-    """ Test end to end construction and MMR search.
+    """Test end to end construction and MMR search.
     The embedding function used here ensures `texts` become
     the following vectors on a circle (numbered v0 through v3):
 
-           ______ v2
-          /      \
-         /        \  v1
-    v3  |     .    | query
-         \        /  v0
-          \______/                 (N.B. very crude drawing)
+            ______ v2
+          //      \\
+         //        \\  v1
+    v3   |     .    | query
+         \\        //  v0
+          \\______//                 (N.B. very crude drawing)
 
     With fetch_k==2 and k==2, when query is at (1, ),
     one expects that v2 and v0 are returned (in some order)

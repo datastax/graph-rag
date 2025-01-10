@@ -4,6 +4,7 @@ from typing import (
     Iterable,
     List,
     Optional,
+    Sequence,
     cast,
 )
 
@@ -40,6 +41,9 @@ class InMemoryMMRTraversalAdapter(MMRTraversalAdapter):
                 ):
                     return True
         return False
+
+    def get(self, ids: Sequence[str], /, **kwargs) -> list[Document]:
+        return self._vector_store.get_by_ids(ids)
 
     def similarity_search_with_embedding_by_vector(  # type: ignore
         self,

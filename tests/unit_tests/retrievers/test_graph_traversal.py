@@ -24,6 +24,9 @@ from tests.embeddings import (
 class FakeAdapter(TraversalAdapter):
     def similarity_search_by_vector(
         self,
+        embedding: list[float],
+        k: int = 4,
+        filter: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> list[Document]:
         return []

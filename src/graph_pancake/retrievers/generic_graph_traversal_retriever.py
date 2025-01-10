@@ -13,27 +13,25 @@ from typing import (
 
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
-from pydantic import Field, computed_field
+from pydantic import ConfigDict, Field, computed_field
 
 from .edge import Edge
 from .edge_helper import EdgeHelper
 from .node import Node
-from .node_selectors.node_selector import NodeSelector
+from .node_selectors.node_selector import NodeSelector, NodeSelectorFactory
 from .traversal_adapters.generic.base import METADATA_EMBEDDING_KEY, StoreAdapter
 
 INFINITY = float("inf")
 
-P = ParamSpec("P")
 
-
-class _TraversalState(Generic[P]):
+class _TraversalState:
     """Manages the book-keeping necessary to keep track of traversal state."""
 
     def __init__(
         self,
         *,
         k: int,
-        node_selector_factory: Callable[P, NodeSelector],
+        node_selector_factory: NodeSelectorFactory,
         query_embedding: list[float],
         edge_helper: EdgeHelper,
         max_depth: int | None = None,
@@ -41,17 +39,19 @@ class _TraversalState(Generic[P]):
     ) -> None:
         self.k = k
         self.node_selector = node_selector_factory(
-            **{"k": k, "query_embedding": query_embedding, **kwargs}
+            k=k,
+            query_embedding=query_embedding,
+            **kwargs,
         )
         self.edge_helper = edge_helper
         self._max_depth = max_depth
 
         self.visited_edges: set[Edge] = set()
         self.edge_depths: dict[Edge, int] = {}
-        self.doc_cache: dict[id, Document] = {}
-        self.node_cache: dict[id, Node] = {}
+        self.doc_cache: dict[str, Document] = {}
+        self.node_cache: dict[str, Node] = {}
 
-        self.selected_nodes: dict[id, Node] = {}
+        self.selected_nodes: dict[str, Node] = {}
 
     def _doc_to_new_node(
         self, doc: Document, *, depth: int | None = None
@@ -62,12 +62,18 @@ class _TraversalState(Generic[P]):
             return None
 
         doc = self.doc_cache.setdefault(doc.id, doc)
+        assert doc.id is not None
         incoming_edges, outgoing_edges = self.edge_helper.get_incoming_outgoing(
             doc.metadata
         )
         if depth is None:
             depth = min(
-                map(lambda e: self.edge_depths.get(e, INFINITY), incoming_edges)
+                [
+                    d
+                    for e in incoming_edges
+                    if (d := self.edge_depths.get(e, None)) is not None
+                ],
+                default=0,
             )
         node = Node(
             id=doc.id,
@@ -81,7 +87,9 @@ class _TraversalState(Generic[P]):
 
         return node
 
-    def add_docs(self, docs: Iterable[Document], *, depth: int | None = None) -> None:
+    def add_docs(
+        self, docs: Iterable[Document], *, depth: int | None = None
+    ) -> dict[str, Node]:
         # Record the depth of new nodes.
         nodes = {
             node.id: node
@@ -90,6 +98,7 @@ class _TraversalState(Generic[P]):
             if (self._max_depth is None or node.depth <= self._max_depth)
         }
         self.node_selector.add_nodes(nodes)
+        return nodes
 
     def visit_nodes(self, nodes: Iterable[Node]) -> set[Edge]:
         """Record the nodes as visited, returning the new outgoing edges.
@@ -97,7 +106,7 @@ class _TraversalState(Generic[P]):
         After this call, the outgoing edges will be added to the visited
         set, and not revisited during the traversal.
         """
-        new_outgoing_edges = {}
+        new_outgoing_edges: dict[Edge, int] = {}
         for node in nodes:
             node_new_outgoing_edges = node.outgoing_edges - self.visited_edges
             for edge in node_new_outgoing_edges:
@@ -107,9 +116,9 @@ class _TraversalState(Generic[P]):
 
         self.edge_depths.update(new_outgoing_edges)
 
-        new_outgoing_edges = set(new_outgoing_edges.keys())
-        self.visited_edges.update(new_outgoing_edges)
-        return new_outgoing_edges
+        new_outgoing_edge_set = set(new_outgoing_edges.keys())
+        self.visited_edges.update(new_outgoing_edge_set)
+        return new_outgoing_edge_set
 
     def select_next_edges(self) -> set[Edge] | None:
         """Select the next round of nodes.
@@ -163,35 +172,21 @@ class _TraversalState(Generic[P]):
 
 # this class uses pydantic, so store and edges
 # must be provided at init time.
-class GenericGraphTraversalRetriever(BaseRetriever, Generic[P]):
+class GenericGraphTraversalRetriever(BaseRetriever):
     store: StoreAdapter
     edges: List[Union[str, Tuple[str, str]]]
-    node_selector_factory: Callable[P, NodeSelector]
+    node_selector_factory: NodeSelectorFactory
 
     k: int = Field(default=4)
     start_k: int = Field(default=100)
     adjacent_k: int = Field(default=10)
-    lambda_mult: float = Field(default=0.5)
-    score_threshold: float = Field(default=float("-inf"))
     use_denormalized_metadata: bool = Field(default=False)
     denormalized_path_delimiter: str = Field(default=".")
     denormalized_static_value: Any = Field(default=True)
 
-    def __init__(
-        self,
-        store: StoreAdapter,
-        edges: List[str | Tuple[str, str]],
-        node_selector_factory: Callable[P, NodeSelector],
-        **kwargs: Any,
-    ) -> None:
-        super().__init__(
-            store=store,
-            edges=edges,
-            node_selector_factory=node_selector_factory,
-            **kwargs,
-        )
+    extra_args: dict[str, Any] = {}
 
-    @computed_field
+    @computed_field  # type: ignore
     @property
     def edge_helper(self) -> EdgeHelper:
         return EdgeHelper(
@@ -249,7 +244,7 @@ class GenericGraphTraversalRetriever(BaseRetriever, Generic[P]):
             node_selector_factory=self.node_selector_factory,
             query_embedding=query_embedding,
             edge_helper=self.edge_helper,
-            **kwargs,
+            **{**(self.model_extra or {}), **kwargs},
         )
         state.add_docs(initial_docs, depth=0)
 
@@ -259,6 +254,7 @@ class GenericGraphTraversalRetriever(BaseRetriever, Generic[P]):
                 query_embedding=query_embedding,
                 adjacent_k=adjacent_k,
                 state=state,
+                filter=filter,
                 **store_kwargs,
             )
             state.add_docs(neighborhood_adjacent_docs, depth=0)
@@ -332,7 +328,7 @@ class GenericGraphTraversalRetriever(BaseRetriever, Generic[P]):
             node_selector_factory=self.node_selector_factory,
             query_embedding=query_embedding,
             edge_helper=self.edge_helper,
-            **kwargs,
+            **{**(self.model_extra or {}), **kwargs},
         )
         state.add_docs(initial_docs, depth=0)
 
@@ -342,6 +338,7 @@ class GenericGraphTraversalRetriever(BaseRetriever, Generic[P]):
                 query_embedding=query_embedding,
                 adjacent_k=adjacent_k,
                 state=state,
+                filter=filter,
                 **store_kwargs,
             )
             state.add_docs(neighborhood_adjacent_docs, depth=0)
@@ -366,7 +363,7 @@ class GenericGraphTraversalRetriever(BaseRetriever, Generic[P]):
         return state.finish()
 
     def _fetch_initial_candidates(
-        self, query: str, *, fetch_k: int, filter: dict[str, Any], **kwargs: Any
+        self, query: str, *, fetch_k: int, filter: dict[str, Any] | None, **kwargs: Any
     ) -> tuple[list[float], Iterable[Document]]:
         """Gets the embedded query and the set of initial candidates.
 
@@ -392,14 +389,15 @@ class GenericGraphTraversalRetriever(BaseRetriever, Generic[P]):
         query_embedding: list[float],
         adjacent_k: int,
         state: _TraversalState,
+        filter: dict[str, Any] | None,
         **kwargs: Any,
     ):
         neighborhood_docs = self.store.get(neighborhood)
         neighborhood_nodes = state.add_docs(neighborhood_docs)
 
         # Record the neighborhood nodes (specifically the outgoing edges from the
-        # neighborhodd) as visited.
-        outgoing_edges = state.visit_nodes(neighborhood_nodes)
+        # neighborhood) as visited.
+        outgoing_edges = state.visit_nodes(neighborhood_nodes.values())
 
         # Fetch the candidates.
         return self._get_adjacent(
@@ -415,7 +413,7 @@ class GenericGraphTraversalRetriever(BaseRetriever, Generic[P]):
         query: str,
         *,
         fetch_k: int,
-        filter: dict[str, Any],
+        filter: dict[str, Any] | None,
         **kwargs: Any,
     ) -> tuple[list[float], Iterable[Document]]:
         query_embedding, docs = await self.store.asimilarity_search_with_embedding(
@@ -433,14 +431,15 @@ class GenericGraphTraversalRetriever(BaseRetriever, Generic[P]):
         query_embedding: list[float],
         adjacent_k: int,
         state: _TraversalState,
+        filter: dict[str, Any] | None,
         **kwargs: Any,
     ):
         neighborhood_docs = await self.store.aget(neighborhood)
         neighborhood_nodes = state.add_docs(neighborhood_docs)
 
         # Record the neighborhood nodes (specifically the outgoing edges from the
-        # neighborhodd) as visited.
-        outgoing_edges = state.visit_nodes(neighborhood_nodes)
+        # neighborhood) as visited.
+        outgoing_edges = state.visit_nodes(neighborhood_nodes.values())
 
         # Fetch the candidates.
         return await self._aget_adjacent(
