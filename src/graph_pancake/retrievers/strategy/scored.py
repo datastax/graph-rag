@@ -24,11 +24,11 @@ class Scored(TraversalStrategy):
 
     def add_nodes(self, nodes: dict[str, Node]) -> None:
         for node in nodes.values():
-            heapq.heappush(self._nodes, (self._scorer(node), node))
+            heapq.heappush(self._nodes, (self.scorer(node), node))
 
     def select_nodes(self, *, limit: int) -> Iterable[Node]:
         selected: list[Node] = []
-        for _ in range(0, min(limit, self._select_k)):
+        for _ in range(0, min(limit, self.select_k)):
             if len(self._nodes) == 0:
                 break
             selected.append(heapq.heappop(self._nodes)[1])

@@ -25,7 +25,7 @@ class TraversalStrategy(BaseModel, abc.ABC):
     max_depth: int | None = None
     """Maximum depth to retrieve. Default no limit."""
 
-    query_embedding: list[float] | None = None
+    query_embedding: list[float] = []
     """Query embedding."""
 
     @abc.abstractmethod

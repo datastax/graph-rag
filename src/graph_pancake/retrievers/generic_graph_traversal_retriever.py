@@ -194,6 +194,7 @@ class GenericGraphTraversalRetriever(BaseRetriever):
         initial_roots: Sequence[str] = (),
         filter: dict[str, Any] | None = None,
         store_kwargs: dict[str, Any] = {},
+        **kwargs: Any,
     ) -> list[Document]:
         """Retrieve document nodes from this graph vector store using MMR-traversal.
         This strategy first retrieves the top `start_k` results by similarity to
@@ -265,6 +266,7 @@ class GenericGraphTraversalRetriever(BaseRetriever):
         initial_roots: Sequence[str] = (),
         filter: dict[str, Any] | None = None,
         store_kwargs: dict[str, Any] = {},
+        **kwargs: Any,
     ) -> list[Document]:
         """Asynchronously retrieve documents from this graph store using MMR-traversal.
 

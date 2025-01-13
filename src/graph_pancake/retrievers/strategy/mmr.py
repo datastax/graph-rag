@@ -73,7 +73,7 @@ class Mmr(TraversalStrategy):
     @cached_property
     def _nd_query_embedding(self) -> NDArray[np.float32]:
         assert (
-            self.query_embedding is not None
+            self.query_embedding
         ), "shouldn't access embedding / dimensions until initialized"
         return _emb_to_ndarray(self.query_embedding)
 
