@@ -30,6 +30,20 @@ def assert_document_format(doc: Document) -> None:
     assert "__embedding" not in doc.metadata
 
 
+def supports_normalized_metadata(vector_store_type: str) -> bool:
+    if vector_store_type in ["astra-db", "in-memory", "open-search"]:
+        return True
+    elif vector_store_type in [
+        "cassandra",
+        "chroma-db",
+        "in-memory-denormalized",
+    ]:
+        return False
+    else:
+        msg = f"Unknown vector store type: {vector_store_type}"
+        raise ValueError(msg)
+
+
 @pytest.fixture(scope="module")
 def animal_docs() -> list[Document]:
     documents = []
@@ -230,7 +244,7 @@ def vector_store(
         yield store
         if store.index_exists():
             store.delete_index()  # store.index_name
-    elif vector_store_type == "in-memory":
+    elif vector_store_type in ["in-memory", "in-memory-denormalized"]:
         store = InMemoryVectorStore(embedding=embeddings)
         yield store
     else:

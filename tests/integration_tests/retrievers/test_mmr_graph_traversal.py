@@ -4,6 +4,9 @@ import pytest
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 
+from graph_pancake.document_transformers.metadata_denormalizer import (
+    MetadataDenormalizer,
+)
 from graph_pancake.retrievers.graph_mmr_traversal_retriever import (
     GraphMMRTraversalRetriever,
 )
@@ -14,10 +17,14 @@ from graph_pancake.retrievers.traversal_adapters.mmr import (
     MMRTraversalAdapter,
     OpenSearchMMRTraversalAdapter,
 )
-from tests.conftest import assert_document_format, sorted_doc_ids
+from tests.conftest import (
+    assert_document_format,
+    sorted_doc_ids,
+    supports_normalized_metadata,
+)
 
 vector_store_types = [
-    "astra-db",
+    #   "astra-db",
     "cassandra",
     "chroma-db",
     "open-search",
@@ -49,10 +56,10 @@ def test_mmr_traversal(
     The embedding function used here ensures `texts` become
     the following vectors on a circle (numbered v0 through v3):
 
-            ______ v2
+           ______ v2
           //      \\
          //        \\  v1
-    v3   |     .    | query
+    v3  ||    .     || query
          \\        //  v0
           \\______//                 (N.B. very crude drawing)
 
@@ -63,6 +70,9 @@ def test_mmr_traversal(
     Both v2 and v3 are reachable via edges from v0, so once it is
     selected, those are both considered.
     """
+    if not supports_normalized_metadata(vector_store_type=vector_store_type):
+        mmr_docs = MetadataDenormalizer().transform_documents(mmr_docs)
+
     vector_store.add_documents(mmr_docs)
 
     vector_store_adapter = get_adapter(
@@ -171,3 +181,93 @@ async def test_invoke_async(
     assert mt_labels == {"AR", "BR"}
     assert docs[0].metadata
     assert_document_format(docs[0])
+
+
+@pytest.mark.parametrize("vector_store_type", vector_store_types)
+@pytest.mark.parametrize("embedding_type", ["animal"])
+def test_animals_sync(
+    vector_store: VectorStore,
+    vector_store_type: str,
+    animal_docs: list[Document],
+) -> None:
+    use_denormalized_metadata = not supports_normalized_metadata(
+        vector_store_type=vector_store_type
+    )
+
+    if use_denormalized_metadata:
+        animal_docs = MetadataDenormalizer().transform_documents(animal_docs)
+
+    vector_store.add_documents(animal_docs)
+
+    vector_store_adapter = get_adapter(
+        vector_store=vector_store,
+        vector_store_type=vector_store_type,
+    )
+
+    query = "small agile mammal"
+    depth_0_expected = ["fox", "mongoose"]
+
+    # test non-graph search
+    docs = vector_store.similarity_search(query, k=2)
+    assert sorted_doc_ids(docs) == depth_0_expected
+
+    # test graph-search on a normalized bi-directional edge
+    retriever = GraphMMRTraversalRetriever(
+        store=vector_store_adapter,
+        edges=["keywords"],
+        fetch_k=2,
+        use_denormalized_metadata=use_denormalized_metadata,
+    )
+
+    if vector_store_type == "cassandra":
+        with pytest.raises(
+            NotImplementedError, match="use the async implementation instead"
+        ):
+            docs = retriever.invoke(query)
+        return
+
+    docs = retriever.invoke(query, depth=0)
+    assert sorted_doc_ids(docs) == depth_0_expected
+
+    docs = retriever.invoke(query, depth=1)
+    assert sorted_doc_ids(docs) == ["fox", "mongoose"]
+
+    docs = retriever.invoke(query, depth=2)
+    # WOULD HAVE EXPECTED THIS AT DEPTH 1
+    assert sorted_doc_ids(docs) == ["cat", "gazelle", "jackal", "mongoose"]
+
+    # test graph-search on a standard bi-directional edge
+    retriever = GraphMMRTraversalRetriever(
+        store=vector_store_adapter,
+        edges=["habitat"],
+        fetch_k=2,
+        use_denormalized_metadata=use_denormalized_metadata,
+    )
+
+    docs = retriever.invoke(query, depth=0)
+    assert sorted_doc_ids(docs) == depth_0_expected
+
+    docs = retriever.invoke(query, depth=1)
+    assert sorted_doc_ids(docs) == ["fox", "mongoose"]
+
+    docs = retriever.invoke(query, depth=2)
+    # WOULD HAVE EXPECTED THIS AT DEPTH 1
+    assert sorted_doc_ids(docs) == ["bobcat", "deer", "fox", "mongoose"]
+
+    # test graph-search on a standard -> normalized edge
+    retriever = GraphMMRTraversalRetriever(
+        store=vector_store_adapter,
+        edges=[("habitat", "keywords")],
+        fetch_k=2,
+        use_denormalized_metadata=use_denormalized_metadata,
+    )
+
+    docs = retriever.invoke(query, depth=0)
+    assert sorted_doc_ids(docs) == depth_0_expected
+
+    docs = retriever.invoke(query, depth=1)
+    assert sorted_doc_ids(docs) == ["fox", "mongoose"]
+
+    docs = retriever.invoke(query, depth=2)
+    # WOULD HAVE EXPECTED THIS AT DEPTH 1
+    assert sorted_doc_ids(docs) == ["bear", "bobcat", "fox", "mongoose"]

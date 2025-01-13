@@ -15,7 +15,7 @@ class EagerScoringNodeSelector(NodeSelector):
         Args:
             - scorer: The scoring function to apply. Will only be applied when the
               node is added, which means it is not re-executed if the `depth` changes.
-            - select_k: The numebr of nodes to select at each iteration.
+            - select_k: The number of nodes to select at each iteration.
         """
         self._scorer = scorer
         self._nodes: list[tuple[float, Node]] = []
