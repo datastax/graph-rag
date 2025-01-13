@@ -1,10 +1,9 @@
 import dataclasses
 from functools import cached_property
-from typing import Any, Iterable, Self
+from typing import Iterable
 
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import ConfigDict, computed_field, model_validator
 
 from graph_pancake.utils.math import cosine_similarity
 
@@ -73,7 +72,9 @@ class Mmr(TraversalStrategy):
 
     @cached_property
     def _nd_query_embedding(self) -> NDArray[np.float32]:
-        assert self.query_embedding is not None, "shouldn't access embedding / dimensions until initialized"
+        assert (
+            self.query_embedding is not None
+        ), "shouldn't access embedding / dimensions until initialized"
         return _emb_to_ndarray(self.query_embedding)
 
     @property
@@ -134,9 +135,9 @@ class Mmr(TraversalStrategy):
             self._candidates[index] = old_last
             self._candidate_id_to_index[old_last.node.id] = index
 
-        self._candidate_embeddings = np.vsplit(self._candidate_embeddings, [last_index])[
-            0
-        ]
+        self._candidate_embeddings = np.vsplit(
+            self._candidate_embeddings, [last_index]
+        )[0]
 
         return candidate, embedding
 

@@ -5,7 +5,6 @@ from typing import (
     List,
     Sequence,
     Tuple,
-    TypedDict,
     Union,
 )
 
@@ -36,7 +35,7 @@ class _TraversalState:
             raise ValueError("'strategy' must be specified in init or invocation")
 
         # Deep copy in case the strategy has mutable state
-        self.strategy = strategy.model_copy(deep = True)
+        self.strategy = strategy.model_copy(deep=True)
 
         self.visited_edges: set[Edge] = set()
         self.edge_depths: dict[Edge, int] = {}
@@ -87,7 +86,9 @@ class _TraversalState:
             node.id: node
             for doc in docs
             if (node := self._doc_to_new_node(doc, depth=depth)) is not None
-            if (self.strategy.max_depth is None or node.depth <= self.strategy.max_depth)
+            if (
+                self.strategy.max_depth is None or node.depth <= self.strategy.max_depth
+            )
         }
         self.strategy.add_nodes(nodes)
         return nodes
@@ -161,6 +162,7 @@ class _TraversalState:
             )
         return docs
 
+
 # this class uses pydantic, so store and edges
 # must be provided at init time.
 class GenericGraphTraversalRetriever(BaseRetriever):
@@ -218,7 +220,7 @@ class GenericGraphTraversalRetriever(BaseRetriever):
             **kwargs: Additional keyword arguments passed to traversal state.
         """
         state = _TraversalState(
-            strategy = strategy or self.strategy,
+            strategy=strategy or self.strategy,
             edge_helper=self.edge_helper,
         )
 
@@ -291,7 +293,7 @@ class GenericGraphTraversalRetriever(BaseRetriever):
         """
         state = _TraversalState(
             edge_helper=self.edge_helper,
-            strategy = strategy or self.strategy,
+            strategy=strategy or self.strategy,
         )
 
         # Retrieve initial candidates and initialize state.
@@ -328,7 +330,12 @@ class GenericGraphTraversalRetriever(BaseRetriever):
         return state.finish()
 
     def _fetch_initial_candidates(
-        self, query: str, *, state: _TraversalState, filter: dict[str, Any] | None, **kwargs: Any
+        self,
+        query: str,
+        *,
+        state: _TraversalState,
+        filter: dict[str, Any] | None,
+        **kwargs: Any,
     ) -> Iterable[Document]:
         """Gets the embedded query and the set of initial candidates.
 

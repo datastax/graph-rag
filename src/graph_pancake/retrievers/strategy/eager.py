@@ -1,4 +1,4 @@
-from typing import Any, Iterable
+from typing import Iterable
 
 from ..node import Node
 from .base import TraversalStrategy

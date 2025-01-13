@@ -11,7 +11,7 @@ from graph_pancake.retrievers.strategy.eager import (
 from graph_pancake.retrievers.traversal_adapters.generic.in_memory import (
     InMemoryStoreAdapter,
 )
-from tests.conftest import assert_document_format, sorted_doc_ids, invoker
+from tests.conftest import assert_document_format, sorted_doc_ids
 from tests.embeddings.simple_embeddings import ParserEmbeddings
 
 
@@ -19,14 +19,18 @@ from tests.embeddings.simple_embeddings import ParserEmbeddings
 def animal_store_adapter(
     animal_store: InMemoryVectorStore, request: pytest.FixtureRequest
 ) -> InMemoryStoreAdapter:
-    return InMemoryStoreAdapter(animal_store, support_normalized_metadata=request.param == "norm")
+    return InMemoryStoreAdapter(
+        animal_store, support_normalized_metadata=request.param == "norm"
+    )
 
 
 ANIMALS_QUERY: str = "small agile mammal"
 ANIMALS_DEPTH_0_EXPECTED: list[str] = ["fox", "mongoose"]
 
-async def test_animals_bidir_collection_eager(animal_store_adapter: InMemoryStoreAdapter,
-                                        invoker):
+
+async def test_animals_bidir_collection_eager(
+    animal_store_adapter: InMemoryStoreAdapter, invoker
+):
     # test graph-search on a normalized bi-directional edge
     retriever = GenericGraphTraversalRetriever(
         store=animal_store_adapter,
@@ -75,7 +79,9 @@ async def test_animals_bidir_collection_eager(animal_store_adapter: InMemoryStor
     ]
 
 
-async def test_animals_eager_bidir_item(animal_store_adapter: InMemoryStoreAdapter, invoker):
+async def test_animals_eager_bidir_item(
+    animal_store_adapter: InMemoryStoreAdapter, invoker
+):
     retriever = GenericGraphTraversalRetriever(
         store=animal_store_adapter,
         edges=["habitat"],
@@ -105,7 +111,9 @@ async def test_animals_eager_bidir_item(animal_store_adapter: InMemoryStoreAdapt
     ]
 
 
-async def test_animals_eager_item_to_collection(animal_store_adapter: InMemoryStoreAdapter, invoker):
+async def test_animals_eager_item_to_collection(
+    animal_store_adapter: InMemoryStoreAdapter, invoker
+):
     retriever = GenericGraphTraversalRetriever(
         store=animal_store_adapter,
         edges=[("habitat", "keywords")],

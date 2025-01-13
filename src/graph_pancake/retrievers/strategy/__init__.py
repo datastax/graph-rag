@@ -1,9 +1,9 @@
 # __init__.py
 
-from .eager import Eager
-from .scored import Scored
-from .mmr import Mmr
 from .base import TraversalStrategy
+from .eager import Eager
+from .mmr import Mmr
+from .scored import Scored
 
 __all__ = [
     "Eager",

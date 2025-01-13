@@ -303,16 +303,17 @@ def graph_vector_store_docs() -> list[Document]:
         doc_f.metadata["out"] = f"af_{suffix}"
     return docs_a + docs_b + docs_f + docs_t
 
+
 @pytest.fixture(scope="function", params=["sync", "async"])
 def invoker(request: pytest.FixtureRequest):
-    async def sync_invoker(retriever: BaseRetriever,
-                     query: str,
-                     strategy: TraversalStrategy | None = None):
+    async def sync_invoker(
+        retriever: BaseRetriever, query: str, strategy: TraversalStrategy | None = None
+    ):
         return retriever.invoke(query, strategy=strategy)
 
-    async def async_invoker(retriever: BaseRetriever,
-                      query: str,
-                      strategy: TraversalStrategy | None = None):
+    async def async_invoker(
+        retriever: BaseRetriever, query: str, strategy: TraversalStrategy | None = None
+    ):
         return await retriever.ainvoke(query, strategy=strategy)
 
     if request.param == "sync":
