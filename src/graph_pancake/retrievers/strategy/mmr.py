@@ -1,12 +1,15 @@
 import dataclasses
-from typing import Any, Iterable
+from functools import cached_property
+from typing import Any, Iterable, Self
 
 import numpy as np
 from numpy.typing import NDArray
+from pydantic import ConfigDict, computed_field, model_validator
 
 from graph_pancake.utils.math import cosine_similarity
 
 from ..node import Node
+from .base import TraversalStrategy
 
 NEG_INF = float("-inf")
 
@@ -35,7 +38,7 @@ class _MmrCandidate:
             self.score = self.weighted_similarity - self.weighted_redundancy
 
 
-class MmrScoringNodeSelector:
+class Mmr(TraversalStrategy):
     """Helper for executing an MMR traversal query.
     Args:
         query_embedding: The embedding of the query to use for scoring.
@@ -46,81 +49,59 @@ class MmrScoringNodeSelector:
             this threshold will be chosen. Defaults to -infinity.
     """
 
-    dimensions: int
-    """Dimensions of the embedding."""
-
-    query_embedding: NDArray[np.float32]
-    """Embedding of the query as a (1,dim) ndarray."""
-
-    lambda_mult: float
+    lambda_mult: float = 0.5
     """Number between 0 and 1.
     Determines the degree of diversity among the results with 0 corresponding to
     maximum diversity and 1 to minimum diversity."""
 
-    lambda_mult_complement: float
-    """1 - lambda_mult."""
-
-    score_threshold: float
+    score_threshold: float = NEG_INF
     """Only documents with a score greater than or equal to this will be chosen."""
 
-    selected_ids: list[str]
+    _selected_ids: list[str] = []
     """List of selected IDs (in selection order)."""
 
-    selected_embeddings: NDArray[np.float32]
-    """(N, dim) ndarray with a row for each selected node."""
-
-    candidate_id_to_index: dict[str, int]
+    _candidate_id_to_index: dict[str, int] = {}
     """Dictionary of candidate IDs to indices in candidates and candidate_embeddings."""
-    candidates: list[_MmrCandidate]
+
+    _candidates: list[_MmrCandidate] = []
     """List containing information about candidates.
     Same order as rows in `candidate_embeddings`.
     """
-    candidate_embeddings: NDArray[np.float32]
-    """(N, dim) ndarray with a row for each candidate."""
 
-    best_score: float
-    best_id: str | None
+    _best_score: float = NEG_INF
+    _best_id: str | None = None
 
-    def __init__(
-        self,
-        *,
-        k: int,
-        query_embedding: list[float],
-        lambda_mult: float = 0.5,
-        score_threshold: float = NEG_INF,
-        **kwargs: dict[str, Any],
-    ) -> None:
-        """Create a new Traversal MMR helper."""
-        self.query_embedding = _emb_to_ndarray(query_embedding)
-        self.dimensions = self.query_embedding.shape[1]
+    @cached_property
+    def _nd_query_embedding(self) -> NDArray[np.float32]:
+        assert self.query_embedding is not None, "shouldn't access embedding / dimensions until initialized"
+        return _emb_to_ndarray(self.query_embedding)
 
-        self.lambda_mult = lambda_mult
-        self.lambda_mult_complement = 1 - lambda_mult
-        self.score_threshold = score_threshold
+    @property
+    def _dimensions(self) -> int:
+        return self._nd_query_embedding.shape[1]
 
-        self.selected_ids = []
+    @property
+    def _lambda_mult_complement(self) -> float:
+        return 1 - self.lambda_mult
 
-        # List of selected embeddings (in selection order).
-        self.selected_embeddings = np.ndarray((k, self.dimensions), dtype=np.float32)
+    @cached_property
+    def _selected_embeddings(self) -> NDArray[np.float32]:
+        """(N, dim) ndarray with a row for each selected node."""
+        return np.ndarray((self.k, self._dimensions), dtype=np.float32)
 
-        self.candidate_id_to_index = {}
-
-        # List of the candidates.
-        self.candidates = []
-        # numpy n-dimensional array of the candidate embeddings.
-        self.candidate_embeddings = np.ndarray((0, self.dimensions), dtype=np.float32)
-
-        self.best_score = NEG_INF
-        self.best_id = None
+    @cached_property
+    def _candidate_embeddings(self) -> NDArray[np.float32]:
+        """(N, dim) ndarray with a row for each candidate."""
+        return np.ndarray((0, self._dimensions), dtype=np.float32)
 
     def candidate_ids(self) -> Iterable[str]:
         """Return the IDs of the candidates."""
-        return self.candidate_id_to_index.keys()
+        return self._candidate_id_to_index.keys()
 
     def _already_selected_embeddings(self) -> NDArray[np.float32]:
         """Return the selected embeddings sliced to the already assigned values."""
-        selected = len(self.selected_ids)
-        return np.vsplit(self.selected_embeddings, [selected])[0]
+        selected = len(self._selected_ids)
+        return np.vsplit(self._selected_embeddings, [selected])[0]
 
     def _pop_candidate(
         self, candidate_id: str
@@ -130,30 +111,30 @@ class MmrScoringNodeSelector:
             The document, similarity score, and embedding of the candidate.
         """
         # Get the embedding for the id.
-        index = self.candidate_id_to_index.pop(candidate_id)
-        candidate = self.candidates[index]
+        index = self._candidate_id_to_index.pop(candidate_id)
+        candidate = self._candidates[index]
         if candidate.node.id != candidate_id:
             msg = (
                 "ID in self.candidate_id_to_index doesn't match the ID of the "
                 "corresponding index in self.candidates"
             )
             raise ValueError(msg)
-        embedding: NDArray[np.float32] = self.candidate_embeddings[index].copy()
+        embedding: NDArray[np.float32] = self._candidate_embeddings[index].copy()
 
         # Swap that index with the last index in the candidates and
         # candidate_embeddings.
-        last_index = self.candidate_embeddings.shape[0] - 1
+        last_index = self._candidate_embeddings.shape[0] - 1
 
         if index == last_index:
-            self.candidates.pop()
+            self._candidates.pop()
         else:
-            self.candidate_embeddings[index] = self.candidate_embeddings[last_index]
+            self._candidate_embeddings[index] = self._candidate_embeddings[last_index]
 
-            old_last = self.candidates.pop()
-            self.candidates[index] = old_last
-            self.candidate_id_to_index[old_last.node.id] = index
+            old_last = self._candidates.pop()
+            self._candidates[index] = old_last
+            self._candidate_id_to_index[old_last.node.id] = index
 
-        self.candidate_embeddings = np.vsplit(self.candidate_embeddings, [last_index])[
+        self._candidate_embeddings = np.vsplit(self._candidate_embeddings, [last_index])[
             0
         ]
 
@@ -167,39 +148,39 @@ class MmrScoringNodeSelector:
         """
         if limit == 0:
             return []
-        if self.best_id is None or self.best_score < self.score_threshold:
+        if self._best_id is None or self._best_score < self.score_threshold:
             return []
 
         # Get the selection and remove from candidates.
-        selected_id = self.best_id
+        selected_id = self._best_id
         selected, selected_embedding = self._pop_candidate(selected_id)
 
         # Add the ID and embedding to the selected information.
-        selection_index = len(self.selected_ids)
-        self.selected_ids.append(selected_id)
-        self.selected_embeddings[selection_index] = selected_embedding
+        selection_index = len(self._selected_ids)
+        self._selected_ids.append(selected_id)
+        self._selected_embeddings[selection_index] = selected_embedding
 
         # Create the selected result node.
         selected_node = selected.node
         selected_node.extra_metadata = {
             "_similarity_score": selected.similarity,
-            "_mmr_score": self.best_score,
+            "_mmr_score": self._best_score,
         }
 
         # Reset the best score / best ID.
-        self.best_score = NEG_INF
-        self.best_id = None
+        self._best_score = NEG_INF
+        self._best_id = None
 
         # Update the candidates redundancy, tracking the best node.
-        if self.candidate_embeddings.shape[0] > 0:
+        if self._candidate_embeddings.shape[0] > 0:
             similarity = cosine_similarity(
-                self.candidate_embeddings, np.expand_dims(selected_embedding, axis=0)
+                self._candidate_embeddings, np.expand_dims(selected_embedding, axis=0)
             )
-            for index, candidate in enumerate(self.candidates):
+            for index, candidate in enumerate(self._candidates):
                 candidate.update_redundancy(similarity[index][0])
-                if candidate.score > self.best_score:
-                    self.best_score = candidate.score
-                    self.best_id = candidate.node.id
+                if candidate.score > self._best_score:
+                    self._best_score = candidate.score
+                    self._best_id = candidate.node.id
 
         return [selected_node]
 
@@ -210,8 +191,8 @@ class MmrScoringNodeSelector:
         # or under consideration.
 
         include_ids_set = set(nodes.keys())
-        include_ids_set.difference_update(self.selected_ids)
-        include_ids_set.difference_update(self.candidate_id_to_index.keys())
+        include_ids_set.difference_update(self._selected_ids)
+        include_ids_set.difference_update(self._candidate_id_to_index.keys())
         include_ids = list(include_ids_set)
 
         # Now, build up a matrix of the remaining candidate embeddings.
@@ -219,16 +200,16 @@ class MmrScoringNodeSelector:
         new_embeddings: NDArray[np.float32] = np.ndarray(
             (
                 len(include_ids),
-                self.dimensions,
+                self._dimensions,
             )
         )
-        offset = self.candidate_embeddings.shape[0]
+        offset = self._candidate_embeddings.shape[0]
         for index, candidate_id in enumerate(include_ids):
-            self.candidate_id_to_index[candidate_id] = offset + index
+            self._candidate_id_to_index[candidate_id] = offset + index
             new_embeddings[index] = nodes[candidate_id].embedding
 
         # Compute the similarity to the query.
-        similarity = cosine_similarity(new_embeddings, self.query_embedding)
+        similarity = cosine_similarity(new_embeddings, self._nd_query_embedding)
 
         # Compute the distance metrics of all of pairs in the selected set with
         # the new candidates.
@@ -243,18 +224,18 @@ class MmrScoringNodeSelector:
                 node=nodes[candidate_id],
                 similarity=similarity[index][0],
                 weighted_similarity=self.lambda_mult * similarity[index][0],
-                weighted_redundancy=self.lambda_mult_complement * max_redundancy,
+                weighted_redundancy=self._lambda_mult_complement * max_redundancy,
             )
-            self.candidates.append(candidate)
+            self._candidates.append(candidate)
 
-            if candidate.score >= self.best_score:
-                self.best_score = candidate.score
-                self.best_id = candidate.node.id
+            if candidate.score >= self._best_score:
+                self._best_score = candidate.score
+                self._best_id = candidate.node.id
 
         # Add the new embeddings to the candidate set.
-        self.candidate_embeddings = np.vstack(
+        self._candidate_embeddings = np.vstack(
             (
-                self.candidate_embeddings,
+                self._candidate_embeddings,
                 new_embeddings,
             )
         )

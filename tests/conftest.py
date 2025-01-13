@@ -8,9 +8,11 @@ from langchain_chroma import Chroma
 from langchain_community.vectorstores import Cassandra, OpenSearchVectorSearch
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
+from langchain_core.retrievers import BaseRetriever
 from langchain_core.vectorstores import InMemoryVectorStore, VectorStore
 from pytest import FixtureRequest
 
+from graph_pancake.retrievers.strategy.base import TraversalStrategy
 from tests.embeddings import (
     AngularTwoDimensionalEmbeddings,
     EarthEmbeddings,
@@ -300,3 +302,22 @@ def graph_vector_store_docs() -> list[Document]:
     for doc_f, suffix in zip(docs_f, ["l", "0", "r"]):
         doc_f.metadata["out"] = f"af_{suffix}"
     return docs_a + docs_b + docs_f + docs_t
+
+@pytest.fixture(scope="function", params=["sync", "async"])
+def invoker(request: pytest.FixtureRequest):
+    async def sync_invoker(retriever: BaseRetriever,
+                     query: str,
+                     strategy: TraversalStrategy | None = None):
+        return retriever.invoke(query, strategy=strategy)
+
+    async def async_invoker(retriever: BaseRetriever,
+                      query: str,
+                      strategy: TraversalStrategy | None = None):
+        return await retriever.ainvoke(query, strategy=strategy)
+
+    if request.param == "sync":
+        return sync_invoker
+    elif request.param == "async":
+        return async_invoker
+    else:
+        raise ValueError(f"Unexpected value '{request.param}'")
