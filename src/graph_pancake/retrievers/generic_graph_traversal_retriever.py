@@ -261,12 +261,8 @@ class GenericGraphTraversalRetriever(BaseRetriever):
         *,
         strategy: TraversalStrategy | None = None,
         initial_roots: Sequence[str] = (),
-        k: int | None = None,
-        start_k: int | None = None,
-        adjacent_k: int | None = None,
         filter: dict[str, Any] | None = None,
         store_kwargs: dict[str, Any] = {},
-        **kwargs: Any,
     ) -> list[Document]:
         """Asynchronously retrieve documents from this graph store using MMR-traversal.
 
