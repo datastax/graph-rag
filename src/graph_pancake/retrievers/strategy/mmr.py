@@ -4,6 +4,7 @@ from typing import Iterable
 
 import numpy as np
 from numpy.typing import NDArray
+from pydantic import Field
 
 from graph_pancake.utils.math import cosine_similarity
 
@@ -48,8 +49,9 @@ class Mmr(TraversalStrategy):
             this threshold will be chosen. Defaults to -infinity.
     """
 
-    lambda_mult: float = 0.5
+    lambda_mult: float = Field(default=0.5, ge=0.0, le=1.0)
     """Number between 0 and 1.
+
     Determines the degree of diversity among the results with 0 corresponding to
     maximum diversity and 1 to minimum diversity."""
 
