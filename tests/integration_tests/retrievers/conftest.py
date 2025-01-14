@@ -1,22 +1,62 @@
 import json
 import os
 from contextlib import contextmanager
-from typing import Any, Generator, Iterable
+from typing import Any, Generator, Iterable, cast
 
 import pytest
+from langchain_astradb.vectorstores import AstraDBVectorStore
 from langchain_chroma import Chroma
 from langchain_community.vectorstores import Cassandra, OpenSearchVectorSearch
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.vectorstores import InMemoryVectorStore, VectorStore
-from pytest import FixtureRequest
+from pytest import Metafunc
 
+from graph_pancake.retrievers.traversal_adapters.generic.astra import (
+    AstraStoreAdapter,
+)
+from graph_pancake.retrievers.traversal_adapters.generic.base import (
+    StoreAdapter,
+)
+from graph_pancake.retrievers.traversal_adapters.generic.cassandra import (
+    CassandraStoreAdapter,
+)
+from graph_pancake.retrievers.traversal_adapters.generic.chroma import (
+    ChromaStoreAdapter,
+)
+from graph_pancake.retrievers.traversal_adapters.generic.in_memory import (
+    InMemoryStoreAdapter,
+)
+from graph_pancake.retrievers.traversal_adapters.generic.open_search import (
+    OpenSearchStoreAdapter,
+)
 from tests.embeddings import (
     AngularTwoDimensionalEmbeddings,
     EarthEmbeddings,
     ParserEmbeddings,
 )
 from tests.embeddings.simple_embeddings import AnimalEmbeddings
+
+
+def pytest_generate_tests(metafunc: Metafunc) -> None:
+    """Dynamically generate parameters for pytest tests."""
+    if "vector_store_type" in metafunc.fixturenames:
+        # Use getfixturevalue to safely resolve the `vector_store_types` fixture
+        in_memory_only = metafunc.config.getoption("--in-memory-only")
+
+        if in_memory_only:
+            vector_store_values = ["in-memory", "in-memory-denormalized"]
+        else:
+            vector_store_values = [
+                "cassandra",
+                "chroma-db",
+                "in-memory",
+                "in-memory-denormalized",
+                "open-search",
+            ]
+
+        # Parametrize the `vector_store_type` dynamically
+        metafunc.parametrize("vector_store_type", vector_store_values)
 
 
 def sorted_doc_ids(docs: Iterable[Document]) -> list[str]:
@@ -116,6 +156,70 @@ def mmr_docs() -> list[Document]:
     return [v0, v1, v2, v3]
 
 
+@pytest.fixture
+def graph_vector_store_docs() -> list[Document]:
+    """
+    This is a set of Documents to pre-populate a graph vector store,
+    with entries placed in a certain way.
+
+    Space of the entries (under Euclidean similarity):
+
+                      A0    (*)
+        ....        AL   AR       <....
+        :              |              :
+        :              |  ^           :
+        v              |  .           v
+                       |   :
+       TR              |   :          BL
+    T0   --------------x--------------   B0
+       TL              |   :          BR
+                       |   :
+                       |  .
+                       | .
+                       |
+                    FL   FR
+                      F0
+
+    the query point is meant to be at (*).
+    the A are bidirectionally with B
+    the A are outgoing to T
+    the A are incoming from F
+    The links are like: L with L, 0 with 0 and R with R.
+    """
+
+    docs_a = [
+        Document(id="AL", page_content="[-1, 9]", metadata={"label": "AL"}),
+        Document(id="A0", page_content="[0, 10]", metadata={"label": "A0"}),
+        Document(id="AR", page_content="[1, 9]", metadata={"label": "AR"}),
+    ]
+    docs_b = [
+        Document(id="BL", page_content="[9, 1]", metadata={"label": "BL"}),
+        Document(id="B0", page_content="[10, 0]", metadata={"label": "B0"}),
+        Document(id="BR", page_content="[9, -1]", metadata={"label": "BR"}),
+    ]
+    docs_f = [
+        Document(id="FL", page_content="[1, -9]", metadata={"label": "FL"}),
+        Document(id="F0", page_content="[0, -10]", metadata={"label": "F0"}),
+        Document(id="FR", page_content="[-1, -9]", metadata={"label": "FR"}),
+    ]
+    docs_t = [
+        Document(id="TL", page_content="[-9, -1]", metadata={"label": "TL"}),
+        Document(id="T0", page_content="[-10, 0]", metadata={"label": "T0"}),
+        Document(id="TR", page_content="[-9, 1]", metadata={"label": "TR"}),
+    ]
+    for doc_a, suffix in zip(docs_a, ["l", "0", "r"]):
+        doc_a.metadata["tag"] = f"ab_{suffix}"
+        doc_a.metadata["out"] = f"at_{suffix}"
+        doc_a.metadata["in"] = f"af_{suffix}"
+    for doc_b, suffix in zip(docs_b, ["l", "0", "r"]):
+        doc_b.metadata["tag"] = f"ab_{suffix}"
+    for doc_t, suffix in zip(docs_t, ["l", "0", "r"]):
+        doc_t.metadata["in"] = f"at_{suffix}"
+    for doc_f, suffix in zip(docs_f, ["l", "0", "r"]):
+        doc_f.metadata["out"] = f"af_{suffix}"
+    return docs_a + docs_b + docs_f + docs_t
+
+
 @pytest.fixture(scope="module")
 def animal_store(animal_docs: list[Document]) -> InMemoryVectorStore:
     store = InMemoryVectorStore(embedding=AnimalEmbeddings())
@@ -174,9 +278,9 @@ def get_cassandra_session(
         cluster.shutdown()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def vector_store(
-    request: FixtureRequest, embedding_type: str, vector_store_type: str
+    embedding_type: str, vector_store_type: str
 ) -> Generator[VectorStore, None, None]:
     embeddings: Embeddings
     if embedding_type == "earth":
@@ -253,64 +357,25 @@ def vector_store(
 
 
 @pytest.fixture
-def graph_vector_store_docs() -> list[Document]:
-    """
-    This is a set of Documents to pre-populate a graph vector store,
-    with entries placed in a certain way.
-
-    Space of the entries (under Euclidean similarity):
-
-                      A0    (*)
-        ....        AL   AR       <....
-        :              |              :
-        :              |  ^           :
-        v              |  .           v
-                       |   :
-       TR              |   :          BL
-    T0   --------------x--------------   B0
-       TL              |   :          BR
-                       |   :
-                       |  .
-                       | .
-                       |
-                    FL   FR
-                      F0
-
-    the query point is meant to be at (*).
-    the A are bidirectionally with B
-    the A are outgoing to T
-    the A are incoming from F
-    The links are like: L with L, 0 with 0 and R with R.
-    """
-
-    docs_a = [
-        Document(id="AL", page_content="[-1, 9]", metadata={"label": "AL"}),
-        Document(id="A0", page_content="[0, 10]", metadata={"label": "A0"}),
-        Document(id="AR", page_content="[1, 9]", metadata={"label": "AR"}),
-    ]
-    docs_b = [
-        Document(id="BL", page_content="[9, 1]", metadata={"label": "BL"}),
-        Document(id="B0", page_content="[10, 0]", metadata={"label": "B0"}),
-        Document(id="BR", page_content="[9, -1]", metadata={"label": "BR"}),
-    ]
-    docs_f = [
-        Document(id="FL", page_content="[1, -9]", metadata={"label": "FL"}),
-        Document(id="F0", page_content="[0, -10]", metadata={"label": "F0"}),
-        Document(id="FR", page_content="[-1, -9]", metadata={"label": "FR"}),
-    ]
-    docs_t = [
-        Document(id="TL", page_content="[-9, -1]", metadata={"label": "TL"}),
-        Document(id="T0", page_content="[-10, 0]", metadata={"label": "T0"}),
-        Document(id="TR", page_content="[-9, 1]", metadata={"label": "TR"}),
-    ]
-    for doc_a, suffix in zip(docs_a, ["l", "0", "r"]):
-        doc_a.metadata["tag"] = f"ab_{suffix}"
-        doc_a.metadata["out"] = f"at_{suffix}"
-        doc_a.metadata["in"] = f"af_{suffix}"
-    for doc_b, suffix in zip(docs_b, ["l", "0", "r"]):
-        doc_b.metadata["tag"] = f"ab_{suffix}"
-    for doc_t, suffix in zip(docs_t, ["l", "0", "r"]):
-        doc_t.metadata["in"] = f"at_{suffix}"
-    for doc_f, suffix in zip(docs_f, ["l", "0", "r"]):
-        doc_f.metadata["out"] = f"af_{suffix}"
-    return docs_a + docs_b + docs_f + docs_t
+def store_adapter(vector_store: VectorStore, vector_store_type: str) -> StoreAdapter:
+    if vector_store_type == "astra-db":
+        return AstraStoreAdapter(vector_store=cast(AstraDBVectorStore, vector_store))
+    elif vector_store_type == "cassandra":
+        return CassandraStoreAdapter(vector_store=vector_store)
+    elif vector_store_type == "chroma-db":
+        return ChromaStoreAdapter(vector_store=vector_store)
+    elif vector_store_type == "open-search":
+        return OpenSearchStoreAdapter(vector_store=vector_store)
+    elif vector_store_type == "in-memory":
+        return InMemoryStoreAdapter(
+            vector_store=cast(InMemoryVectorStore, vector_store),
+            support_normalized_metadata=True,
+        )
+    elif vector_store_type == "in-memory-denormalized":
+        return InMemoryStoreAdapter(
+            vector_store=cast(InMemoryVectorStore, vector_store),
+            support_normalized_metadata=False,
+        )
+    else:
+        msg = f"Unknown vector store type: {vector_store_type}"
+        raise ValueError(msg)

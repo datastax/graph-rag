@@ -12,21 +12,15 @@ from graph_pancake.retrievers.traversal_adapters.eager import (
     AstraTraversalAdapter,
     CassandraTraversalAdapter,
     ChromaTraversalAdapter,
+    InMemoryTraversalAdapter,
     OpenSearchTraversalAdapter,
     TraversalAdapter,
 )
-from tests.conftest import (
+from tests.integration_tests.retrievers.conftest import (
     assert_document_format,
     sorted_doc_ids,
     supports_normalized_metadata,
 )
-
-vector_store_types = [
-    #   "astra-db",
-    "cassandra",
-    "chroma-db",
-    "open-search",
-]
 
 
 def get_adapter(vector_store: VectorStore, vector_store_type: str) -> TraversalAdapter:
@@ -38,16 +32,23 @@ def get_adapter(vector_store: VectorStore, vector_store_type: str) -> TraversalA
         return ChromaTraversalAdapter(vector_store=vector_store)
     elif vector_store_type == "open-search":
         return OpenSearchTraversalAdapter(vector_store=vector_store)
+    elif vector_store_type == "in-memory":
+        return InMemoryTraversalAdapter(
+            vector_store=vector_store, support_normalized_metadata=True
+        )
+    elif vector_store_type == "in-memory-denormalized":
+        return InMemoryTraversalAdapter(
+            vector_store=vector_store, support_normalized_metadata=False
+        )
     else:
         msg = f"Unknown vector store type: {vector_store_type}"
         raise ValueError(msg)
 
 
-@pytest.mark.parametrize("vector_store_type", vector_store_types)
 @pytest.mark.parametrize("embedding_type", ["earth"])
 def test_traversal(
-    vector_store: VectorStore,
     vector_store_type: str,
+    vector_store: VectorStore,
     hello_docs: list[Document],
 ) -> None:
     use_denormalized_metadata = not supports_normalized_metadata(
@@ -55,7 +56,7 @@ def test_traversal(
     )
 
     if use_denormalized_metadata:
-        hello_docs = MetadataDenormalizer().transform_documents(hello_docs)
+        hello_docs = list(MetadataDenormalizer().transform_documents(hello_docs))
 
     vector_store.add_documents(hello_docs)
 
@@ -82,11 +83,10 @@ def test_traversal(
     assert sorted_doc_ids(docs) == ["doc1", "doc2", "greetings"]
 
 
-@pytest.mark.parametrize("vector_store_type", vector_store_types)
 @pytest.mark.parametrize("embedding_type", ["parser-d2"])
 def test_invoke_sync(
-    vector_store: VectorStore,
     vector_store_type: str,
+    vector_store: VectorStore,
     graph_vector_store_docs: list[Document],
 ) -> None:
     """Graph traversal search on a vector store."""
@@ -115,11 +115,10 @@ def test_invoke_sync(
     assert_document_format(docs[0])
 
 
-@pytest.mark.parametrize("vector_store_type", vector_store_types)
 @pytest.mark.parametrize("embedding_type", ["parser-d2"])
 async def test_invoke_async(
-    vector_store: VectorStore,
     vector_store_type: str,
+    vector_store: VectorStore,
     graph_vector_store_docs: list[Document],
 ) -> None:
     """Graph traversal search on a graph store."""
@@ -147,11 +146,10 @@ async def test_invoke_async(
     assert_document_format(docs[0])
 
 
-@pytest.mark.parametrize("vector_store_type", vector_store_types)
 @pytest.mark.parametrize("embedding_type", ["animal"])
 def test_animals_sync(
-    vector_store: VectorStore,
     vector_store_type: str,
+    vector_store: VectorStore,
     animal_docs: list[Document],
 ) -> None:
     use_denormalized_metadata = not supports_normalized_metadata(
@@ -159,7 +157,7 @@ def test_animals_sync(
     )
 
     if use_denormalized_metadata:
-        animal_docs = MetadataDenormalizer().transform_documents(animal_docs)
+        animal_docs = list(MetadataDenormalizer().transform_documents(animal_docs))
 
     vector_store.add_documents(animal_docs)
 
@@ -187,28 +185,36 @@ def test_animals_sync(
     assert sorted_doc_ids(docs) == depth_0_expected
 
     docs = retriever.invoke(query, depth=1)
-    assert sorted_doc_ids(docs) == ["cat", "coyote", "fox", "gazelle", "hyena", "jackal", "mongoose"]
+    assert sorted_doc_ids(docs) == [
+        "cat",
+        "coyote",
+        "fox",
+        "gazelle",
+        "hyena",
+        "jackal",
+        "mongoose",
+    ]
 
     docs = retriever.invoke(query, depth=2)
     assert sorted_doc_ids(docs) == [
-            "alpaca",
-            "bison",
-            "cat",
-            "chicken",
-            "cockroach",
-            "coyote",
-            "crow",
-            "dingo",
-            "dog",
-            "fox",
-            "gazelle",
-            "horse",
-            "hyena",
-            "jackal",
-            "llama",
-            "mongoose",
-            "ostrich",
-        ]
+        "alpaca",
+        "bison",
+        "cat",
+        "chicken",
+        "cockroach",
+        "coyote",
+        "crow",
+        "dingo",
+        "dog",
+        "fox",
+        "gazelle",
+        "horse",
+        "hyena",
+        "jackal",
+        "llama",
+        "mongoose",
+        "ostrich",
+    ]
 
     # test graph-search on a standard bi-directional edge
     retriever = GraphTraversalRetriever(

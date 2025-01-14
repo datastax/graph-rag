@@ -14,21 +14,15 @@ from graph_pancake.retrievers.traversal_adapters.mmr import (
     AstraMMRTraversalAdapter,
     CassandraMMRTraversalAdapter,
     ChromaMMRTraversalAdapter,
+    InMemoryMMRTraversalAdapter,
     MMRTraversalAdapter,
     OpenSearchMMRTraversalAdapter,
 )
-from tests.conftest import (
+from tests.integration_tests.retrievers.conftest import (
     assert_document_format,
     sorted_doc_ids,
     supports_normalized_metadata,
 )
-
-vector_store_types = [
-    #   "astra-db",
-    "cassandra",
-    "chroma-db",
-    "open-search",
-]
 
 
 def get_adapter(
@@ -42,15 +36,22 @@ def get_adapter(
         return ChromaMMRTraversalAdapter(vector_store=vector_store)
     elif vector_store_type == "open-search":
         return OpenSearchMMRTraversalAdapter(vector_store=vector_store)
+    elif vector_store_type == "in-memory":
+        return InMemoryMMRTraversalAdapter(
+            vector_store=vector_store, support_normalized_metadata=True
+        )
+    elif vector_store_type == "in-memory-denormalized":
+        return InMemoryMMRTraversalAdapter(
+            vector_store=vector_store, support_normalized_metadata=False
+        )
     else:
         msg = f"Unknown vector store type: {vector_store_type}"
         raise ValueError(msg)
 
 
-@pytest.mark.parametrize("vector_store_type", vector_store_types)
 @pytest.mark.parametrize("embedding_type", ["angular"])
 def test_mmr_traversal(
-    vector_store: VectorStore, vector_store_type: str, mmr_docs: list[Document]
+    vector_store_type: str, vector_store: VectorStore, mmr_docs: list[Document]
 ) -> None:
     """Test end to end construction and MMR search.
     The embedding function used here ensures `texts` become
@@ -71,7 +72,7 @@ def test_mmr_traversal(
     selected, those are both considered.
     """
     if not supports_normalized_metadata(vector_store_type=vector_store_type):
-        mmr_docs = MetadataDenormalizer().transform_documents(mmr_docs)
+        mmr_docs = list(MetadataDenormalizer().transform_documents(mmr_docs))
 
     vector_store.add_documents(mmr_docs)
 
@@ -116,11 +117,10 @@ def test_mmr_traversal(
     assert sorted_doc_ids(docs) == ["v0", "v1", "v2", "v3"]
 
 
-@pytest.mark.parametrize("vector_store_type", vector_store_types)
 @pytest.mark.parametrize("embedding_type", ["parser-d2"])
 def test_invoke_sync(
-    vector_store: VectorStore,
     vector_store_type: str,
+    vector_store: VectorStore,
     graph_vector_store_docs: list[Document],
 ) -> None:
     """MMR Graph traversal search on a vector store."""
@@ -153,11 +153,10 @@ def test_invoke_sync(
     assert_document_format(docs[0])
 
 
-@pytest.mark.parametrize("vector_store_type", vector_store_types)
 @pytest.mark.parametrize("embedding_type", ["parser-d2"])
 async def test_invoke_async(
-    vector_store: VectorStore,
     vector_store_type: str,
+    vector_store: VectorStore,
     graph_vector_store_docs: list[Document],
 ) -> None:
     """MMR Graph traversal search on a vector store."""
@@ -183,11 +182,10 @@ async def test_invoke_async(
     assert_document_format(docs[0])
 
 
-@pytest.mark.parametrize("vector_store_type", vector_store_types)
 @pytest.mark.parametrize("embedding_type", ["animal"])
 def test_animals_sync(
-    vector_store: VectorStore,
     vector_store_type: str,
+    vector_store: VectorStore,
     animal_docs: list[Document],
 ) -> None:
     use_denormalized_metadata = not supports_normalized_metadata(
@@ -195,7 +193,7 @@ def test_animals_sync(
     )
 
     if use_denormalized_metadata:
-        animal_docs = MetadataDenormalizer().transform_documents(animal_docs)
+        animal_docs = list(MetadataDenormalizer().transform_documents(animal_docs))
 
     vector_store.add_documents(animal_docs)
 

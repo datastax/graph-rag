@@ -1,50 +1,59 @@
 import pytest
 from langchain_core.documents import Document
-from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_core.vectorstores import VectorStore
 
+from graph_pancake.document_transformers.metadata_denormalizer import (
+    MetadataDenormalizer,
+)
 from graph_pancake.retrievers.generic_graph_traversal_retriever import (
     GenericGraphTraversalRetriever,
 )
 from graph_pancake.retrievers.node_selectors.eager_node_selector import (
     EagerNodeSelector,
 )
-from graph_pancake.retrievers.traversal_adapters.generic.in_memory import (
-    InMemoryStoreAdapter,
+from graph_pancake.retrievers.traversal_adapters.generic.base import (
+    StoreAdapter,
 )
-from tests.conftest import assert_document_format, sorted_doc_ids
-from tests.embeddings.simple_embeddings import ParserEmbeddings
-
-
-@pytest.fixture(scope="function", params=[False, True])
-def animal_store_adapter(
-    animal_store: InMemoryVectorStore, request: pytest.FixtureRequest
-) -> InMemoryStoreAdapter:
-    return InMemoryStoreAdapter(animal_store, support_normalized_metadata=request.param)
-
+from tests.integration_tests.retrievers.conftest import (
+    assert_document_format,
+    sorted_doc_ids,
+    supports_normalized_metadata,
+)
 
 ANIMALS_QUERY: str = "small agile mammal"
 ANIMALS_DEPTH_0_EXPECTED: list[str] = ["fox", "mongoose"]
 
 
-def test_animals_bidir_collection_eager(animal_store_adapter: InMemoryStoreAdapter):
+@pytest.mark.parametrize("embedding_type", ["animal"])
+def test_animals_eager_bidir_collection(
+    vector_store_type: str,
+    vector_store: VectorStore,
+    animal_docs: list[Document],
+    store_adapter: StoreAdapter,
+):
     # test graph-search on a normalized bi-directional edge
+    use_denormalized_metadata = not supports_normalized_metadata(
+        vector_store_type=vector_store_type
+    )
+
+    if use_denormalized_metadata:
+        animal_docs = list(MetadataDenormalizer().transform_documents(animal_docs))
+
+    vector_store.add_documents(animal_docs)
+
     retriever = GenericGraphTraversalRetriever(
-        store=animal_store_adapter,
+        store=store_adapter,
         edges=["keywords"],
         node_selector_factory=EagerNodeSelector,
         k=100,
         start_k=2,
+        use_denormalized_metadata=use_denormalized_metadata,
     )
 
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=0)
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
 
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=1)
-
-    if not animal_store_adapter.support_normalized_metadata:
-        # If we don't support normalized data, then no edges are traversed.
-        assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
-        return
 
     assert sorted_doc_ids(docs) == [
         "cat",
@@ -78,13 +87,29 @@ def test_animals_bidir_collection_eager(animal_store_adapter: InMemoryStoreAdapt
     ]
 
 
-def test_animals_eager_bidir_item(animal_store_adapter: InMemoryStoreAdapter):
+@pytest.mark.parametrize("embedding_type", ["animal"])
+def test_animals_eager_bidir_item(
+    vector_store_type: str,
+    vector_store: VectorStore,
+    animal_docs: list[Document],
+    store_adapter: StoreAdapter,
+):
+    use_denormalized_metadata = not supports_normalized_metadata(
+        vector_store_type=vector_store_type
+    )
+
+    if use_denormalized_metadata:
+        animal_docs = list(MetadataDenormalizer().transform_documents(animal_docs))
+
+    vector_store.add_documents(animal_docs)
+
     retriever = GenericGraphTraversalRetriever(
-        store=animal_store_adapter,
+        store=store_adapter,
         edges=["habitat"],
         node_selector_factory=EagerNodeSelector,
         k=10,
         start_k=2,
+        use_denormalized_metadata=use_denormalized_metadata,
     )
 
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=0)
@@ -111,44 +136,67 @@ def test_animals_eager_bidir_item(animal_store_adapter: InMemoryStoreAdapter):
     ]
 
 
-def test_animals_eager_item_to_collection(animal_store_adapter: InMemoryStoreAdapter):
+@pytest.mark.parametrize("embedding_type", ["animal"])
+def test_animals_eager_item_to_collection(
+    vector_store_type: str,
+    vector_store: VectorStore,
+    animal_docs: list[Document],
+    store_adapter: StoreAdapter,
+):
+    use_denormalized_metadata = not supports_normalized_metadata(
+        vector_store_type=vector_store_type
+    )
+
+    if use_denormalized_metadata:
+        animal_docs = list(MetadataDenormalizer().transform_documents(animal_docs))
+
+    vector_store.add_documents(animal_docs)
+
     retriever = GenericGraphTraversalRetriever(
-        store=animal_store_adapter,
+        store=store_adapter,
         edges=[("habitat", "keywords")],
         node_selector_factory=EagerNodeSelector,
         k=10,
         start_k=2,
+        use_denormalized_metadata=use_denormalized_metadata,
     )
 
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=0)
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
 
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=1)
-    if not animal_store_adapter.support_normalized_metadata:
-        assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
-        return
-
     assert sorted_doc_ids(docs) == ["bear", "bobcat", "fox", "mongoose"]
 
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=2)
     assert sorted_doc_ids(docs) == ["bear", "bobcat", "caribou", "fox", "mongoose"]
 
 
-@pytest.fixture(scope="function")
-def parser_adapter(graph_vector_store_docs: list[Document]) -> InMemoryStoreAdapter:
-    store = InMemoryVectorStore(embedding=ParserEmbeddings(dimension=2))
-    store.add_documents(graph_vector_store_docs)
-    return InMemoryStoreAdapter(store)
+@pytest.mark.parametrize("embedding_type", ["parser-d2"])
+def test_parser_eager_sync(
+    vector_store_type: str,
+    vector_store: VectorStore,
+    graph_vector_store_docs: list[Document],
+    store_adapter: StoreAdapter,
+):
+    use_denormalized_metadata = not supports_normalized_metadata(
+        vector_store_type=vector_store_type
+    )
 
+    if use_denormalized_metadata:
+        graph_vector_store_docs = list(
+            MetadataDenormalizer().transform_documents(graph_vector_store_docs)
+        )
 
-def test_parser_eager_sync(parser_adapter: InMemoryStoreAdapter):
+    vector_store.add_documents(graph_vector_store_docs)
+
     retriever = GenericGraphTraversalRetriever(
-        store=parser_adapter,
+        store=store_adapter,
         edges=[("out", "in"), "tag"],
         node_selector_factory=EagerNodeSelector,
         k=10,
         start_k=2,
         extra_args={"max_depth": 2},
+        use_denormalized_metadata=use_denormalized_metadata,
     )
 
     docs = retriever.invoke(input="[2, 10]", max_depth=0)
@@ -164,15 +212,34 @@ def test_parser_eager_sync(parser_adapter: InMemoryStoreAdapter):
     assert_document_format(docs[0])
 
 
-async def test_parser_eager_async(parser_adapter: InMemoryStoreAdapter):
+@pytest.mark.parametrize("embedding_type", ["parser-d2"])
+async def test_parser_eager_async(
+    vector_store_type: str,
+    vector_store: VectorStore,
+    graph_vector_store_docs: list[Document],
+    store_adapter: StoreAdapter,
+):
+    use_denormalized_metadata = not supports_normalized_metadata(
+        vector_store_type=vector_store_type
+    )
+
+    if use_denormalized_metadata:
+        graph_vector_store_docs = list(
+            MetadataDenormalizer().transform_documents(graph_vector_store_docs)
+        )
+
+    await vector_store.aadd_documents(graph_vector_store_docs)
+
     retriever = GenericGraphTraversalRetriever(
-        store=parser_adapter,
+        store=store_adapter,
         edges=[("out", "in"), "tag"],
         node_selector_factory=EagerNodeSelector,
         k=10,
         start_k=2,
         extra_args={"max_depth": 2},
+        use_denormalized_metadata=use_denormalized_metadata,
     )
+
     docs = await retriever.ainvoke(input="[2, 10]", max_depth=0)
     ss_labels = {doc.metadata["label"] for doc in docs}
     assert ss_labels == {"AR", "A0"}

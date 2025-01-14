@@ -25,7 +25,11 @@ docker-down:
 
 .PHONY: integration
 integration:
-	uv run pytest -v ./tests/integration_tests/
+	uv run pytest -vs ./tests/integration_tests/
+
+.PHONY: in-memory
+in-memory:
+	uv run pytest -vs --in-memory-only ./tests/integration_tests/
 
 .PHONY: unit
 unit:

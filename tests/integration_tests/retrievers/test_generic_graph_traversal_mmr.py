@@ -1,51 +1,58 @@
 import pytest
 from langchain_core.documents import Document
-from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_core.vectorstores import VectorStore
 
+from graph_pancake.document_transformers.metadata_denormalizer import (
+    MetadataDenormalizer,
+)
 from graph_pancake.retrievers.generic_graph_traversal_retriever import (
     GenericGraphTraversalRetriever,
 )
 from graph_pancake.retrievers.node_selectors.mmr_scoring_node_selector import (
     MmrScoringNodeSelector,
 )
-from graph_pancake.retrievers.traversal_adapters.generic.in_memory import (
-    InMemoryStoreAdapter,
+from graph_pancake.retrievers.traversal_adapters.generic.base import (
+    StoreAdapter,
 )
-from tests.conftest import sorted_doc_ids
-from tests.embeddings.fake_embeddings import AngularTwoDimensionalEmbeddings
-
-
-@pytest.fixture(scope="function", params=[False, True])
-def animal_store_adapter(
-    animal_store: InMemoryVectorStore, request: pytest.FixtureRequest
-) -> InMemoryStoreAdapter:
-    return InMemoryStoreAdapter(animal_store, support_normalized_metadata=request.param)
-
+from tests.integration_tests.retrievers.conftest import (
+    sorted_doc_ids,
+    supports_normalized_metadata,
+)
 
 ANIMALS_QUERY: str = "small agile mammal"
 ANIMALS_DEPTH_0_EXPECTED: list[str] = ["fox", "mongoose"]
 
 
-def test_animals_mmr_bidir_collection(animal_store_adapter: InMemoryStoreAdapter):
+@pytest.mark.parametrize("embedding_type", ["animal"])
+def test_animals_mmr_bidir_collection(
+    vector_store_type: str,
+    vector_store: VectorStore,
+    animal_docs: list[Document],
+    store_adapter: StoreAdapter,
+):
     # test graph-search on a normalized bi-directional edge
+    use_denormalized_metadata = not supports_normalized_metadata(
+        vector_store_type=vector_store_type
+    )
+
+    if use_denormalized_metadata:
+        animal_docs = list(MetadataDenormalizer().transform_documents(animal_docs))
+
+    vector_store.add_documents(animal_docs)
+
     retriever = GenericGraphTraversalRetriever(
-        store=animal_store_adapter,
+        store=store_adapter,
         edges=["keywords"],
         node_selector_factory=MmrScoringNodeSelector,
         k=4,
         start_k=2,
+        use_denormalized_metadata=use_denormalized_metadata,
     )
 
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=0)
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
 
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=1)
-
-    if not animal_store_adapter.support_normalized_metadata:
-        # If we don't support normalized data, then no edges are traversed.
-        assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
-        return
-
     assert sorted_doc_ids(docs) == ["cat", "gazelle", "jackal", "mongoose"]
 
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=2, k=6)
@@ -59,13 +66,29 @@ def test_animals_mmr_bidir_collection(animal_store_adapter: InMemoryStoreAdapter
     ]
 
 
-def test_animals_mmr_bidir_item(animal_store_adapter: InMemoryStoreAdapter):
+@pytest.mark.parametrize("embedding_type", ["animal"])
+def test_animals_mmr_bidir_item(
+    vector_store_type: str,
+    vector_store: VectorStore,
+    animal_docs: list[Document],
+    store_adapter: StoreAdapter,
+):
+    use_denormalized_metadata = not supports_normalized_metadata(
+        vector_store_type=vector_store_type
+    )
+
+    if use_denormalized_metadata:
+        animal_docs = list(MetadataDenormalizer().transform_documents(animal_docs))
+
+    vector_store.add_documents(animal_docs)
+
     retriever = GenericGraphTraversalRetriever(
-        store=animal_store_adapter,
+        store=store_adapter,
         edges=["habitat"],
         node_selector_factory=MmrScoringNodeSelector,
         k=10,
         start_k=2,
+        use_denormalized_metadata=use_denormalized_metadata,
     )
 
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=0)
@@ -92,30 +115,48 @@ def test_animals_mmr_bidir_item(animal_store_adapter: InMemoryStoreAdapter):
     ]
 
 
-def test_animals_mmr_item_to_collection(animal_store_adapter: InMemoryStoreAdapter):
+@pytest.mark.parametrize("embedding_type", ["animal"])
+def test_animals_mmr_item_to_collection(
+    vector_store_type: str,
+    vector_store: VectorStore,
+    animal_docs: list[Document],
+    store_adapter: StoreAdapter,
+) -> None:
+    use_denormalized_metadata = not supports_normalized_metadata(
+        vector_store_type=vector_store_type
+    )
+
+    if use_denormalized_metadata:
+        animal_docs = list(MetadataDenormalizer().transform_documents(animal_docs))
+
+    vector_store.add_documents(animal_docs)
+
     retriever = GenericGraphTraversalRetriever(
-        store=animal_store_adapter,
+        store=store_adapter,
         edges=[("habitat", "keywords")],
         node_selector_factory=MmrScoringNodeSelector,
         k=10,
         start_k=2,
+        use_denormalized_metadata=use_denormalized_metadata,
     )
 
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=0)
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
 
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=1)
-    if not animal_store_adapter.support_normalized_metadata:
-        assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
-        return
-
     assert sorted_doc_ids(docs) == ["bear", "bobcat", "fox", "mongoose"]
 
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=2)
     assert sorted_doc_ids(docs) == ["bear", "bobcat", "caribou", "fox", "mongoose"]
 
 
-def test_mmr_traversal() -> None:
+@pytest.mark.parametrize("embedding_type", ["angular"])
+def test_mmr_traversal(
+    vector_store_type: str,
+    vector_store: VectorStore,
+    animal_docs: list[Document],
+    store_adapter: StoreAdapter,
+) -> None:
     """ Test end to end construction and MMR search.
     The embedding function used here ensures `texts` become
     the following vectors on a circle (numbered v0 through v3):
@@ -143,11 +184,10 @@ def test_mmr_traversal() -> None:
     v2.metadata["incoming"] = "link"
     v3.metadata["incoming"] = "link"
 
-    store = InMemoryVectorStore(embedding=AngularTwoDimensionalEmbeddings())
-    store.add_documents([v0, v1, v2, v3])
+    vector_store.add_documents([v0, v1, v2, v3])
 
     retriever = GenericGraphTraversalRetriever(
-        store=InMemoryStoreAdapter(vector_store=store),
+        store=store_adapter,
         edges=[("outgoing", "incoming")],
         node_selector_factory=MmrScoringNodeSelector,
         start_k=2,
