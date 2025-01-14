@@ -57,10 +57,62 @@ class CassandraMMRTraversalAdapter(MMRTraversalAdapter):
         return query_embedding, docs
 
     def similarity_search_with_embedding_by_vector(  # type: ignore
-        self, **kwargs: Any
+        self,
+        embedding: List[float],
+        k: int = 4,
+        filter: dict[str, str] | None = None,
+        **kwargs: Any,
     ) -> List[Document]:
-        msg = "use the async implementation instead."
-        raise NotImplementedError(msg)
+        results = self._similarity_search_with_embedding_id_by_vector(
+            embedding=embedding,
+            k=k,
+            filter=filter,
+            **kwargs,
+        )
+        docs: List[Document] = []
+        for doc, embedding, id in results:
+            doc.metadata[METADATA_EMBEDDING_KEY] = embedding
+            doc.id = id
+            docs.append(doc)
+        return docs
+
+    def _similarity_search_with_embedding_id_by_vector(
+        self,
+        embedding: list[float],
+        k: int = 4,
+        filter: dict[str, str] | None = None,
+        body_search: str | list[str] | None = None,
+    ) -> list[tuple[Document, list[float], str]]:
+        """Return docs most similar to embedding vector.
+
+        Args:
+            embedding: Embedding to look up documents similar to.
+            k: Number of Documents to return. Defaults to 4.
+            filter: Filter on the metadata to apply.
+            body_search: Document textual search terms to apply.
+                Only supported by Astra DB at the moment.
+        Returns:
+            List of (Document, embedding, id), the most similar to the query vector.
+        """
+        kwargs: dict[str, Any] = {}
+        if filter is not None:
+            kwargs["metadata"] = filter
+        if body_search is not None:
+            kwargs["body_search"] = body_search
+
+        hits = self._vector_store.table.ann_search(
+            vector=embedding,
+            n=k,
+            **kwargs,
+        )
+        return [
+            (
+                self._vector_store._row_to_document(row=hit),
+                hit["vector"],
+                hit["row_id"],
+            )
+            for hit in hits
+        ]
 
     async def asimilarity_search_with_embedding_by_vector(
         self,

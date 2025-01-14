@@ -1,48 +1,33 @@
-import pytest
-from langchain_core.documents import Document
-from langchain_core.vectorstores import InMemoryVectorStore
-
 from graph_pancake.retrievers.generic_graph_traversal_retriever import (
     GenericGraphTraversalRetriever,
 )
 from graph_pancake.retrievers.strategy.eager import (
     Eager,
 )
-from graph_pancake.retrievers.traversal_adapters.generic.in_memory import (
-    InMemoryStoreAdapter,
+from tests.integration_tests.assertions import assert_document_format, sorted_doc_ids
+from tests.integration_tests.retrievers.animal_docs import (
+    ANIMALS_DEPTH_0_EXPECTED,
+    ANIMALS_QUERY,
 )
-from tests.conftest import assert_document_format, sorted_doc_ids
-from tests.embeddings.simple_embeddings import ParserEmbeddings
-
-
-@pytest.fixture(scope="function", params=["norm", "denorm"])
-def animal_store_adapter(
-    animal_store: InMemoryVectorStore, request: pytest.FixtureRequest
-) -> InMemoryStoreAdapter:
-    return InMemoryStoreAdapter(
-        animal_store, support_normalized_metadata=request.param == "norm"
-    )
-
-
-ANIMALS_QUERY: str = "small agile mammal"
-ANIMALS_DEPTH_0_EXPECTED: list[str] = ["fox", "mongoose"]
+from tests.integration_tests.stores import Stores
 
 
 async def test_animals_bidir_collection_eager(
-    animal_store_adapter: InMemoryStoreAdapter, invoker
+    animal_store: Stores, support_normalized_metadata: bool, invoker
 ):
     # test graph-search on a normalized bi-directional edge
     retriever = GenericGraphTraversalRetriever(
-        store=animal_store_adapter,
+        store=animal_store.generic,
         edges=["keywords"],
+        strategy=Eager(k=100, start_k=2, max_depth=0),
     )
 
-    docs = await invoker(retriever, ANIMALS_QUERY, Eager(k=100, start_k=2, max_depth=0))
+    docs = await invoker(retriever, ANIMALS_QUERY, strategy={"max_depth": 0})
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
 
-    docs = await invoker(retriever, ANIMALS_QUERY, Eager(k=100, start_k=2, max_depth=1))
+    docs = await invoker(retriever, ANIMALS_QUERY, strategy={"max_depth": 1})
 
-    if not animal_store_adapter.support_normalized_metadata:
+    if not support_normalized_metadata:
         # If we don't support normalized data, then no edges are traversed.
         assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
         return
@@ -57,7 +42,7 @@ async def test_animals_bidir_collection_eager(
         "mongoose",
     ]
 
-    docs = await invoker(retriever, ANIMALS_QUERY, Eager(k=100, start_k=2, max_depth=2))
+    docs = await invoker(retriever, ANIMALS_QUERY, strategy={"max_depth": 2})
     assert sorted_doc_ids(docs) == [
         "alpaca",
         "bison",
@@ -79,18 +64,20 @@ async def test_animals_bidir_collection_eager(
     ]
 
 
-async def test_animals_eager_bidir_item(
-    animal_store_adapter: InMemoryStoreAdapter, invoker
-):
+async def test_animals_bidir_item(animal_store: Stores, invoker):
     retriever = GenericGraphTraversalRetriever(
-        store=animal_store_adapter,
+        store=animal_store.generic,
         edges=["habitat"],
     )
 
-    docs = await invoker(retriever, ANIMALS_QUERY, Eager(k=10, start_k=2, max_depth=0))
+    docs = await invoker(
+        retriever, ANIMALS_QUERY, strategy=Eager(k=10, start_k=2, max_depth=0)
+    )
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
 
-    docs = await invoker(retriever, ANIMALS_QUERY, Eager(k=10, start_k=2, max_depth=1))
+    docs = await invoker(
+        retriever, ANIMALS_QUERY, strategy=Eager(k=10, start_k=2, max_depth=1)
+    )
     assert sorted_doc_ids(docs) == [
         "bobcat",
         "cobra",
@@ -100,7 +87,9 @@ async def test_animals_eager_bidir_item(
         "mongoose",
     ]
 
-    docs = await invoker(retriever, ANIMALS_QUERY, Eager(k=10, start_k=2, max_depth=2))
+    docs = await invoker(
+        retriever, ANIMALS_QUERY, strategy=Eager(k=10, start_k=2, max_depth=2)
+    )
     assert sorted_doc_ids(docs) == [
         "bobcat",
         "cobra",
@@ -111,43 +100,44 @@ async def test_animals_eager_bidir_item(
     ]
 
 
-async def test_animals_eager_item_to_collection(
-    animal_store_adapter: InMemoryStoreAdapter, invoker
+async def test_animals_item_to_collection(
+    animal_store: Stores, support_normalized_metadata: bool, invoker
 ):
     retriever = GenericGraphTraversalRetriever(
-        store=animal_store_adapter,
+        store=animal_store.generic,
         edges=[("habitat", "keywords")],
     )
 
-    docs = await invoker(retriever, ANIMALS_QUERY, Eager(k=10, start_k=2, max_depth=0))
+    docs = await invoker(
+        retriever, ANIMALS_QUERY, strategy=Eager(k=10, start_k=2, max_depth=0)
+    )
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
 
-    docs = await invoker(retriever, ANIMALS_QUERY, Eager(k=10, start_k=2, max_depth=1))
-    if not animal_store_adapter.support_normalized_metadata:
+    docs = await invoker(
+        retriever, ANIMALS_QUERY, strategy=Eager(k=10, start_k=2, max_depth=1)
+    )
+    if not support_normalized_metadata:
         assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
         return
 
     assert sorted_doc_ids(docs) == ["bear", "bobcat", "fox", "mongoose"]
 
-    docs = await invoker(retriever, ANIMALS_QUERY, Eager(k=10, start_k=2, max_depth=2))
+    docs = await invoker(
+        retriever, ANIMALS_QUERY, strategy=Eager(k=10, start_k=2, max_depth=2)
+    )
     assert sorted_doc_ids(docs) == ["bear", "bobcat", "caribou", "fox", "mongoose"]
 
 
-@pytest.fixture(scope="function")
-def parser_adapter(graph_vector_store_docs: list[Document]) -> InMemoryStoreAdapter:
-    store = InMemoryVectorStore(embedding=ParserEmbeddings(dimension=2))
-    store.add_documents(graph_vector_store_docs)
-    return InMemoryStoreAdapter(store)
-
-
-async def test_parser_eager(parser_adapter: InMemoryStoreAdapter, invoker):
+async def test_parser(parser_store: Stores, invoker):
     retriever = GenericGraphTraversalRetriever(
-        store=parser_adapter,
+        store=parser_store.generic,
         edges=[("out", "in"), "tag"],
         strategy=Eager(k=10, start_k=2, max_depth=2),
     )
 
-    docs = await invoker(retriever, "[2, 10]", Eager(k=10, start_k=2, max_depth=0))
+    docs = await invoker(
+        retriever, "[2, 10]", strategy=Eager(k=10, start_k=2, max_depth=0)
+    )
     ss_labels = {doc.metadata["label"] for doc in docs}
     assert ss_labels == {"AR", "A0"}
     assert_document_format(docs[0])

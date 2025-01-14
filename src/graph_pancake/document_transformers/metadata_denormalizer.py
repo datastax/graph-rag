@@ -48,7 +48,7 @@ class MetadataDenormalizer(BaseDocumentTransformer):
         *,
         keys: set[str] = set(),
         path_delimiter: str = ".",
-        static_value: Any = True,
+        static_value: Any = "$",
     ):
         self.keys = keys
         self.path_delimiter = path_delimiter
@@ -57,17 +57,22 @@ class MetadataDenormalizer(BaseDocumentTransformer):
     def transform_documents(
         self, documents: Sequence[Document], **kwargs: Any
     ) -> Sequence[Document]:
-        """Denormalizes sequence-based metadata fields"""
+        """Denormalizes sequence-based metadata fields."""
+        transformed_docs = []
         for document in documents:
-            document_keys = set(document.metadata.keys())
-            keys = document_keys & self.keys if len(self.keys) > 0 else document_keys
-            for key in keys:
-                value = document.metadata[key]
-                if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+            new_doc = Document(id=document.id, page_content=document.page_content)
+            for key, value in document.metadata.items():
+                is_normalized = isinstance(value, Sequence) and not isinstance(
+                    value, (str, bytes)
+                )
+                should_denormalize = (not self.keys) or (key in self.keys)
+                if is_normalized and should_denormalize:
                     for item in value:
-                        document.metadata[f"{key}{self.path_delimiter}{item}"] = (
+                        new_doc.metadata[f"{key}{self.path_delimiter}{item}"] = (
                             self.static_value
                         )
-                    del document.metadata[key]
+                else:
+                    new_doc.metadata[key] = value
+            transformed_docs.append(new_doc)
 
-        return documents
+        return transformed_docs

@@ -4,25 +4,22 @@ from typing import (
     List,
     Optional,
     Sequence,
-    cast,
 )
 
 from langchain_core.documents import Document
-from langchain_core.vectorstores import VectorStore
 
 from .base import METADATA_EMBEDDING_KEY, StoreAdapter
 
+try:
+    from langchain_chroma import Chroma
+except (ImportError, ModuleNotFoundError):
+    msg = "please `pip install langchain-chroma`"
+    raise ImportError(msg)
 
-class ChromaStoreAdapter(StoreAdapter):
-    def __init__(self, vector_store: VectorStore):
-        try:
-            from langchain_chroma import Chroma
-        except (ImportError, ModuleNotFoundError):
-            msg = "please `pip install langchain-chroma`"
-            raise ImportError(msg)
 
-        self._vector_store = cast(Chroma, vector_store)
-        self._base_vector_store = vector_store
+class ChromaStoreAdapter(StoreAdapter[Chroma]):
+    def __init__(self, vector_store: Chroma):
+        super().__init__(vector_store)
 
     def similarity_search_with_embedding_by_vector(
         self,
@@ -38,10 +35,10 @@ class ChromaStoreAdapter(StoreAdapter):
             msg = "please `pip install chromadb`"
             raise ImportError(msg)
 
-        if k > self._vector_store._collection.count():
-            k = self._vector_store._collection.count()
+        if k > self.vector_store._collection.count():
+            k = self.vector_store._collection.count()
 
-        results = self._vector_store._collection.query(
+        results = self.vector_store._collection.query(
             query_embeddings=embedding,  # type: ignore
             n_results=k,
             where=filter,  # type: ignore
@@ -73,7 +70,7 @@ class ChromaStoreAdapter(StoreAdapter):
 
     def get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
         """Get documents by id."""
-        results = self._vector_store.get(ids=list(ids), **kwargs)
+        results = self.vector_store.get(ids=list(ids), **kwargs)
         return [
             Document(
                 page_content=text,

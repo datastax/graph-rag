@@ -37,7 +37,9 @@ class _TraversalState:
         if isinstance(strategy, TraversalStrategy):
             self.strategy = strategy.model_copy(deep=True)
         elif isinstance(strategy, dict):
-            assert base_strategy is not None, "Must set strategy in init to support field-overrides."
+            assert (
+                base_strategy is not None
+            ), "Must set strategy in init to support field-overrides."
             self.strategy = base_strategy.model_copy(update=strategy, deep=True)
         elif strategy is None:
             assert base_strategy is not None, "Must set strategy in init or invocation."
@@ -180,7 +182,7 @@ class GenericGraphTraversalRetriever(BaseRetriever):
 
     use_denormalized_metadata: bool = Field(default=False)
     denormalized_path_delimiter: str = Field(default=".")
-    denormalized_static_value: Any = Field(default=True)
+    denormalized_static_value: Any = Field(default="$")
 
     extra_args: dict[str, Any] = {}
 

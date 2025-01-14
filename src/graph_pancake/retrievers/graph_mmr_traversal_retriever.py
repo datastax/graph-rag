@@ -35,7 +35,7 @@ class GraphMMRTraversalRetriever(BaseRetriever):
     score_threshold: float = Field(default=float("-inf"))
     use_denormalized_metadata: bool = Field(default=False)
     denormalized_path_delimiter: str = Field(default=".")
-    denormalized_static_value: Any = Field(default=True)
+    denormalized_static_value: Any = Field(default="$")
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
@@ -555,6 +555,11 @@ class GraphMMRTraversalRetriever(BaseRetriever):
                 value = doc.metadata[source_key]
                 if isinstance(value, BASIC_TYPES):
                     edges.add(Edge(key=target_key, value=value))
+                    if self.use_denormalized_metadata:
+                        # TODO: Why is this needed?
+                        edges.add(
+                            Edge(key=target_key, value=value, is_denormalized=True)
+                        )
                 elif isinstance(value, Iterable) and not isinstance(
                     value, (str, bytes)
                 ):

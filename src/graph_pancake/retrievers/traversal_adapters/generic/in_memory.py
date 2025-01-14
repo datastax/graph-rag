@@ -22,7 +22,7 @@ class InMemoryStoreAdapter(StoreAdapter[InMemoryVectorStore]):
         *,
         support_normalized_metadata: bool = False,
     ):
-        self.vector_store = vector_store
+        super().__init__(vector_store)
         self.support_normalized_metadata = support_normalized_metadata
 
     def get(self, ids: Sequence[str], /, **kwargs) -> list[Document]:

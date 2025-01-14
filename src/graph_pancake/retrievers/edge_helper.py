@@ -1,6 +1,8 @@
 import warnings
 from typing import Any, Iterable
 
+from graph_pancake.retrievers.consts import METADATA_EMBEDDING_KEY
+
 from .edge import Edge
 
 BASIC_TYPES = (str, bool, int, float, complex, bytes)
@@ -25,7 +27,7 @@ class EdgeHelper:
         *,
         use_denormalized_metadata: bool = False,
         denormalized_path_delimiter: str = ".",
-        denormalized_static_value: Any = True,
+        denormalized_static_value: Any = "$",
     ) -> None:
         self.use_denormalized_metadata = use_denormalized_metadata
         self.denormalized_path_delimiter = denormalized_path_delimiter
@@ -88,6 +90,7 @@ class EdgeHelper:
     ) -> dict[str, Any]:
         normalized: dict[str, Any] = {}
         for key, value in denormalized_metadata.items():
+            assert key != METADATA_EMBEDDING_KEY, "should we skip this?"
             if value != self.denormalized_static_value:
                 continue
 

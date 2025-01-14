@@ -1,4 +1,3 @@
-import pytest
 from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore
 
@@ -11,75 +10,67 @@ from graph_pancake.retrievers.strategy.mmr import (
 from graph_pancake.retrievers.traversal_adapters.generic.in_memory import (
     InMemoryStoreAdapter,
 )
-from tests.conftest import sorted_doc_ids
 from tests.embeddings.fake_embeddings import AngularTwoDimensionalEmbeddings
+from tests.integration_tests.assertions import sorted_doc_ids
+from tests.integration_tests.retrievers.animal_docs import (
+    ANIMALS_DEPTH_0_EXPECTED,
+    ANIMALS_QUERY,
+)
+from tests.integration_tests.stores import Stores
 
 
-@pytest.fixture(scope="function", params=["norm", "denorm"])
-def animal_store_adapter(
-    animal_store: InMemoryVectorStore, request: pytest.FixtureRequest
-) -> InMemoryStoreAdapter:
-    return InMemoryStoreAdapter(
-        animal_store, support_normalized_metadata=request.param == "norm"
-    )
-
-
-ANIMALS_QUERY: str = "small agile mammal"
-ANIMALS_DEPTH_0_EXPECTED: list[str] = ["fox", "mongoose"]
-
-
-def test_mmr_parameters() -> None:
-    mmr1 = Mmr(query_embedding=[0.25, 0.5, 0.75])
-    assert id(mmr1._nd_query_embedding) == id(mmr1._nd_query_embedding)
-
-    mmr2 = mmr1.model_copy(deep=True)
-    assert id(mmr1._nd_query_embedding) != id(mmr2._nd_query_embedding)
-
-
-async def test_animals_mmr_bidir_collection(
-    animal_store_adapter: InMemoryStoreAdapter, invoker
+async def test_animals_bidir_collection(
+    animal_store: Stores, support_normalized_metadata: bool, invoker
 ):
     # test graph-search on a normalized bi-directional edge
     retriever = GenericGraphTraversalRetriever(
-        store=animal_store_adapter,
+        store=animal_store.generic,
         edges=["keywords"],
     )
 
-    docs = await invoker(retriever, ANIMALS_QUERY, Mmr(k=4, start_k=2, max_depth=0))
+    docs = await invoker(
+        retriever, ANIMALS_QUERY, strategy=Mmr(k=4, start_k=2, max_depth=0)
+    )
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
 
-    docs = await invoker(retriever, ANIMALS_QUERY, Mmr(k=4, start_k=2, max_depth=1))
+    docs = await invoker(
+        retriever, ANIMALS_QUERY, strategy=Mmr(k=4, start_k=2, max_depth=1)
+    )
 
-    if not animal_store_adapter.support_normalized_metadata:
+    if not support_normalized_metadata:
         # If we don't support normalized data, then no edges are traversed.
         assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
         return
 
-    assert sorted_doc_ids(docs) == ["cat", "gazelle", "jackal", "mongoose"]
+    assert sorted_doc_ids(docs) == ["cat", "gazelle", "hyena", "mongoose"]
 
-    docs = await invoker(retriever, ANIMALS_QUERY, Mmr(k=6, start_k=2, max_depth=2))
+    docs = await invoker(
+        retriever, ANIMALS_QUERY, strategy=Mmr(k=6, start_k=2, max_depth=2)
+    )
     assert sorted_doc_ids(docs) == [
+        "bison",
         "cat",
-        "cockroach",
-        "coyote",
+        "fox",
         "gazelle",
-        "jackal",
+        "hyena",
         "mongoose",
     ]
 
 
-async def test_animals_mmr_bidir_item(
-    animal_store_adapter: InMemoryStoreAdapter, invoker
-):
+async def test_animals_bidir_item(animal_store: Stores, invoker):
     retriever = GenericGraphTraversalRetriever(
-        store=animal_store_adapter,
+        store=animal_store.generic,
         edges=["habitat"],
     )
 
-    docs = await invoker(retriever, ANIMALS_QUERY, Mmr(k=10, start_k=2, max_depth=0))
+    docs = await invoker(
+        retriever, ANIMALS_QUERY, strategy=Mmr(k=10, start_k=2, max_depth=0)
+    )
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
 
-    docs = await invoker(retriever, ANIMALS_QUERY, Mmr(k=10, start_k=2, max_depth=1))
+    docs = await invoker(
+        retriever, ANIMALS_QUERY, strategy=Mmr(k=10, start_k=2, max_depth=1)
+    )
     assert sorted_doc_ids(docs) == [
         "bobcat",
         "cobra",
@@ -89,7 +80,9 @@ async def test_animals_mmr_bidir_item(
         "mongoose",
     ]
 
-    docs = await invoker(retriever, ANIMALS_QUERY, Mmr(k=10, start_k=2, max_depth=2))
+    docs = await invoker(
+        retriever, ANIMALS_QUERY, strategy=Mmr(k=10, start_k=2, max_depth=2)
+    )
     assert sorted_doc_ids(docs) == [
         "bobcat",
         "cobra",
@@ -100,29 +93,35 @@ async def test_animals_mmr_bidir_item(
     ]
 
 
-async def test_animals_mmr_item_to_collection(
-    animal_store_adapter: InMemoryStoreAdapter, invoker
+async def test_animals_item_to_collection(
+    animal_store: Stores, support_normalized_metadata: bool, invoker
 ):
     retriever = GenericGraphTraversalRetriever(
-        store=animal_store_adapter,
+        store=animal_store.generic,
         edges=[("habitat", "keywords")],
     )
 
-    docs = await invoker(retriever, ANIMALS_QUERY, Mmr(k=10, start_k=2, max_depth=0))
+    docs = await invoker(
+        retriever, ANIMALS_QUERY, strategy=Mmr(k=10, start_k=2, max_depth=0)
+    )
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
 
-    docs = await invoker(retriever, ANIMALS_QUERY, Mmr(k=10, start_k=2, max_depth=1))
-    if not animal_store_adapter.support_normalized_metadata:
+    docs = await invoker(
+        retriever, ANIMALS_QUERY, strategy=Mmr(k=10, start_k=2, max_depth=1)
+    )
+    if not support_normalized_metadata:
         assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
         return
 
     assert sorted_doc_ids(docs) == ["bear", "bobcat", "fox", "mongoose"]
 
-    docs = await invoker(retriever, ANIMALS_QUERY, Mmr(k=10, start_k=2, max_depth=2))
+    docs = await invoker(
+        retriever, ANIMALS_QUERY, strategy=Mmr(k=10, start_k=2, max_depth=2)
+    )
     assert sorted_doc_ids(docs) == ["bear", "bobcat", "caribou", "fox", "mongoose"]
 
 
-async def test_mmr_traversal(invoker) -> None:
+async def test_traversal_mem(invoker) -> None:
     """ Test end to end construction and MMR search.
     The embedding function used here ensures `texts` become
     the following vectors on a circle (numbered v0 through v3):
@@ -165,21 +164,17 @@ async def test_mmr_traversal(invoker) -> None:
 
     # With max depth 0, no edges are traversed, so this doesn't reach v2 or v3.
     # So it ends up picking "v1" even though it's similar to "v0".
-    docs = await invoker(retriever, "0.0", strategy.model_copy(update={"max_depth": 0}))
+    docs = await invoker(retriever, "0.0", strategy={"max_depth": 0})
     assert sorted_doc_ids(docs) == ["v0", "v1"]
 
     # With max depth 0 but higher `start_k`, we encounter v2
-    docs = await invoker(
-        retriever, "0.0", strategy.model_copy(update={"start_k": 3, "max_depth": 0})
-    )
+    docs = await invoker(retriever, "0.0", strategy={"start_k": 3, "max_depth": 0})
     assert sorted_doc_ids(docs) == ["v0", "v2"]
 
     # v0 score is .46, v2 score is 0.16 so it won't be chosen.
-    docs = await invoker(
-        retriever, "0.0", strategy.model_copy(update={"score_threshold": 0.2})
-    )
+    docs = await invoker(retriever, "0.0", strategy={"score_threshold": 0.2})
     assert sorted_doc_ids(docs) == ["v0"]
 
     # with k=4 we should get all of the documents.
-    docs = await invoker(retriever, "0.0", strategy.model_copy(update={"k": 4}))
+    docs = await invoker(retriever, "0.0", strategy={"k": 4})
     assert sorted_doc_ids(docs) == ["v0", "v1", "v2", "v3"]

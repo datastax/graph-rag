@@ -20,8 +20,9 @@ StoreT = TypeVar("StoreT", bound=VectorStore)
 METADATA_EMBEDDING_KEY = "__embedding"
 
 
-class StoreAdapter(Generic[StoreT]):
-    vector_store: StoreT
+class StoreAdapter(Generic[StoreT], abc.ABC):
+    def __init__(self, vector_store: StoreT):
+        self.vector_store = vector_store
 
     @property
     def _safe_embedding(self) -> Embeddings:
