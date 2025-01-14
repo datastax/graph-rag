@@ -28,14 +28,22 @@ class _TraversalState:
         self,
         *,
         edge_helper: EdgeHelper,
-        strategy: TraversalStrategy | None,
+        base_strategy: TraversalStrategy | None,
+        strategy: TraversalStrategy | dict[str, Any] | None,
     ) -> None:
         self.edge_helper = edge_helper
-        if strategy is None:
-            raise ValueError("'strategy' must be specified in init or invocation")
 
         # Deep copy in case the strategy has mutable state
-        self.strategy = strategy.model_copy(deep=True)
+        if isinstance(strategy, TraversalStrategy):
+            self.strategy = strategy.model_copy(deep=True)
+        elif isinstance(strategy, dict):
+            assert base_strategy is not None, "Must set strategy in init to support field-overrides."
+            self.strategy = base_strategy.model_copy(update=strategy, deep=True)
+        elif strategy is None:
+            assert base_strategy is not None, "Must set strategy in init or invocation."
+            self.strategy = base_strategy.model_copy(deep=True)
+        else:
+            raise ValueError(f"Unsupported strategy {strategy}")
 
         self.visited_edges: set[Edge] = set()
         self.edge_depths: dict[Edge, int] = {}
@@ -190,7 +198,7 @@ class GenericGraphTraversalRetriever(BaseRetriever):
         self,
         query: str,
         *,
-        strategy: TraversalStrategy | None = None,
+        strategy: TraversalStrategy | dict[str, Any] | None = None,
         initial_roots: Sequence[str] = (),
         filter: dict[str, Any] | None = None,
         store_kwargs: dict[str, Any] = {},
@@ -205,23 +213,18 @@ class GenericGraphTraversalRetriever(BaseRetriever):
         retrieved based on similarity (a "root").
         Args:
             query: The query string to search for.
-            strategy: Specify the strategy to use for this retrieval.
+            strategy: Specify or override the strategy to use for this retrieval.
             initial_roots: Optional list of document IDs to use for initializing search.
                 The top `adjacent_k` nodes adjacent to each initial root will be
                 included in the set of initial candidates. To fetch only in the
                 neighborhood of these nodes, set `start_k = 0`.
-            k: Number of Documents to return. Defaults to 4.
-            start_k: Number of initial Documents to fetch via similarity.
-                Will be added to the nodes adjacent to `initial_roots`.
-                Defaults to 100.
-            adjacent_k: Number of adjacent Documents to fetch.
-                Defaults to 10.
             filter: Optional metadata to filter the results.
             store_kwargs: Optional kwargs passed to queries to the store.
             **kwargs: Additional keyword arguments passed to traversal state.
         """
         state = _TraversalState(
-            strategy=strategy or self.strategy,
+            base_strategy=self.strategy,
+            strategy=strategy,
             edge_helper=self.edge_helper,
         )
 
@@ -262,7 +265,7 @@ class GenericGraphTraversalRetriever(BaseRetriever):
         self,
         query: str,
         *,
-        strategy: TraversalStrategy | None = None,
+        strategy: TraversalStrategy | dict[str, Any] | None = None,
         initial_roots: Sequence[str] = (),
         filter: dict[str, Any] | None = None,
         store_kwargs: dict[str, Any] = {},
@@ -279,23 +282,19 @@ class GenericGraphTraversalRetriever(BaseRetriever):
 
         Args:
             query: The query string to search for.
+            strategy: Specify or override the strategy to use for this retrieval.
             initial_roots: Optional list of document IDs to use for initializing search.
                 The top `adjacent_k` nodes adjacent to each initial root will be
                 included in the set of initial candidates. To fetch only in the
                 neighborhood of these nodes, set `start_k = 0`.
-            k: Number of Documents to return. Defaults to 4.
-            start_k: Number of initial Documents to fetch via similarity.
-                Will be added to the nodes adjacent to `initial_roots`.
-                Defaults to 100.
-            adjacent_k: Number of adjacent Documents to fetch.
-                Defaults to 10.
             filter: Optional metadata to filter the results.
             store_kwargs: Optional kwargs passed to queries to the store.
-            **kwargs: Additional keyword arguments.
+            **kwargs: Additional keyword arguments passed to traversal state.
         """
         state = _TraversalState(
             edge_helper=self.edge_helper,
-            strategy=strategy or self.strategy,
+            base_strategy=self.strategy,
+            strategy=strategy,
         )
 
         # Retrieve initial candidates and initialize state.
