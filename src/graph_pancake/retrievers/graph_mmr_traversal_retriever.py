@@ -555,6 +555,8 @@ class GraphMMRTraversalRetriever(BaseRetriever):
                 value = doc.metadata[source_key]
                 if isinstance(value, BASIC_TYPES):
                     edges.add(Edge(key=target_key, value=value))
+                    if self.use_denormalized_metadata:
+                        edges.add(Edge(key=target_key, value=value, is_denormalized=True))
                 elif isinstance(value, Iterable) and not isinstance(
                     value, (str, bytes)
                 ):

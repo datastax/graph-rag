@@ -3,8 +3,9 @@ from typing import Iterable
 from langchain_core.documents import Document
 
 
-class OldDocumentCache:
-    documents: dict[str, Document] = {}
+class DocumentCache:
+    def __init__(self) -> None:
+        self.documents: dict[str, Document] = {}
 
     def add_document(self, doc: Document, depth_found: int) -> None:
         if doc.id is None:

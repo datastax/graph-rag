@@ -60,17 +60,10 @@ def test_animals_mmr_bidir_collection(
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
 
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=1)
-    assert sorted_doc_ids(docs) == ["cat", "gazelle", "jackal", "mongoose"]
+    assert sorted_doc_ids(docs) == ["cat", "gazelle", "hyena", "mongoose"]
 
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=2, k=6)
-    assert sorted_doc_ids(docs) == [
-        "cat",
-        "cockroach",
-        "coyote",
-        "gazelle",
-        "jackal",
-        "mongoose",
-    ]
+    assert sorted_doc_ids(docs) == ["bison", "cat", "fox", "gazelle", "hyena", "mongoose"]
 
 
 @pytest.mark.parametrize("embedding_type", ["animal"])

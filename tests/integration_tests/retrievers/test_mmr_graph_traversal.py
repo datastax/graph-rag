@@ -243,7 +243,7 @@ def test_animals_sync(
 
     docs = retriever.invoke(query, depth=2)
     # WOULD HAVE EXPECTED THIS AT DEPTH 1
-    assert sorted_doc_ids(docs) == ["cat", "gazelle", "jackal", "mongoose"]
+    assert sorted_doc_ids(docs) == ["cat", "gazelle", "hyena", "mongoose"]
 
     # test graph-search on a standard bi-directional edge
     retriever = GraphMMRTraversalRetriever(

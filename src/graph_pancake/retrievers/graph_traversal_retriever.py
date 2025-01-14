@@ -14,7 +14,7 @@ from pydantic import Field, PrivateAttr
 
 from graph_pancake.retrievers.consts import BASIC_TYPES
 
-from .document_cache import OldDocumentCache as DocumentCache
+from .document_cache import DocumentCache
 from .edge import Edge
 from .traversal_adapters.eager import TraversalAdapter
 
@@ -250,6 +250,8 @@ class GraphTraversalRetriever(BaseRetriever):
                 value = doc.metadata[source_key]
                 if isinstance(value, BASIC_TYPES):
                     edges.add(Edge(key=target_key, value=value))
+                    if self.use_denormalized_metadata:
+                        edges.add(Edge(key=target_key, value=value, is_denormalized=True))
                 elif isinstance(value, Iterable):
                     if self.use_denormalized_metadata:
                         warnings.warn(

@@ -62,7 +62,7 @@ class ChromaStoreAdapter(StoreAdapter[Chroma]):
             docs.append(
                 Document(
                     page_content=result[0],
-                    metadata=metadata,
+                    metadata=metadata.copy(),
                     id=result[2],
                 )
             )
@@ -74,7 +74,7 @@ class ChromaStoreAdapter(StoreAdapter[Chroma]):
         return [
             Document(
                 page_content=text,
-                metadata=metadata,
+                metadata=metadata.copy(),
                 id=id,
             )
             for (text, metadata, id) in zip(

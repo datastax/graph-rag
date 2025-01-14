@@ -58,9 +58,11 @@ class InMemoryTraversalAdapter(TraversalAdapter):
 
             return True
 
-        return self._vector_store.similarity_search_by_vector(
+        docs = self._vector_store.similarity_search_by_vector(
             embedding=embedding,
             k=k,
             filter=filter_method,
             **kwargs,
         )
+
+        return [doc.model_copy(deep=True) for doc in docs]

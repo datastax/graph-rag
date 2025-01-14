@@ -3,7 +3,7 @@ from typing import Any, Iterable
 
 from .edge import Edge
 
-from graph_pancake.retrievers.consts import BASIC_TYPES
+from graph_pancake.retrievers.consts import BASIC_TYPES, METADATA_EMBEDDING_KEY
 
 
 # Sentinel object used with `dict.get(..., SENTINEL)` calls to distinguish
@@ -88,6 +88,8 @@ class EdgeHelper:
     ) -> dict[str, Any]:
         normalized: dict[str, Any] = {}
         for key, value in denormalized_metadata.items():
+            if key == METADATA_EMBEDDING_KEY:
+                continue
             if value != self.denormalized_static_value:
                 continue
 

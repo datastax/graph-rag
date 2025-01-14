@@ -48,11 +48,11 @@ def pytest_generate_tests(metafunc: Metafunc) -> None:
             vector_store_values = ["in-memory", "in-memory-denormalized"]
         else:
             vector_store_values = [
-                # "cassandra",
-                # "chroma-db",
+                "cassandra",
+                "chroma-db",
                 "in-memory",
                 "in-memory-denormalized",
-                # "open-search",
+                "open-search",
             ]
 
         # Parametrize the `vector_store_type` dynamically
@@ -273,6 +273,7 @@ def vector_store(
                 table_name=session.table_name,
             )
             yield store
+            store.delete_collection()
     elif vector_store_type == "chroma-db":
         store = Chroma(embedding_function=embeddings)
         yield store
@@ -290,6 +291,7 @@ def vector_store(
     elif vector_store_type in ["in-memory", "in-memory-denormalized"]:
         store = InMemoryVectorStore(embedding=embeddings)
         yield store
+        store.store = {}
     else:
         msg = f"Unknown vector store type: {vector_store_type}"
         raise ValueError(msg)

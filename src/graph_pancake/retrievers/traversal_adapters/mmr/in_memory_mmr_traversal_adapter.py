@@ -76,4 +76,4 @@ class InMemoryMMRTraversalAdapter(MMRTraversalAdapter):
             embedding = self._vector_store.store[doc.id]["vector"]
             doc.metadata[METADATA_EMBEDDING_KEY] = embedding
 
-        return docs
+        return [doc.model_copy(deep=True) for doc in docs]
