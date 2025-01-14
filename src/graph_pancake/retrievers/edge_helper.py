@@ -25,7 +25,7 @@ class EdgeHelper:
         *,
         use_denormalized_metadata: bool = False,
         denormalized_path_delimiter: str = ".",
-        denormalized_static_value: Any = True,
+        denormalized_static_value: Any = "true",
     ) -> None:
         self.use_denormalized_metadata = use_denormalized_metadata
         self.denormalized_path_delimiter = denormalized_path_delimiter

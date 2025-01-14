@@ -179,7 +179,7 @@ class GenericGraphTraversalRetriever(BaseRetriever):
     adjacent_k: int = Field(default=10)
     use_denormalized_metadata: bool = Field(default=False)
     denormalized_path_delimiter: str = Field(default=".")
-    denormalized_static_value: Any = Field(default=True)
+    denormalized_static_value: Any = Field(default="true")
 
     extra_args: dict[str, Any] = {}
 

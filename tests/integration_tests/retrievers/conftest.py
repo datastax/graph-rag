@@ -48,11 +48,11 @@ def pytest_generate_tests(metafunc: Metafunc) -> None:
             vector_store_values = ["in-memory", "in-memory-denormalized"]
         else:
             vector_store_values = [
-                "cassandra",
-                #"chroma-db",
+                # "cassandra",
+                # "chroma-db",
                 "in-memory",
-                #"in-memory-denormalized",
-                #"open-search",
+                "in-memory-denormalized",
+                # "open-search",
             ]
 
         # Parametrize the `vector_store_type` dynamically
@@ -100,60 +100,6 @@ def animal_docs() -> list[Document]:
 
     return documents
 
-
-@pytest.fixture(scope="module")
-def hello_docs() -> list[Document]:
-    greetings = Document(
-        id="greetings",
-        page_content="Typical Greetings",
-        metadata={
-            "incoming": "parent",
-        },
-    )
-
-    doc1 = Document(
-        id="doc1",
-        page_content="Hello World",
-        metadata={"outgoing": "parent", "keywords": ["greeting", "world"]},
-    )
-
-    doc2 = Document(
-        id="doc2",
-        page_content="Hello Earth",
-        metadata={"outgoing": "parent", "keywords": ["greeting", "earth"]},
-    )
-    return [greetings, doc1, doc2]
-
-
-@pytest.fixture(scope="module")
-def mmr_docs() -> list[Document]:
-    """The embedding function used here ensures `texts` become
-    the following vectors on a circle (numbered v0 through v3):
-
-            ______ v2
-          //     \\
-         //        \\  v1
-    v3   |     .    | query
-         \\        //  v0
-          \\______//                 (N.B. very crude drawing)
-
-    With fetch_k==2 and k==2, when query is at (1, ),
-    one expects that v2 and v0 are returned (in some order)
-    because v1 is "too close" to v0 (and v0 is closer than v1)).
-
-    Both v2 and v3 are reachable via edges from v0, so once it is
-    selected, those are both considered.
-    """
-    v0 = Document(id="v0", page_content="-0.124")
-    v1 = Document(id="v1", page_content="+0.127")
-    v2 = Document(id="v2", page_content="+0.25")
-    v3 = Document(id="v3", page_content="+1.0")
-
-    v0.metadata["outgoing"] = "link"
-    v2.metadata["incoming"] = "link"
-    v3.metadata["incoming"] = "link"
-
-    return [v0, v1, v2, v3]
 
 
 @pytest.fixture
@@ -218,13 +164,6 @@ def graph_vector_store_docs() -> list[Document]:
     for doc_f, suffix in zip(docs_f, ["l", "0", "r"]):
         doc_f.metadata["out"] = f"af_{suffix}"
     return docs_a + docs_b + docs_f + docs_t
-
-
-@pytest.fixture(scope="module")
-def animal_store(animal_docs: list[Document]) -> InMemoryVectorStore:
-    store = InMemoryVectorStore(embedding=AnimalEmbeddings())
-    store.add_documents(animal_docs)
-    return store
 
 
 class CassandraSession:

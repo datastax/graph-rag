@@ -51,7 +51,7 @@ def get_adapter(
 
 @pytest.mark.parametrize("embedding_type", ["angular"])
 def test_mmr_traversal(
-    vector_store_type: str, vector_store: VectorStore, mmr_docs: list[Document]
+    vector_store_type: str, vector_store: VectorStore
 ) -> None:
     """Test end to end construction and MMR search.
     The embedding function used here ensures `texts` become
@@ -71,10 +71,21 @@ def test_mmr_traversal(
     Both v2 and v3 are reachable via edges from v0, so once it is
     selected, those are both considered.
     """
-    if not supports_normalized_metadata(vector_store_type=vector_store_type):
-        mmr_docs = list(MetadataDenormalizer().transform_documents(mmr_docs))
+    v0 = Document(id="v0", page_content="-0.124")
+    v1 = Document(id="v1", page_content="+0.127")
+    v2 = Document(id="v2", page_content="+0.25")
+    v3 = Document(id="v3", page_content="+1.0")
 
-    vector_store.add_documents(mmr_docs)
+    v0.metadata["outgoing"] = "link"
+    v2.metadata["incoming"] = "link"
+    v3.metadata["incoming"] = "link"
+
+    docs = [v0, v1, v2, v3]
+
+    if not supports_normalized_metadata(vector_store_type=vector_store_type):
+        docs = list(MetadataDenormalizer().transform_documents(docs))
+
+    vector_store.add_documents(docs)
 
     vector_store_adapter = get_adapter(
         vector_store=vector_store,

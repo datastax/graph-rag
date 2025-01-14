@@ -48,7 +48,7 @@ class MetadataDenormalizer(BaseDocumentTransformer):
         *,
         keys: set[str] = set(),
         path_delimiter: str = ".",
-        static_value: Any = True,
+        static_value: Any = "true",
     ):
         self.keys = keys
         self.path_delimiter = path_delimiter

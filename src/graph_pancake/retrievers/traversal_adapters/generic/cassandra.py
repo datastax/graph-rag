@@ -1,8 +1,11 @@
 from typing import (
     TYPE_CHECKING,
     Any,
+    Dict,
     List,
+    Optional,
     Sequence,
+    Tuple,
 )
 
 from langchain_core.documents import Document
@@ -27,6 +30,22 @@ class CassandraStoreAdapter(StoreAdapter[Cassandra]):
     ) -> List[Document]:
         msg = "use the async implementation instead."
         raise NotImplementedError(msg)
+
+    async def asimilarity_search_with_embedding(
+        self,
+        query: str,
+        k: int = 4,
+        filter: Optional[Dict[str, str]] = None,
+        **kwargs: Any,
+    ) -> Tuple[List[float], List[Document]]:
+        query_embedding = self._safe_embedding.embed_query(text=query)
+        docs = await self.asimilarity_search_with_embedding_by_vector(
+            embedding=query_embedding,
+            k=k,
+            filter=filter,
+            **kwargs,
+        )
+        return query_embedding, docs
 
     async def asimilarity_search_with_embedding_by_vector(  # type: ignore
         self, **kwargs: Any

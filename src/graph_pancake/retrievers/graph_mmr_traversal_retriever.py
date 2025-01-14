@@ -35,7 +35,7 @@ class GraphMMRTraversalRetriever(BaseRetriever):
     score_threshold: float = Field(default=float("-inf"))
     use_denormalized_metadata: bool = Field(default=False)
     denormalized_path_delimiter: str = Field(default=".")
-    denormalized_static_value: Any = Field(default=True)
+    denormalized_static_value: Any = Field(default="true")
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)

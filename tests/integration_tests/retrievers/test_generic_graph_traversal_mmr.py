@@ -49,6 +49,13 @@ def test_animals_mmr_bidir_collection(
         use_denormalized_metadata=use_denormalized_metadata,
     )
 
+    if vector_store_type == "cassandra":
+        with pytest.raises(
+            NotImplementedError, match="use the async implementation instead"
+        ):
+            retriever.invoke(ANIMALS_QUERY)
+        return
+
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=0)
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
 
@@ -90,6 +97,13 @@ def test_animals_mmr_bidir_item(
         start_k=2,
         use_denormalized_metadata=use_denormalized_metadata,
     )
+
+    if vector_store_type == "cassandra":
+        with pytest.raises(
+            NotImplementedError, match="use the async implementation instead"
+        ):
+            retriever.invoke(ANIMALS_QUERY)
+        return
 
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=0)
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
@@ -140,6 +154,13 @@ def test_animals_mmr_item_to_collection(
         use_denormalized_metadata=use_denormalized_metadata,
     )
 
+    if vector_store_type == "cassandra":
+        with pytest.raises(
+            NotImplementedError, match="use the async implementation instead"
+        ):
+            retriever.invoke(ANIMALS_QUERY)
+        return
+
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=0)
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
 
@@ -154,7 +175,6 @@ def test_animals_mmr_item_to_collection(
 def test_mmr_traversal(
     vector_store_type: str,
     vector_store: VectorStore,
-    animal_docs: list[Document],
     store_adapter: StoreAdapter,
 ) -> None:
     """ Test end to end construction and MMR search.
@@ -194,6 +214,13 @@ def test_mmr_traversal(
         k=2,
         extra_args={"max_depth": 2},
     )
+
+    if vector_store_type == "cassandra":
+        with pytest.raises(
+            NotImplementedError, match="use the async implementation instead"
+        ):
+            retriever.invoke("0.0")
+        return
 
     docs = retriever.invoke("0.0", k=2, start_k=2)
     assert sorted_doc_ids(docs) == ["v0", "v2"]

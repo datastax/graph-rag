@@ -114,8 +114,8 @@ def test_get_metadata_filter_denormalized() -> None:
 
     assert edge_helper.get_metadata_filter(
         edge=Edge(key="incoming", value=4, is_denormalized=True)
-    ) == {"incoming.4": True}
+    ) == {"incoming.4": "true"}
 
     assert edge_helper.get_metadata_filter(
         edge=Edge(key="place", value="berlin", is_denormalized=True)
-    ) == {"place.berlin": True}
+    ) == {"place.berlin": "true"}

@@ -71,6 +71,7 @@ def test_get_denormalized_outgoing_edges() -> None:
         store=FakeAdapter(),
         edges=["place", ("outgoing", "incoming"), "boolean", ("number", "string")],
         use_denormalized_metadata=True,
+        denormalized_static_value=True,
     )
 
     edges = sorted(retriever._get_outgoing_edges(doc=doc))
@@ -116,8 +117,8 @@ def test_get_denormalized_metadata_filter() -> None:
 
     assert retriever._get_metadata_filter(
         edge=Edge(key="incoming", value=4, is_denormalized=True)
-    ) == {"incoming.4": True}
+    ) == {"incoming.4": "true"}
 
     assert retriever._get_metadata_filter(
         edge=Edge(key="place", value="berlin", is_denormalized=True)
-    ) == {"place.berlin": True}
+    ) == {"place.berlin": "true"}

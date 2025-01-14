@@ -49,16 +49,37 @@ def get_adapter(vector_store: VectorStore, vector_store_type: str) -> TraversalA
 def test_traversal(
     vector_store_type: str,
     vector_store: VectorStore,
-    hello_docs: list[Document],
 ) -> None:
+    greetings = Document(
+        id="greetings",
+        page_content="Typical Greetings",
+        metadata={
+            "incoming": "parent",
+        },
+    )
+
+    doc1 = Document(
+        id="doc1",
+        page_content="Hello World",
+        metadata={"outgoing": "parent", "keywords": ["greeting", "world"]},
+    )
+
+    doc2 = Document(
+        id="doc2",
+        page_content="Hello Earth",
+        metadata={"outgoing": "parent", "keywords": ["greeting", "earth"]},
+    )
+
+    docs = [greetings, doc1, doc2]
+
     use_denormalized_metadata = not supports_normalized_metadata(
         vector_store_type=vector_store_type
     )
 
     if use_denormalized_metadata:
-        hello_docs = list(MetadataDenormalizer().transform_documents(hello_docs))
+        docs = list(MetadataDenormalizer().transform_documents(docs))
 
-    vector_store.add_documents(hello_docs)
+    vector_store.add_documents(docs)
 
     vector_store_adapter = get_adapter(
         vector_store=vector_store,
@@ -72,6 +93,7 @@ def test_traversal(
         depth=2,
         use_denormalized_metadata=use_denormalized_metadata,
     )
+
 
     docs = retriever.invoke("Earth", start_k=1, depth=0)
     assert sorted_doc_ids(docs) == ["doc2"]

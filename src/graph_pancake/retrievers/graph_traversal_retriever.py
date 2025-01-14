@@ -29,7 +29,7 @@ class GraphTraversalRetriever(BaseRetriever):
     depth: int = Field(default=2)
     use_denormalized_metadata: bool = Field(default=False)
     denormalized_path_delimiter: str = Field(default=".")
-    denormalized_static_value: Any = Field(default=True)
+    denormalized_static_value: Any = Field(default="true")
 
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
@@ -250,9 +250,7 @@ class GraphTraversalRetriever(BaseRetriever):
                 value = doc.metadata[source_key]
                 if isinstance(value, BASIC_TYPES):
                     edges.add(Edge(key=target_key, value=value))
-                elif isinstance(value, Iterable) and not isinstance(
-                    value, (str, bytes)
-                ):
+                elif isinstance(value, Iterable):
                     if self.use_denormalized_metadata:
                         warnings.warn(
                             "Iterable metadata values are supported as"
