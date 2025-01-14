@@ -3,7 +3,7 @@ from typing import Any, Iterable
 
 from .edge import Edge
 
-BASIC_TYPES = (str, bool, int, float, complex, bytes)
+from graph_pancake.retrievers.consts import BASIC_TYPES
 
 
 # Sentinel object used with `dict.get(..., SENTINEL)` calls to distinguish

@@ -3,11 +3,14 @@ from typing import (
     Any,
     List,
     Sequence,
-    cast,
 )
 
 from langchain_core.documents import Document
-from langchain_core.vectorstores import VectorStore
+
+try:
+    from langchain_community.vectorstores import Cassandra
+except (ImportError, ModuleNotFoundError):
+    raise ImportError("please `pip install langchain-community`")
 
 if TYPE_CHECKING:
     pass
@@ -15,11 +18,9 @@ if TYPE_CHECKING:
 from .base import METADATA_EMBEDDING_KEY, StoreAdapter
 
 
-class CassandraStoreAdapter(StoreAdapter):
-    def __init__(self, vector_store: VectorStore):
-        from langchain_community.vectorstores import Cassandra
-
-        self._vector_store = cast(Cassandra, vector_store)
+class CassandraStoreAdapter(StoreAdapter[Cassandra]):
+    def __init__(self, vector_store: Cassandra):
+        self.vector_store = vector_store
 
     def similarity_search_with_embedding_by_vector(  # type: ignore
         self, **kwargs: Any
@@ -31,7 +32,7 @@ class CassandraStoreAdapter(StoreAdapter):
         self, **kwargs: Any
     ) -> List[Document]:
         results = (
-            await self._vector_store.asimilarity_search_with_embedding_id_by_vector(
+            await self.vector_store.asimilarity_search_with_embedding_id_by_vector(
                 **kwargs
             )
         )
@@ -46,7 +47,7 @@ class CassandraStoreAdapter(StoreAdapter):
         """Get documents by id."""
         docs: list[Document] = []
         for id in ids:
-            doc = self._vector_store.get_by_document_id(id, **kwargs)
+            doc = self.vector_store.get_by_document_id(id, **kwargs)
             if doc is not None:
                 docs.append(doc)
         return docs
@@ -55,7 +56,7 @@ class CassandraStoreAdapter(StoreAdapter):
         """Get documents by id."""
         docs: list[Document] = []
         for id in ids:
-            doc = await self._vector_store.aget_by_document_id(id, **kwargs)
+            doc = await self.vector_store.aget_by_document_id(id, **kwargs)
             if doc is not None:
                 docs.append(doc)
         return docs

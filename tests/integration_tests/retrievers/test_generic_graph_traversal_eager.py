@@ -50,6 +50,13 @@ def test_animals_eager_bidir_collection(
         use_denormalized_metadata=use_denormalized_metadata,
     )
 
+    if vector_store_type == "cassandra":
+        with pytest.raises(
+            NotImplementedError, match="use the async implementation instead"
+        ):
+            retriever.invoke(ANIMALS_QUERY)
+        return
+
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=0)
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
 
@@ -112,6 +119,13 @@ def test_animals_eager_bidir_item(
         use_denormalized_metadata=use_denormalized_metadata,
     )
 
+    if vector_store_type == "cassandra":
+        with pytest.raises(
+            NotImplementedError, match="use the async implementation instead"
+        ):
+            retriever.invoke(ANIMALS_QUERY)
+        return
+
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=0)
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
 
@@ -161,6 +175,13 @@ def test_animals_eager_item_to_collection(
         use_denormalized_metadata=use_denormalized_metadata,
     )
 
+    if vector_store_type == "cassandra":
+        with pytest.raises(
+            NotImplementedError, match="use the async implementation instead"
+        ):
+            retriever.invoke(ANIMALS_QUERY)
+        return
+
     docs = retriever.invoke(ANIMALS_QUERY, max_depth=0)
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
 
@@ -198,6 +219,13 @@ def test_parser_eager_sync(
         extra_args={"max_depth": 2},
         use_denormalized_metadata=use_denormalized_metadata,
     )
+
+    if vector_store_type == "cassandra":
+        with pytest.raises(
+            NotImplementedError, match="use the async implementation instead"
+        ):
+            retriever.invoke(input="[2, 10]", max_depth=0)
+        return
 
     docs = retriever.invoke(input="[2, 10]", max_depth=0)
     ss_labels = {doc.metadata["label"] for doc in docs}

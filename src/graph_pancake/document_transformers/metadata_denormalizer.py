@@ -58,16 +58,20 @@ class MetadataDenormalizer(BaseDocumentTransformer):
         self, documents: Sequence[Document], **kwargs: Any
     ) -> Sequence[Document]:
         """Denormalizes sequence-based metadata fields"""
+        transformed_docs: list[Document] = []
         for document in documents:
             document_keys = set(document.metadata.keys())
             keys = document_keys & self.keys if len(self.keys) > 0 else document_keys
+            new_doc = document.model_copy(deep=True)
             for key in keys:
-                value = document.metadata[key]
+                value = new_doc.metadata[key]
                 if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
                     for item in value:
-                        document.metadata[f"{key}{self.path_delimiter}{item}"] = (
+                        new_doc.metadata[f"{key}{self.path_delimiter}{item}"] = (
                             self.static_value
                         )
-                    del document.metadata[key]
+                    del new_doc.metadata[key]
+            transformed_docs.append(new_doc)
 
-        return documents
+
+        return transformed_docs

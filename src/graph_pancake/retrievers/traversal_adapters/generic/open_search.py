@@ -4,24 +4,24 @@ from typing import (
     List,
     Optional,
     Sequence,
-    cast,
 )
 
 from langchain_core.documents import Document
-from langchain_core.vectorstores import VectorStore
 
 from .base import METADATA_EMBEDDING_KEY, StoreAdapter
 
+try:
+    from langchain_community.vectorstores import OpenSearchVectorSearch
+except (ImportError, ModuleNotFoundError):
+    raise ImportError("please `pip install langchain-community`")
 
-class OpenSearchStoreAdapter(StoreAdapter):
-    def __init__(self, vector_store: VectorStore):
-        from langchain_community.vectorstores import OpenSearchVectorSearch
 
-        self._base_vector_store = vector_store
-        self._vector_store = cast(OpenSearchVectorSearch, vector_store)
-        if self._vector_store.engine not in ["lucene", "faiss"]:
+class OpenSearchStoreAdapter(StoreAdapter[OpenSearchVectorSearch]):
+    def __init__(self, vector_store: OpenSearchVectorSearch):
+        self.vector_store = vector_store
+        if self.vector_store.engine not in ["lucene", "faiss"]:
             msg = (
-                f"Invalid engine for MMR Traversal: '{self._vector_store.engine}'"
+                f"Invalid engine for MMR Traversal: '{self.vector_store.engine}'"
                 " please instantiate the Open Search Vector Store with"
                 " either the 'lucene' or 'faiss' engine"
             )
@@ -57,7 +57,7 @@ class OpenSearchStoreAdapter(StoreAdapter):
                 "bool": {"must": self._build_filter(filter=filter)}
             }
 
-        docs = self._vector_store.similarity_search_by_vector(
+        docs = self.vector_store.similarity_search_by_vector(
             embedding=embedding,
             k=k,
             metadata_field="*",
@@ -88,8 +88,8 @@ class OpenSearchStoreAdapter(StoreAdapter):
         docs: list[Document] = []
         for id in ids:
             try:
-                hit = self._vector_store.client.get(
-                    index=self._vector_store.index_name,
+                hit = self.vector_store.client.get(
+                    index=self.vector_store.index_name,
                     id=id,
                     _source_includes=["text", "metadata"],
                     **kwargs,

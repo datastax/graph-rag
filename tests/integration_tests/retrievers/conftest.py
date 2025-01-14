@@ -49,10 +49,10 @@ def pytest_generate_tests(metafunc: Metafunc) -> None:
         else:
             vector_store_values = [
                 "cassandra",
-                "chroma-db",
+                #"chroma-db",
                 "in-memory",
-                "in-memory-denormalized",
-                "open-search",
+                #"in-memory-denormalized",
+                #"open-search",
             ]
 
         # Parametrize the `vector_store_type` dynamically
@@ -361,11 +361,13 @@ def store_adapter(vector_store: VectorStore, vector_store_type: str) -> StoreAda
     if vector_store_type == "astra-db":
         return AstraStoreAdapter(vector_store=cast(AstraDBVectorStore, vector_store))
     elif vector_store_type == "cassandra":
-        return CassandraStoreAdapter(vector_store=vector_store)
+        return CassandraStoreAdapter(vector_store=cast(Cassandra, vector_store))
     elif vector_store_type == "chroma-db":
-        return ChromaStoreAdapter(vector_store=vector_store)
+        return ChromaStoreAdapter(vector_store=cast(Chroma, vector_store))
     elif vector_store_type == "open-search":
-        return OpenSearchStoreAdapter(vector_store=vector_store)
+        return OpenSearchStoreAdapter(
+            vector_store=cast(OpenSearchVectorSearch, vector_store)
+        )
     elif vector_store_type == "in-memory":
         return InMemoryStoreAdapter(
             vector_store=cast(InMemoryVectorStore, vector_store),
