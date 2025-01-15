@@ -5,22 +5,34 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "gliner==0.2.13",
-    "keybert>=0.8.5",
     "langchain-core>=0.3.29",
     "numpy>=1.26.4",
     "pydantic>=2.10.4",
-    "langchain-astradb>=0.5.2",
     "langchain-community>=0.3.14",
-    "langchain-chroma>=0.2.0",
-    "chromadb>=0.5.23",
-    "opensearch-py>=2.8.0",
-    "simsimd>=6.2.1",
 ]
 
 [project.optional-dependencies]
 beautifulsoup4 = [
     "beautifulsoup4>=4.12.3",
+]
+gliner = [
+    "gliner==0.2.13",
+]
+keybert = [
+    "keybert>=0.8.5",
+]
+simsimd = [
+    "simsimd>=6.2.1",
+]
+chroma = [
+    "langchain-chroma>=0.2.0",
+    "chromadb>=0.5.23",
+]
+astra = [
+    "langchain-astradb>=0.5.2",
+]
+opensearch = [
+   "opensearch-py>=2.8.0",
 ]
 
 [tool.deptry.package_module_name_map]
