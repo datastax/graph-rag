@@ -77,11 +77,12 @@ def test_get_denormalized_outgoing_edges() -> None:
     edges = sorted(retriever._get_outgoing_edges(doc=doc))
 
     assert edges[0] == Edge(key="boolean", value=True, is_denormalized=False)
-    assert edges[1] == Edge(key="incoming", value="4", is_denormalized=True)
-    assert edges[2] == Edge(key="incoming", value="three", is_denormalized=True)
-    assert edges[3] == Edge(key="place", value="berlin", is_denormalized=True)
-    assert edges[4] == Edge(key="place", value="paris", is_denormalized=True)
-    assert edges[5] == Edge(key="string", value=42, is_denormalized=False)
+    assert edges[1] == Edge(key="boolean", value=True, is_denormalized=True)
+    assert edges[2] == Edge(key="incoming", value="4", is_denormalized=True)
+    assert edges[3] == Edge(key="incoming", value="three", is_denormalized=True)
+    assert edges[4] == Edge(key="place", value="berlin", is_denormalized=True)
+    assert edges[5] == Edge(key="place", value="paris", is_denormalized=True)
+    assert edges[6] == Edge(key="string", value=42, is_denormalized=False)
 
 
 def test_get_normalized_metadata_filter() -> None:

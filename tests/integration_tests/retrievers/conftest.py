@@ -48,6 +48,7 @@ def pytest_generate_tests(metafunc: Metafunc) -> None:
             vector_store_values = ["in-memory", "in-memory-denormalized"]
         else:
             vector_store_values = [
+                "astra-db",
                 "cassandra",
                 "chroma-db",
                 "in-memory",

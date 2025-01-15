@@ -6,6 +6,8 @@ from typing import (
     Sequence,
 )
 
+import math
+
 try:
     from langchain_chroma import Chroma
 except (ImportError, ModuleNotFoundError):
@@ -38,17 +40,28 @@ class ChromaStoreAdapter(StoreAdapter[Chroma]):
         if k > self.vector_store._collection.count():
             k = self.vector_store._collection.count()
 
-        results = self.vector_store._collection.query(
-            query_embeddings=embedding,  # type: ignore
-            n_results=k,
-            where=filter,  # type: ignore
-            include=[
-                IncludeEnum.documents,
-                IncludeEnum.metadatas,
-                IncludeEnum.embeddings,
-            ],
-            **kwargs,
-        )
+        results = []
+        # see: https://github.com/chroma-core/chroma/issues/2620
+        while k > 0:
+            try:
+                results = self.vector_store._collection.query(
+                    query_embeddings=embedding,  # type: ignore
+                    n_results=k,
+                    where=filter,  # type: ignore
+                    include=[
+                        IncludeEnum.documents,
+                        IncludeEnum.metadatas,
+                        IncludeEnum.embeddings,
+                    ],
+                    **kwargs,
+                )
+                break
+            except RuntimeError as e:
+                if "Cannot return the results in a contigious 2D array" in str(e):
+                    k = math.floor(k/2)
+                else:
+                    raise e
+
 
         docs: list[Document] = []
         for result in zip(
