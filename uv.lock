@@ -779,17 +779,33 @@ name = "graph-pancake"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "beautifulsoup4" },
-    { name = "chromadb" },
-    { name = "gliner" },
-    { name = "keybert" },
-    { name = "langchain-astradb" },
-    { name = "langchain-chroma" },
     { name = "langchain-community" },
     { name = "langchain-core" },
     { name = "numpy" },
-    { name = "opensearch-py" },
     { name = "pydantic" },
+]
+
+[package.optional-dependencies]
+astra = [
+    { name = "langchain-astradb" },
+]
+beautifulsoup4 = [
+    { name = "beautifulsoup4" },
+]
+chroma = [
+    { name = "chromadb" },
+    { name = "langchain-chroma" },
+]
+gliner = [
+    { name = "gliner" },
+]
+keybert = [
+    { name = "keybert" },
+]
+opensearch = [
+    { name = "opensearch-py" },
+]
+simsimd = [
     { name = "simsimd" },
 ]
 
@@ -810,18 +826,18 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "beautifulsoup4", specifier = ">=4.12.3" },
-    { name = "chromadb", specifier = ">=0.5.23" },
-    { name = "gliner", specifier = "==0.2.13" },
-    { name = "keybert", specifier = ">=0.8.5" },
-    { name = "langchain-astradb", specifier = ">=0.5.2" },
-    { name = "langchain-chroma", git = "https://github.com/langchain-ai/langchain.git?subdirectory=libs%2Fpartners%2Fchroma" },
+    { name = "beautifulsoup4", marker = "extra == 'beautifulsoup4'", specifier = ">=4.12.3" },
+    { name = "chromadb", marker = "extra == 'chroma'", specifier = ">=0.5.23" },
+    { name = "gliner", marker = "extra == 'gliner'", specifier = "==0.2.13" },
+    { name = "keybert", marker = "extra == 'keybert'", specifier = ">=0.8.5" },
+    { name = "langchain-astradb", marker = "extra == 'astra'", specifier = ">=0.5.2" },
+    { name = "langchain-chroma", marker = "extra == 'chroma'", git = "https://github.com/langchain-ai/langchain.git?subdirectory=libs%2Fpartners%2Fchroma" },
     { name = "langchain-community", specifier = ">=0.3.14" },
     { name = "langchain-core", specifier = ">=0.3.29" },
     { name = "numpy", specifier = ">=1.26.4" },
-    { name = "opensearch-py", specifier = ">=2.8.0" },
+    { name = "opensearch-py", marker = "extra == 'opensearch'", specifier = ">=2.8.0" },
     { name = "pydantic", specifier = ">=2.10.4" },
-    { name = "simsimd", specifier = ">=6.2.1" },
+    { name = "simsimd", marker = "extra == 'simsimd'", specifier = ">=6.2.1" },
 ]
 
 [package.metadata.requires-dev]

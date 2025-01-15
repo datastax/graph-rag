@@ -54,7 +54,6 @@ class EdgeHelper:
         *,
         warn_non_denormalized: bool = False,
         incoming: bool = False,
-        is_denormalized: bool = False,
     ) -> set[Edge]:
         """Extract edges from the metadata based on declared edges."""
 
@@ -65,7 +64,7 @@ class EdgeHelper:
 
             value = metadata.get(source_key, SENTINEL)
             if isinstance(value, BASIC_TYPES):
-                edges.add(Edge(target_key, value, is_denormalized=is_denormalized))
+                edges.add(Edge(target_key, value))
             elif isinstance(value, Iterable):
                 # Note: `str` and `bytes` are in `BASIC_TYPES` so no need to
                 # guard against.
@@ -75,7 +74,7 @@ class EdgeHelper:
                     for item in value:
                         if isinstance(item, BASIC_TYPES):
                             edges.add(
-                                Edge(target_key, item, is_denormalized=is_denormalized)
+                                Edge(target_key, item)
                             )
                         else:
                             raise ValueError(
