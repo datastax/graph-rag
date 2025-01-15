@@ -50,9 +50,7 @@ def get_adapter(
 
 
 @pytest.mark.parametrize("embedding_type", ["angular"])
-def test_mmr_traversal(
-    vector_store_type: str, vector_store: VectorStore
-) -> None:
+def test_mmr_traversal(vector_store_type: str, vector_store: VectorStore) -> None:
     """Test end to end construction and MMR search.
     The embedding function used here ensures `texts` become
     the following vectors on a circle (numbered v0 through v3):

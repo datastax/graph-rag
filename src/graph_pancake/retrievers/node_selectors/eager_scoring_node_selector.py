@@ -8,7 +8,13 @@ from .node_selector import NodeSelector
 class EagerScoringNodeSelector(NodeSelector):
     """Node selection based on an eager scoring function."""
 
-    def __init__(self, scorer: Callable[[Node], float], *, select_k: int = 1, **kwargs: dict[str, Any]) -> None:
+    def __init__(
+        self,
+        scorer: Callable[[Node], float],
+        *,
+        select_k: int = 1,
+        **kwargs: dict[str, Any],
+    ) -> None:
         """Node selector choosing the top `select_k` nodes according to `scorer`
         in each iteration.
 

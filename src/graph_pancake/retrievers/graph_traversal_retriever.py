@@ -251,7 +251,9 @@ class GraphTraversalRetriever(BaseRetriever):
                 if isinstance(value, BASIC_TYPES):
                     edges.add(Edge(key=target_key, value=value))
                     if self.use_denormalized_metadata:
-                        edges.add(Edge(key=target_key, value=value, is_denormalized=True))
+                        edges.add(
+                            Edge(key=target_key, value=value, is_denormalized=True)
+                        )
                 elif isinstance(value, Iterable):
                     if self.use_denormalized_metadata:
                         warnings.warn(

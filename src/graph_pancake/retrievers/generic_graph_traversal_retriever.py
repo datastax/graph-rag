@@ -478,13 +478,13 @@ class GenericGraphTraversalRetriever(BaseRetriever):
             results.extend(docs)
             if self.use_denormalized_metadata:
                 docs = self.store.similarity_search_with_embedding_by_vector(
-                embedding=query_embedding,
-                k=k_per_edge or 10,
-                filter=self.edge_helper.get_metadata_filter(
-                    base_filter=filter, edge=outgoing_edge, denormalize_edge=True
-                ),
-                **kwargs,
-            )
+                    embedding=query_embedding,
+                    k=k_per_edge or 10,
+                    filter=self.edge_helper.get_metadata_filter(
+                        base_filter=filter, edge=outgoing_edge, denormalize_edge=True
+                    ),
+                    **kwargs,
+                )
             results.extend(docs)
         return results
 
@@ -524,7 +524,9 @@ class GenericGraphTraversalRetriever(BaseRetriever):
                         embedding=query_embedding,
                         k=k_per_edge or 10,
                         filter=self.edge_helper.get_metadata_filter(
-                            base_filter=filter, edge=outgoing_edge, denormalize_edge=True
+                            base_filter=filter,
+                            edge=outgoing_edge,
+                            denormalize_edge=True,
                         ),
                         **kwargs,
                     )

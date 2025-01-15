@@ -1,3 +1,4 @@
+import math
 from typing import (
     Any,
     Dict,
@@ -5,8 +6,6 @@ from typing import (
     Optional,
     Sequence,
 )
-
-import math
 
 try:
     from langchain_chroma import Chroma
@@ -58,10 +57,9 @@ class ChromaStoreAdapter(StoreAdapter[Chroma]):
                 break
             except RuntimeError as e:
                 if "Cannot return the results in a contigious 2D array" in str(e):
-                    k = math.floor(k/2)
+                    k = math.floor(k / 2)
                 else:
                     raise
-
 
         docs: list[Document] = []
         for result in zip(

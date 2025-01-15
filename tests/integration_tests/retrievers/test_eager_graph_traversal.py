@@ -94,7 +94,6 @@ def test_traversal(
         use_denormalized_metadata=use_denormalized_metadata,
     )
 
-
     docs = retriever.invoke("Earth", start_k=1, depth=0)
     assert sorted_doc_ids(docs) == ["doc2"]
 

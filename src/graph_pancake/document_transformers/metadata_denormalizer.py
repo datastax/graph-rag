@@ -73,5 +73,4 @@ class MetadataDenormalizer(BaseDocumentTransformer):
                     del new_doc.metadata[key]
             transformed_docs.append(new_doc)
 
-
         return transformed_docs

@@ -1,10 +1,9 @@
 import warnings
 from typing import Any, Iterable
 
+from graph_pancake.retrievers.consts import BASIC_TYPES
+
 from .edge import Edge
-
-from graph_pancake.retrievers.consts import BASIC_TYPES, METADATA_EMBEDDING_KEY
-
 
 # Sentinel object used with `dict.get(..., SENTINEL)` calls to distinguish
 # between present but `None` (returns `None`) and absent (returns `SENTINEL`)
