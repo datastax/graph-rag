@@ -39,8 +39,14 @@ dev = [
     "langchain-opensearch>=0.0.2",
     "mypy>=1.14.1",
     "pytest>=8.3.4",
+    "pytest-cov>=4.0.0",
     "pytest-asyncio>=0.25.2",
     "simsimd>=6.2.1",
 ]
 
+[tool.coverage.report]
+skip_empty = true
 
+[tool.coverage.run]
+branch = true
+source = ["src/graph_pancake"]

@@ -1,13 +1,17 @@
 from typing import Iterable
 
 import pytest
-from animal_docs import animal_docs, animal_store
-from invoker import invoker
 from langchain_core.documents import Document
-from parser_docs import graph_vector_store_docs, parser_store
+
+from tests.integration_tests.invoker import invoker
+from tests.integration_tests.retrievers.animal_docs import animal_docs, animal_store
+from tests.integration_tests.retrievers.parser_docs import (
+    graph_vector_store_docs,
+    parser_store,
+)
 
 # Imports for definitions.
-from stores import (
+from tests.integration_tests.stores import (
     enabled_stores,
     store_factory,
     store_param,
