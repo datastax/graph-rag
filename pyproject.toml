@@ -9,7 +9,6 @@ dependencies = [
     "keybert>=0.8.5",
     "langchain-core>=0.3.29",
     "numpy>=1.26.4",
-    "beautifulsoup4>=4.12.3",
     "pydantic>=2.10.4",
     "langchain-astradb>=0.5.2",
     "langchain-community>=0.3.14",
@@ -17,6 +16,11 @@ dependencies = [
     "chromadb>=0.5.23",
     "opensearch-py>=2.8.0",
     "simsimd>=6.2.1",
+]
+
+[project.optional-dependencies]
+beautifulsoup4 = [
+    "beautifulsoup4>=4.12.3",
 ]
 
 [tool.deptry.package_module_name_map]
