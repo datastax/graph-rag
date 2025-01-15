@@ -60,7 +60,7 @@ class ChromaStoreAdapter(StoreAdapter[Chroma]):
                 if "Cannot return the results in a contigious 2D array" in str(e):
                     k = math.floor(k/2)
                 else:
-                    raise e
+                    raise
 
 
         docs: list[Document] = []

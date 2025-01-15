@@ -1,5 +1,5 @@
 import heapq
-from typing import Callable, Iterable
+from typing import Any, Callable, Iterable
 
 from ..node import Node
 from .node_selector import NodeSelector
@@ -8,7 +8,7 @@ from .node_selector import NodeSelector
 class EagerScoringNodeSelector(NodeSelector):
     """Node selection based on an eager scoring function."""
 
-    def __init__(self, scorer: Callable[[Node], float], *, select_k: int = 1) -> None:
+    def __init__(self, scorer: Callable[[Node], float], *, select_k: int = 1, **kwargs: dict[str, Any]) -> None:
         """Node selector choosing the top `select_k` nodes according to `scorer`
         in each iteration.
 
@@ -23,7 +23,14 @@ class EagerScoringNodeSelector(NodeSelector):
 
     def add_nodes(self, nodes: dict[str, Node]) -> None:
         for node in nodes.values():
-            heapq.heappush(self._nodes, (self._scorer(node), node))
+            try:
+                heapq.heappush(self._nodes, (self._scorer(node), node))
+            except TypeError as e:
+                if "'<' not supported between instances" in str(e):
+                    msg = "The scorer function must give a unique score for each node."
+                    raise RuntimeError(msg) from None
+                else:
+                    raise
 
     def select_nodes(self, *, limit: int) -> Iterable[Node]:
         selected: list[Node] = []

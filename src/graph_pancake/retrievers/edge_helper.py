@@ -77,8 +77,6 @@ class EdgeHelper:
                             )
             elif value is not SENTINEL:
                 raise ValueError(f"Unsupported value {value} in '{source_key}'")
-        meta_copy = metadata.copy()
-        meta_copy.pop(METADATA_EMBEDDING_KEY, None)
         return edges
 
     def _normalize_metadata(
