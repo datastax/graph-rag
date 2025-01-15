@@ -28,7 +28,7 @@ check-lock:
 .PHONY: deptry
 deptry:
 	@echo "🚀 Checking for obsolete dependencies: Running deptry"
-	@uvx $(DEPTRY) .
+	@uvx $(DEPTRY) src tests
 
 .PHONY: docker-up
 docker-up:
