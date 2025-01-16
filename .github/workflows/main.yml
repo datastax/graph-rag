@@ -72,7 +72,7 @@ jobs:
         id: settings
         run:
             ASTRA_DB_KEYSPACE=${{ env.ASTRA_DB_KEYSPACE }}
-            ASTRA_DB_KEYSPACE=$${ASTRA_DB_KEYSPACE//[\/.]/_}
+            ASTRA_DB_KEYSPACE=${ASTRA_DB_KEYSPACE//[\/.]/_}
             echo ASTRA_DB_KEYSPACE=${ASTRA_DB_KEYSPACE} >> $GITHUB_OUTPUT
 
       - name: Run `make test`
