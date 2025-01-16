@@ -20,8 +20,6 @@ from tests.integration_tests.stores import (
 # Mark these imports as used so they don't removed.
 # They need to be imported here so the fixtures are available.
 _ = (
-    sorted_doc_ids,
-    assert_document_format,
     store_factory,
     store_param,
     enabled_stores,

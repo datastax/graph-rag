@@ -47,8 +47,8 @@ integration:
 unit:
 	uv run pytest -vs ./tests/unit_tests/
 
-.PHONY: test-all
-test-all:
+.PHONY: test
+test:
 	@echo "🚀 Testing code: Running pytest"
 	@uv run python -m pytest ./tests/unit_tests ./tests/integration_tests/ --cov --cov-config=pyproject.toml --cov-report=xml --stores=all
 

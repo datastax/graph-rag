@@ -1,5 +1,6 @@
 from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore
+import pytest
 
 from graph_pancake.retrievers.generic_graph_traversal_retriever import (
     GenericGraphTraversalRetriever,
@@ -116,7 +117,8 @@ async def test_animals_item_to_collection(
     assert sorted_doc_ids(docs) == ["bear", "bobcat", "caribou", "fox", "mongoose"]
 
 
-async def test_traversal_mem(support_normalized_metadata: bool, invoker) -> None:
+@pytest.mark.parametrize("normalized", [True, False])
+async def test_traversal_mem(normalized: bool, invoker) -> None:
     """ Test end to end construction and MMR search.
     The embedding function used here ensures `texts` become
     the following vectors on a circle (numbered v0 through v3):
@@ -150,11 +152,11 @@ async def test_traversal_mem(support_normalized_metadata: bool, invoker) -> None
     strategy = Mmr(k=2, start_k=2, max_depth=2)
     retriever = GenericGraphTraversalRetriever(
         store=InMemoryStoreAdapter(
-            vector_store=store, support_normalized_metadata=support_normalized_metadata
+            vector_store=store, support_normalized_metadata=normalized
         ),
         edges=[("outgoing", "incoming")],
         strategy=strategy,
-        use_denormalized_metadata=(not support_normalized_metadata),
+        use_denormalized_metadata=not normalized,
     )
 
     docs: list[Document] = await invoker(retriever, "0.0")

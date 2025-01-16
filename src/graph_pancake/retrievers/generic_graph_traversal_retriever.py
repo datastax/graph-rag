@@ -451,6 +451,11 @@ class GenericGraphTraversalRetriever(BaseRetriever):
             )
             results.extend(docs)
             if self.use_denormalized_metadata:
+                # If we denormalized the metadata, we actually do two queries.
+                # One, for normalized values (above) and one for denormalized.
+                # This ensures that cases where the key had a single value are
+                # caught as well. This could *maybe* be handled differently if
+                # we know keys that were always denormalized.
                 docs = self.store.similarity_search_with_embedding_by_vector(
                     embedding=state.strategy.query_embedding,
                     k=state.strategy.adjacent_k,
@@ -491,6 +496,11 @@ class GenericGraphTraversalRetriever(BaseRetriever):
             for outgoing_edge in outgoing_edges
         ]
         if self.use_denormalized_metadata:
+            # If we denormalized the metadata, we actually do two queries.
+            # One, for normalized values (above) and one for denormalized.
+            # This ensures that cases where the key had a single value are
+            # caught as well. This could *maybe* be handled differently if
+            # we know keys that were always denormalized.
             tasks.extend(
                 [
                     self.store.asimilarity_search_with_embedding_by_vector(
