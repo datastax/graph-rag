@@ -63,16 +63,15 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
-    "mypy>=1.14.1",
-    "pytest>=8.3.4",
-    "pytest-cov>=4.0.0",
-    "pytest-asyncio>=0.25.2",
     "cassio>=0.1.10",
     "langchain-astradb>=0.5.2",
     "langchain-chroma>=0.2.0",
     "langchain-community>=0.3.14",
-    "langchain-openai>=0.3.0",
     "langchain-opensearch>=0.0.2",
+    "mypy>=1.14.1",
+    "pytest>=8.3.4",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.25.2",
     "simsimd>=6.2.1",
 ]
 

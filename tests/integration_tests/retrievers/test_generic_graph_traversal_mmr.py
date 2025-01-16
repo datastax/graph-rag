@@ -20,7 +20,7 @@ from tests.integration_tests.stores import Stores
 
 
 async def test_animals_bidir_collection(
-    animal_store: Stores, invoker, support_normalized_metadata: bool
+    animal_store: Stores, support_normalized_metadata: bool, invoker
 ):
     # test graph-search on a normalized bi-directional edge
     retriever = GenericGraphTraversalRetriever(
@@ -53,7 +53,7 @@ async def test_animals_bidir_collection(
 
 
 async def test_animals_bidir_item(
-    animal_store: Stores, invoker, support_normalized_metadata: bool
+    animal_store: Stores, support_normalized_metadata: bool, invoker
 ):
     retriever = GenericGraphTraversalRetriever(
         store=animal_store.generic,
@@ -92,7 +92,7 @@ async def test_animals_bidir_item(
 
 
 async def test_animals_item_to_collection(
-    animal_store: Stores, invoker, support_normalized_metadata: bool
+    animal_store: Stores, support_normalized_metadata: bool, invoker
 ):
     retriever = GenericGraphTraversalRetriever(
         store=animal_store.generic,
@@ -116,7 +116,7 @@ async def test_animals_item_to_collection(
     assert sorted_doc_ids(docs) == ["bear", "bobcat", "caribou", "fox", "mongoose"]
 
 
-async def test_traversal_mem(invoker, support_normalized_metadata: bool) -> None:
+async def test_traversal_mem(support_normalized_metadata: bool, invoker) -> None:
     """ Test end to end construction and MMR search.
     The embedding function used here ensures `texts` become
     the following vectors on a circle (numbered v0 through v3):

@@ -15,7 +15,7 @@ from tests.integration_tests.stores import Stores
 
 
 async def test_animals_bidir_collection_eager(
-    animal_store: Stores, invoker, support_normalized_metadata: bool
+    animal_store: Stores, support_normalized_metadata: bool, invoker
 ):
     # test graph-search on a normalized bi-directional edge
     retriever = GenericGraphTraversalRetriever(
@@ -64,7 +64,7 @@ async def test_animals_bidir_collection_eager(
 
 
 async def test_animals_bidir_item(
-    animal_store: Stores, invoker, support_normalized_metadata: bool
+    animal_store: Stores, support_normalized_metadata: bool, invoker
 ):
     retriever = GenericGraphTraversalRetriever(
         store=animal_store.generic,
@@ -103,7 +103,7 @@ async def test_animals_bidir_item(
 
 
 async def test_animals_item_to_collection(
-    animal_store: Stores, invoker, support_normalized_metadata: bool
+    animal_store: Stores, support_normalized_metadata: bool, invoker
 ):
     retriever = GenericGraphTraversalRetriever(
         store=animal_store.generic,
@@ -127,7 +127,7 @@ async def test_animals_item_to_collection(
     assert sorted_doc_ids(docs) == ["bear", "bobcat", "caribou", "fox", "mongoose"]
 
 
-async def test_parser(parser_store: Stores, invoker, support_normalized_metadata: bool):
+async def test_parser(parser_store: Stores, support_normalized_metadata: bool, invoker):
     retriever = GenericGraphTraversalRetriever(
         store=parser_store.generic,
         edges=[("out", "in"), "tag"],

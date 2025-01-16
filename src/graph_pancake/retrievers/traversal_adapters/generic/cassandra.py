@@ -7,7 +7,7 @@ from typing import (
 try:
     from langchain_community.vectorstores import Cassandra
 except (ImportError, ModuleNotFoundError):
-    raise ImportError("please `pip install langchain-community`")
+    raise ImportError("please `pip install langchain-community cassio`")
 
 from langchain_core.documents import Document
 

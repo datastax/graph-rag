@@ -20,7 +20,7 @@ class OpenSearchMMRTraversalAdapter(MMRTraversalAdapter):
         try:
             from langchain_community.vectorstores import OpenSearchVectorSearch
         except (ImportError, ModuleNotFoundError):
-            raise ImportError("please `pip install langchain-community`")
+            raise ImportError("please `pip install langchain-community opensearch-py`")
 
         self._base_vector_store = vector_store
         self._vector_store = cast(OpenSearchVectorSearch, vector_store)

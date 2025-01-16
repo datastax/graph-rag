@@ -9,7 +9,7 @@ from typing import (
 try:
     from langchain_community.vectorstores import OpenSearchVectorSearch
 except (ImportError, ModuleNotFoundError):
-    raise ImportError("please `pip install langchain-community`")
+    raise ImportError("please `pip install langchain-community opensearch-py`")
 
 from langchain_core.documents import Document
 

@@ -98,7 +98,7 @@ async def test_invoke(parser_store: Stores, invoker) -> None:
 
 
 async def test_animals(
-    animal_store: Stores, invoker, support_normalized_metadata: bool
+    animal_store: Stores, support_normalized_metadata: bool, invoker
 ) -> None:
     # test graph-search on a normalized bi-directional edge
     retriever = GraphMMRTraversalRetriever(
