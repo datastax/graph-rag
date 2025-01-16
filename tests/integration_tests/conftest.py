@@ -3,7 +3,7 @@ import asyncio
 import pytest
 from pytest import Parser
 
-from tests.integration_tests.stores import ALL_STORES
+from tests.integration_tests.stores import ALL_STORES, TESTCONTAINER_STORES
 
 
 @pytest.fixture(scope="session")
@@ -22,7 +22,14 @@ def pytest_addoption(parser: Parser):
         action="append",
         metavar="STORE",
         choices=ALL_STORES + ["all"],
-        help="run tests for the given store",
+        help="run tests for the given store (default: 'mem' and 'mem_denorm')",
+    )
+    parser.addoption(
+        "--testcontainer",
+        action="append",
+        metavar="STORE",
+        choices=TESTCONTAINER_STORES + ["none"],
+        help="which stores to run testcontainers for (default: 'all')",
     )
 
 
