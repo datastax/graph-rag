@@ -16,7 +16,7 @@ from .edge import Edge
 from .edge_helper import EdgeHelper
 from .node import Node
 from .strategy.base import TraversalStrategy
-from .traversal_adapters.generic.base import METADATA_EMBEDDING_KEY, StoreAdapter
+from .traversal_adapters.base import METADATA_EMBEDDING_KEY, StoreAdapter
 
 INFINITY = float("inf")
 
@@ -175,7 +175,7 @@ class _TraversalState:
 
 # this class uses pydantic, so store and edges
 # must be provided at init time.
-class GenericGraphTraversalRetriever(BaseRetriever):
+class GraphTraversalRetriever(BaseRetriever):
     store: StoreAdapter
     edges: List[Union[str, Tuple[str, str]]]
     strategy: TraversalStrategy | None = None

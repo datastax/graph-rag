@@ -1,5 +1,4 @@
 import abc
-import dataclasses
 from typing import Callable, Generic, TypeVar
 
 import pytest
@@ -10,13 +9,7 @@ from langchain_core.vectorstores import VectorStore
 from graph_pancake.document_transformers.metadata_denormalizer import (
     MetadataDenormalizer,
 )
-from graph_pancake.retrievers.traversal_adapters.eager.traversal_adapter import (
-    TraversalAdapter,
-)
-from graph_pancake.retrievers.traversal_adapters.generic import StoreAdapter
-from graph_pancake.retrievers.traversal_adapters.mmr.mmr_traversal_adapter import (
-    MMRTraversalAdapter,
-)
+from graph_pancake.retrievers.traversal_adapters import StoreAdapter
 
 ALL_STORES = ["mem", "mem_denorm", "astra", "cassandra", "chroma", "opensearch"]
 
@@ -45,28 +38,16 @@ def store_param(request: pytest.FixtureRequest, enabled_stores: set[str]) -> str
 T = TypeVar("T", bound=VectorStore)
 
 
-# TODO: Eliminate when we only support generic.
-@dataclasses.dataclass
-class Stores:
-    eager: TraversalAdapter
-    mmr: MMRTraversalAdapter
-    generic: StoreAdapter
-
-
 class StoreFactory(abc.ABC, Generic[T]):
     def __init__(
         self,
         support_normalized_metadata: bool,
         create_store: Callable[[str, list[Document], Embeddings], T],
-        create_eager: Callable[[T], TraversalAdapter],
-        create_mmr: Callable[[T], MMRTraversalAdapter],
         create_generic: Callable[[T], StoreAdapter],
         teardown: Callable[[T], None] | None = None,
     ):
         self.support_normalized_metadata = support_normalized_metadata
         self._create_store = create_store
-        self._create_eager = create_eager
-        self._create_mmr = create_mmr
         self._create_generic = create_generic
         self._teardown = teardown
         self._index = 0
@@ -76,7 +57,7 @@ class StoreFactory(abc.ABC, Generic[T]):
         request: pytest.FixtureRequest,
         embedding: Embeddings,
         docs: list[Document],
-    ) -> Stores:
+    ) -> StoreAdapter:
         name = f"test_{self._index}"
         self._index += 1
         if not self.support_normalized_metadata:
@@ -90,11 +71,7 @@ class StoreFactory(abc.ABC, Generic[T]):
             teardown = self._teardown
             request.addfinalizer(lambda: teardown(store))
 
-        return Stores(
-            eager=self._create_eager(store),
-            mmr=self._create_mmr(store),
-            generic=self._create_generic(store),
-        )
+        return self._create_generic(store)
 
 
 @pytest.fixture(scope="session")
@@ -104,26 +81,14 @@ def store_factory(store_param: str, request: pytest.FixtureRequest) -> StoreFact
 
         from langchain_core.vectorstores import InMemoryVectorStore
 
-        from graph_pancake.retrievers.traversal_adapters.eager.in_memory_traversal_adapter import (  # noqa: E501
-            InMemoryTraversalAdapter,
-        )
-        from graph_pancake.retrievers.traversal_adapters.generic.in_memory import (
+        from graph_pancake.retrievers.traversal_adapters.in_memory import (
             InMemoryStoreAdapter,
-        )
-        from graph_pancake.retrievers.traversal_adapters.mmr.in_memory_mmr_traversal_adapter import (  # noqa: E501
-            InMemoryMMRTraversalAdapter,
         )
 
         return StoreFactory[InMemoryVectorStore](
             support_normalized_metadata=support_normalized_metadata,
             create_store=lambda _name, docs, emb: InMemoryVectorStore.from_documents(
                 docs, emb
-            ),
-            create_eager=lambda store: InMemoryTraversalAdapter(
-                store, support_normalized_metadata
-            ),
-            create_mmr=lambda store: InMemoryMMRTraversalAdapter(
-                store, support_normalized_metadata
             ),
             create_generic=lambda store: InMemoryStoreAdapter(
                 store, support_normalized_metadata=support_normalized_metadata
@@ -132,14 +97,8 @@ def store_factory(store_param: str, request: pytest.FixtureRequest) -> StoreFact
     elif store_param == "chroma":
         from langchain_chroma.vectorstores import Chroma
 
-        from graph_pancake.retrievers.traversal_adapters.eager.chroma_traversal_adapter import (  # noqa: E501
-            ChromaTraversalAdapter,
-        )
-        from graph_pancake.retrievers.traversal_adapters.generic.chroma import (
+        from graph_pancake.retrievers.traversal_adapters.chroma import (
             ChromaStoreAdapter,
-        )
-        from graph_pancake.retrievers.traversal_adapters.mmr.chroma_mmr_traversal_adapter import (  # noqa: E501
-            ChromaMMRTraversalAdapter,
         )
 
         return StoreFactory[Chroma](
@@ -147,22 +106,14 @@ def store_factory(store_param: str, request: pytest.FixtureRequest) -> StoreFact
             create_store=lambda name, docs, emb: Chroma.from_documents(
                 docs, emb, collection_name=name
             ),
-            create_eager=ChromaTraversalAdapter,
-            create_mmr=ChromaMMRTraversalAdapter,
             create_generic=ChromaStoreAdapter,
             teardown=lambda store: store.delete_collection(),
         )
     elif store_param == "astra":
         from langchain_astradb import AstraDBVectorStore
 
-        from graph_pancake.retrievers.traversal_adapters.eager.astra_traversal_adapter import (  # noqa: E501
-            AstraTraversalAdapter,
-        )
-        from graph_pancake.retrievers.traversal_adapters.generic.astra import (
+        from graph_pancake.retrievers.traversal_adapters.astra import (
             AstraStoreAdapter,
-        )
-        from graph_pancake.retrievers.traversal_adapters.mmr.astra_mmr_traversal_adapter import (  # noqa: E501
-            AstraMMRTraversalAdapter,
         )
 
         def create_astra(
@@ -202,8 +153,6 @@ def store_factory(store_param: str, request: pytest.FixtureRequest) -> StoreFact
         return StoreFactory[AstraDBVectorStore](
             support_normalized_metadata=True,
             create_store=create_astra,
-            create_eager=AstraTraversalAdapter,
-            create_mmr=AstraMMRTraversalAdapter,
             create_generic=AstraStoreAdapter,
             teardown=teardown_astra,
         )
@@ -213,14 +162,8 @@ def store_factory(store_param: str, request: pytest.FixtureRequest) -> StoreFact
         from cassandra.cluster import Cluster  # type: ignore
         from langchain_community.vectorstores.cassandra import Cassandra
 
-        from graph_pancake.retrievers.traversal_adapters.eager.cassandra_traversal_adapter import (  # noqa: E501
-            CassandraTraversalAdapter,
-        )
-        from graph_pancake.retrievers.traversal_adapters.generic.cassandra import (
+        from graph_pancake.retrievers.traversal_adapters.cassandra import (
             CassandraStoreAdapter,
-        )
-        from graph_pancake.retrievers.traversal_adapters.mmr.cassandra_mmr_traversal_adapter import (  # noqa: E501
-            CassandraMMRTraversalAdapter,
         )
 
         if "CASSANDRA_CONTACT_POINTS" in os.environ:
@@ -268,22 +211,14 @@ def store_factory(store_param: str, request: pytest.FixtureRequest) -> StoreFact
         return StoreFactory[Cassandra](
             support_normalized_metadata=False,
             create_store=create_cassandra,
-            create_eager=CassandraTraversalAdapter,
-            create_mmr=CassandraMMRTraversalAdapter,
             create_generic=CassandraStoreAdapter,
             teardown=teardown_cassandra,
         )
     elif store_param == "opensearch":
         from langchain_community.vectorstores import OpenSearchVectorSearch
 
-        from graph_pancake.retrievers.traversal_adapters.eager.open_search_traversal_adapter import (  # noqa: E501
-            OpenSearchTraversalAdapter,
-        )
-        from graph_pancake.retrievers.traversal_adapters.generic.open_search import (
+        from graph_pancake.retrievers.traversal_adapters.open_search import (
             OpenSearchStoreAdapter,
-        )
-        from graph_pancake.retrievers.traversal_adapters.mmr.open_search_mmr_traversal_adapter import (  # noqa: E501
-            OpenSearchMMRTraversalAdapter,
         )
 
         def create_open_search(
@@ -305,8 +240,6 @@ def store_factory(store_param: str, request: pytest.FixtureRequest) -> StoreFact
         return StoreFactory[OpenSearchVectorSearch](
             support_normalized_metadata=False,
             create_store=create_open_search,
-            create_eager=OpenSearchTraversalAdapter,
-            create_mmr=OpenSearchMMRTraversalAdapter,
             create_generic=OpenSearchStoreAdapter,
             teardown=teardown_open_search,
         )

@@ -1,7 +1,6 @@
 import pytest
 from langchain_core.documents import Document
 
-from tests.integration_tests.assertions import assert_document_format, sorted_doc_ids
 from tests.integration_tests.invoker import invoker
 from tests.integration_tests.retrievers.animal_docs import animal_docs, animal_store
 from tests.integration_tests.retrievers.parser_docs import (

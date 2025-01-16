@@ -2,7 +2,7 @@ import pytest
 from langchain_core.documents import Document
 
 from tests.embeddings.simple_embeddings import ParserEmbeddings
-from tests.integration_tests.stores import StoreFactory, Stores
+from tests.integration_tests.stores import StoreAdapter, StoreFactory
 
 
 @pytest.fixture(scope="session")
@@ -74,7 +74,7 @@ def parser_store(
     request: pytest.FixtureRequest,
     store_factory: StoreFactory,
     graph_vector_store_docs: list[Document],
-) -> Stores:
+) -> StoreAdapter:
     return store_factory.create(
         request, ParserEmbeddings(dimension=2), graph_vector_store_docs
     )

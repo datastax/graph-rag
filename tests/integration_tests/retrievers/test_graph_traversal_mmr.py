@@ -1,14 +1,14 @@
+import pytest
 from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore
-import pytest
 
 from graph_pancake.retrievers.generic_graph_traversal_retriever import (
-    GenericGraphTraversalRetriever,
+    GraphTraversalRetriever,
 )
 from graph_pancake.retrievers.strategy.mmr import (
     Mmr,
 )
-from graph_pancake.retrievers.traversal_adapters.generic.in_memory import (
+from graph_pancake.retrievers.traversal_adapters.in_memory import (
     InMemoryStoreAdapter,
 )
 from tests.embeddings.fake_embeddings import AngularTwoDimensionalEmbeddings
@@ -17,15 +17,15 @@ from tests.integration_tests.retrievers.animal_docs import (
     ANIMALS_DEPTH_0_EXPECTED,
     ANIMALS_QUERY,
 )
-from tests.integration_tests.stores import Stores
+from tests.integration_tests.stores import StoreAdapter
 
 
 async def test_animals_bidir_collection(
-    animal_store: Stores, support_normalized_metadata: bool, invoker
+    animal_store: StoreAdapter, support_normalized_metadata: bool, invoker
 ):
     # test graph-search on a normalized bi-directional edge
-    retriever = GenericGraphTraversalRetriever(
-        store=animal_store.generic,
+    retriever = GraphTraversalRetriever(
+        store=animal_store,
         edges=["keywords"],
         use_denormalized_metadata=(not support_normalized_metadata),
     )
@@ -54,10 +54,10 @@ async def test_animals_bidir_collection(
 
 
 async def test_animals_bidir_item(
-    animal_store: Stores, support_normalized_metadata: bool, invoker
+    animal_store: StoreAdapter, support_normalized_metadata: bool, invoker
 ):
-    retriever = GenericGraphTraversalRetriever(
-        store=animal_store.generic,
+    retriever = GraphTraversalRetriever(
+        store=animal_store,
         edges=["habitat"],
         use_denormalized_metadata=(not support_normalized_metadata),
     )
@@ -93,10 +93,10 @@ async def test_animals_bidir_item(
 
 
 async def test_animals_item_to_collection(
-    animal_store: Stores, support_normalized_metadata: bool, invoker
+    animal_store: StoreAdapter, support_normalized_metadata: bool, invoker
 ):
-    retriever = GenericGraphTraversalRetriever(
-        store=animal_store.generic,
+    retriever = GraphTraversalRetriever(
+        store=animal_store,
         edges=[("habitat", "keywords")],
         use_denormalized_metadata=(not support_normalized_metadata),
     )
@@ -150,7 +150,7 @@ async def test_traversal_mem(normalized: bool, invoker) -> None:
     store.add_documents([v0, v1, v2, v3])
 
     strategy = Mmr(k=2, start_k=2, max_depth=2)
-    retriever = GenericGraphTraversalRetriever(
+    retriever = GraphTraversalRetriever(
         store=InMemoryStoreAdapter(
             vector_store=store, support_normalized_metadata=normalized
         ),

@@ -1,7 +1,7 @@
 from langchain_core.documents import Document
 
 from graph_pancake.retrievers.generic_graph_traversal_retriever import (
-    GenericGraphTraversalRetriever,
+    GraphTraversalRetriever,
 )
 from graph_pancake.retrievers.strategy.eager import (
     Eager,
@@ -11,15 +11,15 @@ from tests.integration_tests.retrievers.animal_docs import (
     ANIMALS_DEPTH_0_EXPECTED,
     ANIMALS_QUERY,
 )
-from tests.integration_tests.stores import Stores
+from tests.integration_tests.stores import StoreAdapter
 
 
 async def test_animals_bidir_collection_eager(
-    animal_store: Stores, support_normalized_metadata: bool, invoker
+    animal_store: StoreAdapter, support_normalized_metadata: bool, invoker
 ):
     # test graph-search on a normalized bi-directional edge
-    retriever = GenericGraphTraversalRetriever(
-        store=animal_store.generic,
+    retriever = GraphTraversalRetriever(
+        store=animal_store,
         edges=["keywords"],
         strategy=Eager(k=100, start_k=2, max_depth=0),
         use_denormalized_metadata=(not support_normalized_metadata),
@@ -64,10 +64,10 @@ async def test_animals_bidir_collection_eager(
 
 
 async def test_animals_bidir_item(
-    animal_store: Stores, support_normalized_metadata: bool, invoker
+    animal_store: StoreAdapter, support_normalized_metadata: bool, invoker
 ):
-    retriever = GenericGraphTraversalRetriever(
-        store=animal_store.generic,
+    retriever = GraphTraversalRetriever(
+        store=animal_store,
         edges=["habitat"],
         use_denormalized_metadata=(not support_normalized_metadata),
     )
@@ -103,10 +103,10 @@ async def test_animals_bidir_item(
 
 
 async def test_animals_item_to_collection(
-    animal_store: Stores, support_normalized_metadata: bool, invoker
+    animal_store: StoreAdapter, support_normalized_metadata: bool, invoker
 ):
-    retriever = GenericGraphTraversalRetriever(
-        store=animal_store.generic,
+    retriever = GraphTraversalRetriever(
+        store=animal_store,
         edges=[("habitat", "keywords")],
         use_denormalized_metadata=(not support_normalized_metadata),
     )
@@ -127,9 +127,11 @@ async def test_animals_item_to_collection(
     assert sorted_doc_ids(docs) == ["bear", "bobcat", "caribou", "fox", "mongoose"]
 
 
-async def test_parser(parser_store: Stores, support_normalized_metadata: bool, invoker):
-    retriever = GenericGraphTraversalRetriever(
-        store=parser_store.generic,
+async def test_parser(
+    parser_store: StoreAdapter, support_normalized_metadata: bool, invoker
+):
+    retriever = GraphTraversalRetriever(
+        store=parser_store,
         edges=[("out", "in"), "tag"],
         strategy=Eager(k=10, start_k=2, max_depth=2),
         use_denormalized_metadata=(not support_normalized_metadata),
