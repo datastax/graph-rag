@@ -12,4 +12,5 @@ if keyspace != "default_keyspace":
         api_endpoint=api_endpoint,
         token=token,
     )
-    admin.drop_keyspace(keyspace)
+    if keyspace in admin.list_keyspaces():
+        admin.drop_keyspace(keyspace)
