@@ -1,6 +1,7 @@
 import abc
 from typing import Callable, Generic, TypeVar
 
+import httpx
 import pytest
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
@@ -225,7 +226,16 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
         api_endpoint=api_endpoint,
         token=token,
     )
-    admin.create_keyspace(keyspace)
+
+    for _i in range(3):
+        try:
+            admin.create_keyspace(keyspace)
+            break
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 409:
+                continue
+            else:
+                raise e
 
     def create_astra(
         name: str, docs: list[Document], embedding: Embeddings
