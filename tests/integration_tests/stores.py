@@ -96,7 +96,7 @@ def _cassandra_store_factory(request: pytest.FixtureRequest):
     )
 
     if use_testcontainer(request, "cassandra"):
-        from testcontainers.cassandra import CassandraContainer
+        from testcontainers.cassandra import CassandraContainer  # type: ignore
 
         container = CassandraContainer()
         container.start()
@@ -160,7 +160,7 @@ def _opensearch_store_factory(request: pytest.FixtureRequest):
     )
 
     if use_testcontainer(request, "opensearch"):
-        from testcontainers.opensearch import OpenSearchContainer
+        from testcontainers.opensearch import OpenSearchContainer  # type: ignore
 
         # If the admin password doesn't pass the length and regex requirements
         # starting the container will hang (`docker ps <container_id>` to debug).
@@ -206,6 +206,7 @@ def _opensearch_store_factory(request: pytest.FixtureRequest):
 def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     import os
 
+    from astrapy import AstraDBDatabaseAdmin
     from astrapy.authentication import StaticTokenProvider
     from dotenv import load_dotenv
     from langchain_astradb import AstraDBVectorStore
@@ -213,8 +214,6 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     from graph_pancake.retrievers.traversal_adapters.astra import (
         AstraStoreAdapter,
     )
-    from astrapy import AstraDBDatabaseAdmin
-
 
     load_dotenv()
 
