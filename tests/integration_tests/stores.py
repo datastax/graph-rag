@@ -14,6 +14,7 @@ from graph_pancake.retrievers.traversal_adapters import StoreAdapter
 ALL_STORES = ["mem", "mem_denorm", "astra", "cassandra", "chroma", "opensearch"]
 TESTCONTAINER_STORES = ["cassandra", "opensearch"]
 
+
 @pytest.fixture(scope="session")
 def enabled_stores(request: pytest.FixtureRequest) -> set[str]:
     # TODO: Use StrEnum?
@@ -96,6 +97,7 @@ def _cassandra_store_factory(request: pytest.FixtureRequest):
 
     if use_testcontainer(request, "cassandra"):
         from testcontainers.cassandra import CassandraContainer
+
         container = CassandraContainer()
         container.start()
         request.addfinalizer(lambda: container.stop())
@@ -149,6 +151,7 @@ def _cassandra_store_factory(request: pytest.FixtureRequest):
         teardown=teardown_cassandra,
     )
 
+
 def _opensearch_store_factory(request: pytest.FixtureRequest):
     from langchain_community.vectorstores import OpenSearchVectorSearch
 
@@ -158,18 +161,19 @@ def _opensearch_store_factory(request: pytest.FixtureRequest):
 
     if use_testcontainer(request, "opensearch"):
         from testcontainers.opensearch import OpenSearchContainer
+
         # If the admin password doesn't pass the length and regex requirements
         # starting the container will hang (`docker ps <container_id>` to debug).
-        container = OpenSearchContainer(image="opensearchproject/opensearch:2.18.0",
-                                        initial_admin_password="SomeRandomP4ssword")
+        container = OpenSearchContainer(
+            image="opensearchproject/opensearch:2.18.0",
+            initial_admin_password="SomeRandomP4ssword",
+        )
         container.start()
         request.addfinalizer(lambda: container.stop())
 
         config = container.get_config()
         opensearch_url = f"http://{config['host']}:{config['port']}"
-        kwargs = {
-            "http_auth": (config["username"], config["password"])
-        }
+        kwargs = {"http_auth": (config["username"], config["password"])}
     else:
         opensearch_url = "http://localhost:9200"
         kwargs = {}
@@ -198,9 +202,9 @@ def _opensearch_store_factory(request: pytest.FixtureRequest):
         teardown=teardown_open_search,
     )
 
+
 @pytest.fixture(scope="session")
-def store_factory(store_param: str,
-                  request: pytest.FixtureRequest) -> StoreFactory:
+def store_factory(store_param: str, request: pytest.FixtureRequest) -> StoreFactory:
     if store_param == "mem" or store_param == "mem_denorm":
         support_normalized_metadata = not store_param.endswith("_denorm")
 
