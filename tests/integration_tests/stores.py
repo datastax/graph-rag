@@ -1,7 +1,6 @@
 import abc
 from typing import Callable, Generic, TypeVar
 
-from astrapy import Database
 import pytest
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
@@ -229,6 +228,7 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
 
             if keyspace != "default_keyspace":
                 from astrapy import AstraDBDatabaseAdmin
+
                 admin = AstraDBDatabaseAdmin(
                     api_endpoint=api_endpoint,
                     token=token,
