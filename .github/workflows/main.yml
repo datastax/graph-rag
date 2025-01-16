@@ -62,11 +62,24 @@ jobs:
 
       - name: Set up the environment
         uses: ./.github/actions/setup-python-env
+        id: setup
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Run `make test`
         run: make test
+        env:
+            ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+            ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
+            ASTRA_DB_KEYSPACE: ${{ github.ref }}-${{ matrix.python-version }}
+
+      - name: Run delete Astra DB
+        run: uv run scripts/cleanup-astra.py
+        if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
+        env:
+            ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+            ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
+            ASTRA_DB_KEYSPACE: ${{ github.ref }}-${{ matrix.python-version }}
 
       - name: Run `make mypy`
         run: make mypy

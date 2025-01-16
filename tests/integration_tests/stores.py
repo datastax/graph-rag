@@ -202,89 +202,98 @@ def _opensearch_store_factory(request: pytest.FixtureRequest):
         teardown=teardown_open_search,
     )
 
+def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
+    from langchain_astradb import AstraDBVectorStore
+
+    from graph_pancake.retrievers.traversal_adapters.astra import (
+        AstraStoreAdapter,
+    )
+
+    def create_astra(
+        name: str, docs: list[Document], embedding: Embeddings
+    ) -> AstraDBVectorStore:
+        try:
+            import os
+
+            from astrapy.authentication import StaticTokenProvider
+            from dotenv import load_dotenv
+            from langchain_astradb import AstraDBVectorStore
+
+            load_dotenv()
+
+            token = StaticTokenProvider(os.environ["ASTRA_DB_APPLICATION_TOKEN"])
+
+            store = AstraDBVectorStore(
+                embedding=embedding,
+                collection_name=name,
+                namespace=os.environ.get("ASTRA_DB_KEYSPACE", "default_keyspace"),
+                token=token,
+                api_endpoint=os.environ["ASTRA_DB_API_ENDPOINT"],
+            )
+            store.add_documents(docs)
+            return store
+
+        except (ImportError, ModuleNotFoundError):
+            msg = (
+                "to test graph-traversal with AstraDB, please"
+                " install langchain-astradb and python-dotenv"
+            )
+            raise ImportError(msg)
+
+    def teardown_astra(store: AstraDBVectorStore):
+        store.delete_collection()
+
+    return StoreFactory[AstraDBVectorStore](
+        support_normalized_metadata=True,
+        create_store=create_astra,
+        create_generic=AstraStoreAdapter,
+        teardown=teardown_astra,
+    )
+
+def _inmemory_store_factory(_request: pytest.FixtureRequest,
+                            support_normalized_metadata: bool) -> StoreFactory:
+    from langchain_core.vectorstores import InMemoryVectorStore
+
+    from graph_pancake.retrievers.traversal_adapters.in_memory import (
+        InMemoryStoreAdapter,
+    )
+
+    return StoreFactory[InMemoryVectorStore](
+        support_normalized_metadata=support_normalized_metadata,
+        create_store=lambda _name, docs, emb: InMemoryVectorStore.from_documents(
+            docs, emb
+        ),
+        create_generic=lambda store: InMemoryStoreAdapter(
+            store, support_normalized_metadata=support_normalized_metadata
+        ),
+    )
+
+def _chroma_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
+    from langchain_chroma.vectorstores import Chroma
+
+    from graph_pancake.retrievers.traversal_adapters.chroma import (
+        ChromaStoreAdapter,
+    )
+
+    return StoreFactory[Chroma](
+        support_normalized_metadata=False,
+        create_store=lambda name, docs, emb: Chroma.from_documents(
+            docs, emb, collection_name=name
+        ),
+        create_generic=ChromaStoreAdapter,
+        teardown=lambda store: store.delete_collection(),
+    )
 
 @pytest.fixture(scope="session")
 def store_factory(store_param: str, request: pytest.FixtureRequest) -> StoreFactory:
     if store_param == "mem" or store_param == "mem_denorm":
-        support_normalized_metadata = not store_param.endswith("_denorm")
-
-        from langchain_core.vectorstores import InMemoryVectorStore
-
-        from graph_pancake.retrievers.traversal_adapters.in_memory import (
-            InMemoryStoreAdapter,
-        )
-
-        return StoreFactory[InMemoryVectorStore](
-            support_normalized_metadata=support_normalized_metadata,
-            create_store=lambda _name, docs, emb: InMemoryVectorStore.from_documents(
-                docs, emb
-            ),
-            create_generic=lambda store: InMemoryStoreAdapter(
-                store, support_normalized_metadata=support_normalized_metadata
-            ),
-        )
+        return _inmemory_store_factory(request, support_normalized_metadata=True)
+    elif store_param == "mem_denorm":
+        return _inmemory_store_factory(request, support_normalized_metadata=False)
     elif store_param == "chroma":
-        from langchain_chroma.vectorstores import Chroma
-
-        from graph_pancake.retrievers.traversal_adapters.chroma import (
-            ChromaStoreAdapter,
-        )
-
-        return StoreFactory[Chroma](
-            support_normalized_metadata=False,
-            create_store=lambda name, docs, emb: Chroma.from_documents(
-                docs, emb, collection_name=name
-            ),
-            create_generic=ChromaStoreAdapter,
-            teardown=lambda store: store.delete_collection(),
-        )
+        return _chroma_store_factory(request)
     elif store_param == "astra":
-        from langchain_astradb import AstraDBVectorStore
-
-        from graph_pancake.retrievers.traversal_adapters.astra import (
-            AstraStoreAdapter,
-        )
-
-        def create_astra(
-            name: str, docs: list[Document], embedding: Embeddings
-        ) -> AstraDBVectorStore:
-            try:
-                import os
-
-                from astrapy.authentication import StaticTokenProvider
-                from dotenv import load_dotenv
-                from langchain_astradb import AstraDBVectorStore
-
-                load_dotenv()
-
-                token = StaticTokenProvider(os.environ["ASTRA_DB_APPLICATION_TOKEN"])
-
-                store = AstraDBVectorStore(
-                    embedding=embedding,
-                    collection_name=name,
-                    namespace="default_keyspace",
-                    token=token,
-                    api_endpoint=os.environ["ASTRA_DB_API_ENDPOINT"],
-                )
-                store.add_documents(docs)
-                return store
-
-            except (ImportError, ModuleNotFoundError):
-                msg = (
-                    "to test graph-traversal with AstraDB, please"
-                    " install langchain-astradb and python-dotenv"
-                )
-                raise ImportError(msg)
-
-        def teardown_astra(store: AstraDBVectorStore):
-            store.delete_collection()
-
-        return StoreFactory[AstraDBVectorStore](
-            support_normalized_metadata=True,
-            create_store=create_astra,
-            create_generic=AstraStoreAdapter,
-            teardown=teardown_astra,
-        )
+        return _astra_store_factory(request)
     elif store_param == "cassandra":
         return _cassandra_store_factory(request)
     elif store_param == "opensearch":
