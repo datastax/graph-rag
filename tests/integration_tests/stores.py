@@ -202,6 +202,7 @@ def _opensearch_store_factory(request: pytest.FixtureRequest):
         teardown=teardown_open_search,
     )
 
+
 def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     from langchain_astradb import AstraDBVectorStore
 
@@ -250,8 +251,10 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
         teardown=teardown_astra,
     )
 
-def _inmemory_store_factory(_request: pytest.FixtureRequest,
-                            support_normalized_metadata: bool) -> StoreFactory:
+
+def _inmemory_store_factory(
+    _request: pytest.FixtureRequest, support_normalized_metadata: bool
+) -> StoreFactory:
     from langchain_core.vectorstores import InMemoryVectorStore
 
     from graph_pancake.retrievers.traversal_adapters.in_memory import (
@@ -268,6 +271,7 @@ def _inmemory_store_factory(_request: pytest.FixtureRequest,
         ),
     )
 
+
 def _chroma_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     from langchain_chroma.vectorstores import Chroma
 
@@ -283,6 +287,7 @@ def _chroma_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
         create_generic=ChromaStoreAdapter,
         teardown=lambda store: store.delete_collection(),
     )
+
 
 @pytest.fixture(scope="session")
 def store_factory(store_param: str, request: pytest.FixtureRequest) -> StoreFactory:
