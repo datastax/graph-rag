@@ -7,6 +7,13 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
 
+concurrency:
+  # Cancel CI runs on a branch (other than main) on updates.defaults:
+  # This limits redundant runs, but also ensures we get signal on every
+  # merge to main.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !contains(github.ref, 'main')}}
+
 jobs:
   quality:
     runs-on: ubuntu-latest
