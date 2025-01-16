@@ -20,7 +20,7 @@ from tests.integration_tests.stores import Stores
 
 
 async def test_animals_bidir_collection(
-    animal_store: Stores, support_normalized_metadata: bool, invoker
+    animal_store: Stores, invoker
 ):
     # test graph-search on a normalized bi-directional edge
     retriever = GenericGraphTraversalRetriever(
@@ -36,12 +36,6 @@ async def test_animals_bidir_collection(
     docs = await invoker(
         retriever, ANIMALS_QUERY, strategy=Mmr(k=4, start_k=2, max_depth=1)
     )
-
-    if not support_normalized_metadata:
-        # If we don't support normalized data, then no edges are traversed.
-        assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
-        return
-
     assert sorted_doc_ids(docs) == ["cat", "gazelle", "hyena", "mongoose"]
 
     docs = await invoker(
@@ -94,7 +88,7 @@ async def test_animals_bidir_item(animal_store: Stores, invoker):
 
 
 async def test_animals_item_to_collection(
-    animal_store: Stores, support_normalized_metadata: bool, invoker
+    animal_store: Stores, invoker
 ):
     retriever = GenericGraphTraversalRetriever(
         store=animal_store.generic,
@@ -109,10 +103,6 @@ async def test_animals_item_to_collection(
     docs = await invoker(
         retriever, ANIMALS_QUERY, strategy=Mmr(k=10, start_k=2, max_depth=1)
     )
-    if not support_normalized_metadata:
-        assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
-        return
-
     assert sorted_doc_ids(docs) == ["bear", "bobcat", "fox", "mongoose"]
 
     docs = await invoker(

@@ -311,7 +311,7 @@ def store_factory(store_param: str, request: pytest.FixtureRequest) -> StoreFact
             teardown=teardown_open_search,
         )
     else:
-        pytest.fail(f"Unsuported store: {store_param}")
+        pytest.fail(f"Unsupported store: {store_param}")
 
 
 @pytest.fixture(scope="session")
