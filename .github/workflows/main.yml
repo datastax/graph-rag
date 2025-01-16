@@ -70,7 +70,7 @@ jobs:
         env:
             ASTRA_DB_KEYSPACE: ${{ github.ref }}-${{ matrix.python-version }}
         id: settings
-        run:
+        run: |
             ASTRA_DB_KEYSPACE=${{ env.ASTRA_DB_KEYSPACE }}
             ASTRA_DB_KEYSPACE=${ASTRA_DB_KEYSPACE//[\/.]/_}
             echo ${ASTRA_DB_KEYSPACE}
