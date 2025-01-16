@@ -1,7 +1,6 @@
 import abc
 from typing import Callable, Generic, TypeVar
 
-from astrapy import Database
 import pytest
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
@@ -205,16 +204,16 @@ def _opensearch_store_factory(request: pytest.FixtureRequest):
 
 
 def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
+    import os
+
+    from astrapy.authentication import StaticTokenProvider
+    from dotenv import load_dotenv
     from langchain_astradb import AstraDBVectorStore
 
     from graph_pancake.retrievers.traversal_adapters.astra import (
         AstraStoreAdapter,
     )
 
-    import os
-
-    from astrapy.authentication import StaticTokenProvider
-    from dotenv import load_dotenv
     load_dotenv()
 
     token = StaticTokenProvider(os.environ["ASTRA_DB_APPLICATION_TOKEN"])
@@ -222,6 +221,7 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     api_endpoint = os.environ["ASTRA_DB_API_ENDPOINT"]
 
     from astrapy import AstraDBDatabaseAdmin
+
     admin = AstraDBDatabaseAdmin(
         api_endpoint=api_endpoint,
         token=token,
