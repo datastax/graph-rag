@@ -213,14 +213,14 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     from graph_pancake.retrievers.traversal_adapters.astra import (
         AstraStoreAdapter,
     )
+    from astrapy import AstraDBDatabaseAdmin
+
 
     load_dotenv()
 
     token = StaticTokenProvider(os.environ["ASTRA_DB_APPLICATION_TOKEN"])
     keyspace = os.environ.get("ASTRA_DB_KEYSPACE", "default_keyspace")
     api_endpoint = os.environ["ASTRA_DB_API_ENDPOINT"]
-
-    from astrapy import AstraDBDatabaseAdmin
 
     admin = AstraDBDatabaseAdmin(
         api_endpoint=api_endpoint,
