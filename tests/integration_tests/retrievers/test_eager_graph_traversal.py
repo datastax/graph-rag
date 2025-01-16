@@ -58,7 +58,7 @@ async def test_traversal(
         use_denormalized_metadata=not support_normalized_metadata,
     )
 
-    docs = await invoker(retriever, "Earth", start_k=1, depth=0)
+    docs: list[Document] = await invoker(retriever, "Earth", start_k=1, depth=0)
     assert sorted_doc_ids(docs) == ["doc2"]
 
     docs = await invoker(retriever, "Earth", depth=0)
@@ -80,7 +80,7 @@ async def test_invoke(
         start_k=2,
     )
 
-    docs = await invoker(retriever, input="[2, 10]", depth=0)
+    docs: list[Document] = await invoker(retriever, input="[2, 10]", depth=0)
     ss_labels = {doc.metadata["label"] for doc in docs}
     assert ss_labels == {"AR", "A0"}
     assert_document_format(docs[0])
@@ -104,7 +104,7 @@ async def test_animals(
         use_denormalized_metadata=not support_normalized_metadata,
     )
 
-    docs = await invoker(retriever, ANIMALS_QUERY, depth=0)
+    docs: list[Document] = await invoker(retriever, ANIMALS_QUERY, depth=0)
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
 
     docs = await invoker(retriever, ANIMALS_QUERY, depth=1)

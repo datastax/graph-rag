@@ -3,6 +3,9 @@ import json
 import pytest
 from langchain_core.documents import Document
 
+from graph_pancake.document_transformers.metadata_denormalizer import (
+    MetadataDenormalizer,
+)
 from tests.embeddings import AnimalEmbeddings
 from tests.integration_tests.stores import StoreFactory, Stores
 
@@ -29,7 +32,11 @@ def animal_store(
     request: pytest.FixtureRequest,
     store_factory: StoreFactory,
     animal_docs: list[Document],
+    support_normalized_metadata: bool,
 ) -> Stores:
+    if not support_normalized_metadata:
+        animal_docs = list(MetadataDenormalizer().transform_documents(animal_docs))
+
     return store_factory.create(request, AnimalEmbeddings(), animal_docs)
 
 

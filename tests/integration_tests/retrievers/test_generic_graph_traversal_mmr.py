@@ -20,15 +20,16 @@ from tests.integration_tests.stores import Stores
 
 
 async def test_animals_bidir_collection(
-    animal_store: Stores, invoker
+    animal_store: Stores, invoker, support_normalized_metadata: bool
 ):
     # test graph-search on a normalized bi-directional edge
     retriever = GenericGraphTraversalRetriever(
         store=animal_store.generic,
         edges=["keywords"],
+        use_denormalized_metadata=(not support_normalized_metadata),
     )
 
-    docs = await invoker(
+    docs: list[Document] = await invoker(
         retriever, ANIMALS_QUERY, strategy=Mmr(k=4, start_k=2, max_depth=0)
     )
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
@@ -51,13 +52,16 @@ async def test_animals_bidir_collection(
     ]
 
 
-async def test_animals_bidir_item(animal_store: Stores, invoker):
+async def test_animals_bidir_item(
+    animal_store: Stores, invoker, support_normalized_metadata: bool
+):
     retriever = GenericGraphTraversalRetriever(
         store=animal_store.generic,
         edges=["habitat"],
+        use_denormalized_metadata=(not support_normalized_metadata),
     )
 
-    docs = await invoker(
+    docs: list[Document] = await invoker(
         retriever, ANIMALS_QUERY, strategy=Mmr(k=10, start_k=2, max_depth=0)
     )
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
@@ -88,14 +92,15 @@ async def test_animals_bidir_item(animal_store: Stores, invoker):
 
 
 async def test_animals_item_to_collection(
-    animal_store: Stores, invoker
+    animal_store: Stores, invoker, support_normalized_metadata: bool
 ):
     retriever = GenericGraphTraversalRetriever(
         store=animal_store.generic,
         edges=[("habitat", "keywords")],
+        use_denormalized_metadata=(not support_normalized_metadata),
     )
 
-    docs = await invoker(
+    docs: list[Document] = await invoker(
         retriever, ANIMALS_QUERY, strategy=Mmr(k=10, start_k=2, max_depth=0)
     )
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
@@ -111,7 +116,7 @@ async def test_animals_item_to_collection(
     assert sorted_doc_ids(docs) == ["bear", "bobcat", "caribou", "fox", "mongoose"]
 
 
-async def test_traversal_mem(invoker) -> None:
+async def test_traversal_mem(invoker, support_normalized_metadata: bool) -> None:
     """ Test end to end construction and MMR search.
     The embedding function used here ensures `texts` become
     the following vectors on a circle (numbered v0 through v3):
@@ -144,12 +149,15 @@ async def test_traversal_mem(invoker) -> None:
 
     strategy = Mmr(k=2, start_k=2, max_depth=2)
     retriever = GenericGraphTraversalRetriever(
-        store=InMemoryStoreAdapter(vector_store=store),
+        store=InMemoryStoreAdapter(
+            vector_store=store, support_normalized_metadata=support_normalized_metadata
+        ),
         edges=[("outgoing", "incoming")],
         strategy=strategy,
+        use_denormalized_metadata=(not support_normalized_metadata),
     )
 
-    docs = await invoker(retriever, "0.0")
+    docs: list[Document] = await invoker(retriever, "0.0")
     assert sorted_doc_ids(docs) == ["v0", "v2"]
 
     # With max depth 0, no edges are traversed, so this doesn't reach v2 or v3.

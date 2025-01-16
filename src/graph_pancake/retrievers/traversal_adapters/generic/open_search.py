@@ -6,7 +6,11 @@ from typing import (
     Sequence,
 )
 
-from langchain_community.vectorstores import OpenSearchVectorSearch
+try:
+    from langchain_community.vectorstores import OpenSearchVectorSearch
+except (ImportError, ModuleNotFoundError):
+    raise ImportError("please `pip install langchain-community`")
+
 from langchain_core.documents import Document
 
 from .base import METADATA_EMBEDDING_KEY, StoreAdapter

@@ -779,7 +779,6 @@ name = "graph-pancake"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "langchain-community" },
     { name = "langchain-core" },
     { name = "numpy" },
     { name = "pydantic" },
@@ -792,6 +791,10 @@ astra = [
 beautifulsoup4 = [
     { name = "beautifulsoup4" },
 ]
+cassandra = [
+    { name = "cassio" },
+    { name = "langchain-community" },
+]
 chroma = [
     { name = "chromadb" },
     { name = "langchain-chroma" },
@@ -803,6 +806,7 @@ keybert = [
     { name = "keybert" },
 ]
 opensearch = [
+    { name = "langchain-community" },
     { name = "opensearch-py" },
 ]
 simsimd = [
@@ -827,12 +831,14 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "beautifulsoup4", marker = "extra == 'beautifulsoup4'", specifier = ">=4.12.3" },
+    { name = "cassio", marker = "extra == 'cassandra'", specifier = ">=0.1.10" },
     { name = "chromadb", marker = "extra == 'chroma'", specifier = ">=0.5.23" },
     { name = "gliner", marker = "extra == 'gliner'", specifier = "==0.2.13" },
     { name = "keybert", marker = "extra == 'keybert'", specifier = ">=0.8.5" },
     { name = "langchain-astradb", marker = "extra == 'astra'", specifier = ">=0.5.2" },
     { name = "langchain-chroma", marker = "extra == 'chroma'", git = "https://github.com/langchain-ai/langchain.git?subdirectory=libs%2Fpartners%2Fchroma" },
-    { name = "langchain-community", specifier = ">=0.3.14" },
+    { name = "langchain-community", marker = "extra == 'cassandra'", specifier = ">=0.3.14" },
+    { name = "langchain-community", marker = "extra == 'opensearch'", specifier = ">=0.3.14" },
     { name = "langchain-core", specifier = ">=0.3.29" },
     { name = "numpy", specifier = ">=1.26.4" },
     { name = "opensearch-py", marker = "extra == 'opensearch'", specifier = ">=2.8.0" },
@@ -846,7 +852,7 @@ dev = [
     { name = "langchain-astradb", specifier = ">=0.5.2" },
     { name = "langchain-chroma", git = "https://github.com/langchain-ai/langchain.git?subdirectory=libs%2Fpartners%2Fchroma" },
     { name = "langchain-community", specifier = ">=0.3.14" },
-    { name = "langchain-openai", specifier = ">=0.2.14" },
+    { name = "langchain-openai", specifier = ">=0.3.0" },
     { name = "langchain-opensearch", specifier = ">=0.0.2" },
     { name = "mypy", specifier = ">=1.14.1" },
     { name = "pytest", specifier = ">=8.3.4" },
@@ -1365,16 +1371,16 @@ wheels = [
 
 [[package]]
 name = "langchain-openai"
-version = "0.2.14"
+version = "0.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "langchain-core" },
     { name = "openai" },
     { name = "tiktoken" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e5/fd/8256eba9a159f95a13c5bf7f1f49683de93b3876585b768e6be5dc3a5765/langchain_openai-0.2.14.tar.gz", hash = "sha256:7a514f309e356b182a337c0ed36ab3fbe34d9834a235a3b85cb7f91ae775d978", size = 43647 }
+sdist = { url = "https://files.pythonhosted.org/packages/16/0a/0711117a4e8273d5edd4899399a8597d848b2d7b3c9ba3be97038b4fbc1a/langchain_openai-0.3.0.tar.gz", hash = "sha256:88d623eeb2aaa1fff65c2b419a4a1cfd37d3a1d504e598b87cf0bc822a3b70d0", size = 48067 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ed/54/63c8264d7dbc3bf31ba61bf97740fdd76386b2d4f9a58f58afd3961ce7d7/langchain_openai-0.2.14-py3-none-any.whl", hash = "sha256:d232496662f79ece9a11caf7d798ba863e559c771bc366814f7688e0fe664fe8", size = 50876 },
+    { url = "https://files.pythonhosted.org/packages/4a/9c/b38e308ac668f6db067b424a2a78e5b865753c144a119456f008a09230db/langchain_openai-0.3.0-py3-none-any.whl", hash = "sha256:49c921a22d272b04749a61e78bffa83aecdb8840b24b69f2909e115a357a9a5b", size = 54218 },
 ]
 
 [[package]]
@@ -1918,7 +1924,7 @@ wheels = [
 
 [[package]]
 name = "openai"
-version = "1.59.4"
+version = "1.59.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -1930,9 +1936,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/38/db/0e1376bdee3de8c16d91647d47dc47a26d2d6036931c76844e7d3e3fb989/openai-1.59.4.tar.gz", hash = "sha256:b946dc5a2308dc1e03efbda80bf1cd64b6053b536851ad519f57ee44401663d2", size = 344405 }
+sdist = { url = "https://files.pythonhosted.org/packages/f9/d5/25cf04789c7929b476c4d9ef711f8979091db63d30bfc093828fe4bf5c72/openai-1.59.7.tar.gz", hash = "sha256:043603def78c00befb857df9f0a16ee76a3af5984ba40cb7ee5e2f40db4646bf", size = 345007 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/99/01/1eefc235bb79174826b2fa0cad05bc2eab90eae97bf78c765887d7430e46/openai-1.59.4-py3-none-any.whl", hash = "sha256:82113498699998e98104f87c19a890e82df9b01251a0395484360575d3a1d98a", size = 454810 },
+    { url = "https://files.pythonhosted.org/packages/6d/47/7b92f1731c227f4139ef0025b5996062e44f9a749c54315c8bdb34bad5ec/openai-1.59.7-py3-none-any.whl", hash = "sha256:cfa806556226fa96df7380ab2e29814181d56fea44738c2b0e581b462c268692", size = 454844 },
 ]
 
 [[package]]
@@ -2949,11 +2955,11 @@ wheels = [
 
 [[package]]
 name = "setuptools"
-version = "75.7.0"
+version = "75.8.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/ac/57/e6f0bde5a2c333a32fbcce201f906c1fd0b3a7144138712a5e9d9598c5ec/setuptools-75.7.0.tar.gz", hash = "sha256:886ff7b16cd342f1d1defc16fc98c9ce3fde69e087a4e1983d7ab634e5f41f4f", size = 1338616 }
+sdist = { url = "https://files.pythonhosted.org/packages/92/ec/089608b791d210aec4e7f97488e67ab0d33add3efccb83a056cbafe3a2a6/setuptools-75.8.0.tar.gz", hash = "sha256:c5afc8f407c626b8313a86e10311dd3f661c6cd9c09d4bf8c15c0e11f9f2b0e6", size = 1343222 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4e/6e/abdfaaf5c294c553e7a81cf5d801fbb4f53f5c5b6646de651f92a2667547/setuptools-75.7.0-py3-none-any.whl", hash = "sha256:84fb203f278ebcf5cd08f97d3fb96d3fbed4b629d500b29ad60d11e00769b183", size = 1224467 },
+    { url = "https://files.pythonhosted.org/packages/69/8a/b9dc7678803429e4a3bc9ba462fa3dd9066824d3c607490235c6a796be5a/setuptools-75.8.0-py3-none-any.whl", hash = "sha256:e3982f444617239225d675215d51f6ba05f845d4eec313da4418fdbb56fb27e3", size = 1228782 },
 ]
 
 [[package]]

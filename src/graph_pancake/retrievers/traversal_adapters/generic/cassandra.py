@@ -4,7 +4,11 @@ from typing import (
     Sequence,
 )
 
-from langchain_community.vectorstores import Cassandra
+try:
+    from langchain_community.vectorstores import Cassandra
+except (ImportError, ModuleNotFoundError):
+    raise ImportError("please `pip install langchain-community`")
+
 from langchain_core.documents import Document
 
 from .base import METADATA_EMBEDDING_KEY, StoreAdapter

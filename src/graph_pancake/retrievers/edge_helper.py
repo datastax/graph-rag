@@ -1,8 +1,6 @@
 import warnings
 from typing import Any, Iterable
 
-from graph_pancake.retrievers.consts import METADATA_EMBEDDING_KEY
-
 from .edge import Edge
 
 BASIC_TYPES = (str, bool, int, float, complex, bytes)
@@ -73,9 +71,7 @@ class EdgeHelper:
                 else:
                     for item in value:
                         if isinstance(item, BASIC_TYPES):
-                            edges.add(
-                                Edge(target_key, item)
-                            )
+                            edges.add(Edge(target_key, item))
                         else:
                             raise ValueError(
                                 f"Unsupported item value {item} in '{source_key}'"
@@ -89,8 +85,11 @@ class EdgeHelper:
     ) -> dict[str, Any]:
         normalized: dict[str, Any] = {}
         for key, value in denormalized_metadata.items():
-            assert key != METADATA_EMBEDDING_KEY, "should we skip this?"
-            if value != self.denormalized_static_value:
+            try:
+                if value != self.denormalized_static_value:
+                    continue
+            except (TypeError, ValueError):
+                # Skip items that can't be compared
                 continue
 
             split = key.split(self.denormalized_path_delimiter, 2)
@@ -121,6 +120,7 @@ class EdgeHelper:
         self,
         base_filter: dict[str, Any] | None = None,
         edge: Edge | None = None,
+        denormalize_edge: bool = False,
     ) -> dict[str, Any]:
         """Builds a metadata filter to search for documents
 
@@ -131,11 +131,10 @@ class EdgeHelper:
         metadata_filter = {**(base_filter or {})}
         if edge is None:
             metadata_filter
-        elif edge.is_denormalized:
+        elif denormalize_edge:
             metadata_filter[
                 f"{edge.key}{self.denormalized_path_delimiter}{edge.value}"
             ] = self.denormalized_static_value
         else:
             metadata_filter[edge.key] = edge.value
-
         return metadata_filter
