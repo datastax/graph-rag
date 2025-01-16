@@ -18,7 +18,10 @@ from .mmr_traversal_adapter import MMRTraversalAdapter
 
 class CassandraMMRTraversalAdapter(MMRTraversalAdapter):
     def __init__(self, vector_store: VectorStore):
-        from langchain_community.vectorstores import Cassandra
+        try:
+            from langchain_community.vectorstores import Cassandra
+        except (ImportError, ModuleNotFoundError):
+            raise ImportError("please `pip install langchain-community cassio`")
 
         self._vector_store = cast(Cassandra, vector_store)
         self._base_vector_store = vector_store

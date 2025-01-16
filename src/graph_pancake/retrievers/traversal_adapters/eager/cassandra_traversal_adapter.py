@@ -12,7 +12,10 @@ from .traversal_adapter import TraversalAdapter
 
 class CassandraTraversalAdapter(TraversalAdapter):
     def __init__(self, vector_store: VectorStore):
-        from langchain_community.vectorstores import Cassandra
+        try:
+            from langchain_community.vectorstores import Cassandra
+        except (ImportError, ModuleNotFoundError):
+            raise ImportError("please `pip install langchain-community cassio`")
 
         self._vector_store = cast(Cassandra, vector_store)
         self._base_vector_store = vector_store

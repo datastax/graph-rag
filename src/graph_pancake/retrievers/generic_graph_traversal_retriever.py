@@ -450,6 +450,16 @@ class GenericGraphTraversalRetriever(BaseRetriever):
                 **kwargs,
             )
             results.extend(docs)
+            if self.use_denormalized_metadata:
+                docs = self.store.similarity_search_with_embedding_by_vector(
+                    embedding=state.strategy.query_embedding,
+                    k=state.strategy.adjacent_k,
+                    filter=self.edge_helper.get_metadata_filter(
+                        base_filter=filter, edge=outgoing_edge, denormalize_edge=True
+                    ),
+                    **kwargs,
+                )
+                results.extend(docs)
         return results
 
     async def _aget_adjacent(
@@ -480,6 +490,22 @@ class GenericGraphTraversalRetriever(BaseRetriever):
             )
             for outgoing_edge in outgoing_edges
         ]
+        if self.use_denormalized_metadata:
+            tasks.extend(
+                [
+                    self.store.asimilarity_search_with_embedding_by_vector(
+                        embedding=state.strategy.query_embedding,
+                        k=state.strategy.adjacent_k,
+                        filter=self.edge_helper.get_metadata_filter(
+                            base_filter=filter,
+                            edge=outgoing_edge,
+                            denormalize_edge=True,
+                        ),
+                        **kwargs,
+                    )
+                    for outgoing_edge in outgoing_edges
+                ]
+            )
 
         results: list[Document] = []
         for completed_task in asyncio.as_completed(tasks):

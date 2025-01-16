@@ -60,7 +60,7 @@ async def test_traversal(
         depth=2,
     )
 
-    docs = await invoker(retriever, "0.0", k=2, fetch_k=2)
+    docs: list[Document] = await invoker(retriever, "0.0", k=2, fetch_k=2)
     assert sorted_doc_ids(docs) == ["v0", "v2"]
 
     # With max depth 0, no edges are traversed, so this doesn't reach v2 or v3.
@@ -90,7 +90,7 @@ async def test_invoke(parser_store: Stores, invoker) -> None:
         k=2,
     )
 
-    docs = await invoker(retriever, input="[2, 10]")
+    docs: list[Document] = await invoker(retriever, input="[2, 10]")
     mt_labels = {doc.metadata["label"] for doc in docs}
     assert mt_labels == {"AR", "BR"}
     assert docs[0].metadata
@@ -98,7 +98,7 @@ async def test_invoke(parser_store: Stores, invoker) -> None:
 
 
 async def test_animals(
-    animal_store: Stores, invoker, support_normalized_metadata: bool
+    animal_store: Stores, support_normalized_metadata: bool, invoker
 ) -> None:
     # test graph-search on a normalized bi-directional edge
     retriever = GraphMMRTraversalRetriever(
@@ -108,7 +108,7 @@ async def test_animals(
         use_denormalized_metadata=not support_normalized_metadata,
     )
 
-    docs = await invoker(retriever, ANIMALS_QUERY, depth=0)
+    docs: list[Document] = await invoker(retriever, ANIMALS_QUERY, depth=0)
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
 
     docs = await invoker(retriever, ANIMALS_QUERY, depth=1)
