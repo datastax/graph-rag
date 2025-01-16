@@ -46,7 +46,10 @@ def test_get_incoming_outgoing_denormalized():
 
     assert edge_helper.get_incoming_outgoing(
         {"href:a": 57, "href:c": 57, "url": "b"}
-    ) == ({Edge(key="url", value="b")}, {Edge(key="url", value="a"), Edge(key="url", value="c")})
+    ) == (
+        {Edge(key="url", value="b")},
+        {Edge(key="url", value="a"), Edge(key="url", value="c")},
+    )
 
     assert edge_helper.get_incoming_outgoing(
         {
@@ -55,7 +58,10 @@ def test_get_incoming_outgoing_denormalized():
             "url:b": 57,
             "url:d": 57,
         }
-    ) == ({Edge("url", "b"), Edge("url", "d")}, {Edge("url", "a"), Edge("url", "a"), Edge("url", "c"), Edge("url", "c")})
+    ) == (
+        {Edge("url", "b"), Edge("url", "d")},
+        {Edge("url", "a"), Edge("url", "a"), Edge("url", "c"), Edge("url", "c")},
+    )
 
 
 def test_get_incoming_outgoing_unsupported_values():
@@ -96,7 +102,7 @@ def test_get_incoming_outgoing_unsupported_values():
 
 def test_get_incoming_outgoing_keywords():
     edge_helper = EdgeHelper([("keywords", "keywords")])
-    assert edge_helper.get_incoming_outgoing({"keywords":["a", "b"]}) == (
+    assert edge_helper.get_incoming_outgoing({"keywords": ["a", "b"]}) == (
         {Edge("keywords", "a"), Edge("keywords", "b")},
         {Edge("keywords", "a"), Edge("keywords", "b")},
     )
@@ -129,25 +135,25 @@ def test_get_incoming_outgoing_keywords_denormalized():
 def test_get_metadata_filter():
     edge_helper = EdgeHelper([])
 
-    assert edge_helper.get_metadata_filter(
-        edge=Edge(key="boolean", value=True)
-    ) == {"boolean": True}
+    assert edge_helper.get_metadata_filter(edge=Edge(key="boolean", value=True)) == {
+        "boolean": True
+    }
 
-    assert edge_helper.get_metadata_filter(
-        edge=Edge(key="incoming", value=4)
-    ) == {"incoming": 4}
+    assert edge_helper.get_metadata_filter(edge=Edge(key="incoming", value=4)) == {
+        "incoming": 4
+    }
 
-    assert edge_helper.get_metadata_filter(
-        edge=Edge(key="place", value="berlin")
-    ) == {"place": "berlin"}
+    assert edge_helper.get_metadata_filter(edge=Edge(key="place", value="berlin")) == {
+        "place": "berlin"
+    }
 
 
 def test_get_metadata_filter_denormalized() -> None:
     edge_helper = EdgeHelper([], use_denormalized_metadata=True)
 
-    assert edge_helper.get_metadata_filter(
-        edge=Edge(key="boolean", value=True)
-    ) == {"boolean": True}
+    assert edge_helper.get_metadata_filter(edge=Edge(key="boolean", value=True)) == {
+        "boolean": True
+    }
 
     assert edge_helper.get_metadata_filter(
         edge=Edge(key="incoming", value=4), denormalize_edge=True
