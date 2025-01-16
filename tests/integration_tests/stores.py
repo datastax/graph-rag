@@ -224,10 +224,12 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
 
             token = StaticTokenProvider(os.environ["ASTRA_DB_APPLICATION_TOKEN"])
 
+            keyspace=os.environ.get("ASTRA_DB_KEYSPACE", "default_keyspace")
+            keyspace = keyspace.replace("/", "_")
             store = AstraDBVectorStore(
                 embedding=embedding,
                 collection_name=name,
-                keyspace=os.environ.get("ASTRA_DB_KEYSPACE", "default_keyspace"),
+                keyspace=keyspace,
                 token=token,
                 api_endpoint=os.environ["ASTRA_DB_API_ENDPOINT"],
             )
