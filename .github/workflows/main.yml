@@ -71,7 +71,7 @@ jobs:
         env:
             ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
             ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
-            ASTRA_DB_KEYSPACE: ${{ github.run_id }}_${{ github.run_attempt }}
+            ASTRA_DB_KEYSPACE: ci_${{ github.run_id }}_${{ github.run_attempt }}
 
       - name: Run delete Astra DB
         run: uv run scripts/cleanup-astra.py
@@ -79,7 +79,7 @@ jobs:
         env:
             ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
             ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
-            ASTRA_DB_KEYSPACE: ${{ github.run_id }}_${{ github.run_attempt }}
+            ASTRA_DB_KEYSPACE: ci_${{ github.run_id }}_${{ github.run_attempt }}
 
       - name: Run `make mypy`
         run: make mypy
