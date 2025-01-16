@@ -227,7 +227,7 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
             store = AstraDBVectorStore(
                 embedding=embedding,
                 collection_name=name,
-                namespace=os.environ.get("ASTRA_DB_KEYSPACE", "default_keyspace"),
+                keyspace=os.environ.get("ASTRA_DB_KEYSPACE", "default_keyspace"),
                 token=token,
                 api_endpoint=os.environ["ASTRA_DB_API_ENDPOINT"],
             )
