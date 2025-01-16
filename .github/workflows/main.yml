@@ -66,21 +66,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Compute run-specific settings
-        env:
-            ASTRA_DB_KEYSPACE: ${{ github.ref }}_${{ matrix.python-version }}
-        id: settings
-        run: |
-            ASTRA_DB_KEYSPACE=${{ env.ASTRA_DB_KEYSPACE }}
-            ASTRA_DB_KEYSPACE=${ASTRA_DB_KEYSPACE//[-\/.]/_}
-            echo ASTRA_DB_KEYSPACE=${ASTRA_DB_KEYSPACE} >> $GITHUB_OUTPUT
-
       - name: Run `make test`
         run: make test
         env:
             ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
             ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
-            ASTRA_DB_KEYSPACE: ${{ steps.settings.outputs.ASTRA_DB_KEYSPACE }}
+            ASTRA_DB_KEYSPACE: ${{ github.run_id }}_${{ github.run_attempt }}
 
       - name: Run delete Astra DB
         run: uv run scripts/cleanup-astra.py
@@ -88,7 +79,7 @@ jobs:
         env:
             ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
             ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
-            ASTRA_DB_KEYSPACE: ${{ steps.settings.outputs.ASTRA_DB_KEYSPACE }}
+            ASTRA_DB_KEYSPACE: ${{ github.run_id }}_${{ github.run_attempt }}
 
       - name: Run `make mypy`
         run: make mypy

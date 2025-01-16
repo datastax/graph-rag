@@ -211,29 +211,28 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
         AstraStoreAdapter,
     )
 
+    import os
+
+    from astrapy.authentication import StaticTokenProvider
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    token = StaticTokenProvider(os.environ["ASTRA_DB_APPLICATION_TOKEN"])
+    keyspace = os.environ.get("ASTRA_DB_KEYSPACE", "default_keyspace")
+    api_endpoint = os.environ["ASTRA_DB_API_ENDPOINT"]
+
+    from astrapy import AstraDBDatabaseAdmin
+    admin = AstraDBDatabaseAdmin(
+        api_endpoint=api_endpoint,
+        token=token,
+    )
+    admin.create_keyspace(keyspace)
+
     def create_astra(
         name: str, docs: list[Document], embedding: Embeddings
     ) -> AstraDBVectorStore:
         try:
-            import os
-
-            from astrapy.authentication import StaticTokenProvider
-            from dotenv import load_dotenv
             from langchain_astradb import AstraDBVectorStore
-
-            load_dotenv()
-
-            token = StaticTokenProvider(os.environ["ASTRA_DB_APPLICATION_TOKEN"])
-            keyspace = os.environ.get("ASTRA_DB_KEYSPACE", "default_keyspace")
-            api_endpoint = os.environ["ASTRA_DB_API_ENDPOINT"]
-
-            from astrapy import AstraDBDatabaseAdmin
-            admin = AstraDBDatabaseAdmin(
-                api_endpoint=api_endpoint,
-                token=token,
-            )
-            if keyspace not in admin.list_keyspaces():
-                admin.create_keyspace(keyspace)
 
             store = AstraDBVectorStore(
                 embedding=embedding,
