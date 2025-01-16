@@ -44,6 +44,9 @@ simsimd = [
 beautifulsoup4 = "bs4"
 opensearch-py = "opensearchpy"
 
+[tool.deptry.per_rule_ignores]
+DEP002 = ["cassio"]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 pythonpath = ["."]

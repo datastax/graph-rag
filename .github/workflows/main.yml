@@ -1,0 +1,77 @@
+name: Main
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      # TODO: Caching
+
+      - name: Set up the environment
+        uses: ./.github/actions/setup-python-env
+        id: setup
+
+      - name: Run `make fmt-check`
+        run: make fmt-check
+        if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
+
+      - name: Run `make check`
+        run: make check
+        if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
+
+      - name: Run `make check-lock`
+        run: make check-lock
+        if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
+
+      - name: Run `make deptry`
+        run: make deptry
+        if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
+
+  tests-and-type-check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+      fail-fast: false
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up the environment
+        uses: ./.github/actions/setup-python-env
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run `make test`
+        run: make test
+
+      - name: Run `make mypy`
+        run: make mypy
+
+      - name: Upload coverage reports to Codecov with GitHub Action on Python 3.11
+        uses: codecov/codecov-action@v4
+        if: ${{ matrix.python-version == '3.11' }}
+
+#   check-docs:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Check out
+#         uses: actions/checkout@v4
+
+#       - name: Set up the environment
+#         uses: ./.github/actions/setup-python-env
+
+#       - name: Check if documentation can be built
+#         run: uv run mkdocs build -s
