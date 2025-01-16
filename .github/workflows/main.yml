@@ -22,18 +22,22 @@ jobs:
 
       - name: Run `make fmt-check`
         run: make fmt-check
+        # Runs this as long as setup succeeds.
         if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
 
       - name: Run `make check`
         run: make check
+        # Runs this as long as setup succeeds.
         if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
 
       - name: Run `make check-lock`
         run: make check-lock
+        # Runs this as long as setup succeeds.
         if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
 
       - name: Run `make deptry`
         run: make deptry
+        # Runs this as long as setup succeeds.
         if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
 
   tests-and-type-check:

@@ -1,6 +1,3 @@
-import pytest
-from langchain_core.documents import Document
-
 from tests.integration_tests.invoker import invoker
 from tests.integration_tests.retrievers.animal_docs import animal_docs, animal_store
 from tests.integration_tests.retrievers.parser_docs import (
@@ -29,27 +26,3 @@ _ = (
     parser_store,
     invoker,
 )
-
-
-@pytest.fixture(scope="module")
-def hello_docs() -> list[Document]:
-    greetings = Document(
-        id="greetings",
-        page_content="Typical Greetings",
-        metadata={
-            "incoming": "parent",
-        },
-    )
-
-    doc1 = Document(
-        id="doc1",
-        page_content="Hello World",
-        metadata={"outgoing": "parent", "keywords": ["greeting", "world"]},
-    )
-
-    doc2 = Document(
-        id="doc2",
-        page_content="Hello Earth",
-        metadata={"outgoing": "parent", "keywords": ["greeting", "earth"]},
-    )
-    return [greetings, doc1, doc2]
