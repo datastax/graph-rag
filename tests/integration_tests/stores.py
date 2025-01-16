@@ -27,16 +27,14 @@ def enabled_stores(request: pytest.FixtureRequest) -> set[str]:
         return {"mem", "mem_denorm"}
 
 
-@pytest.fixture(scope="session")
-def testcontainer_stores(request: pytest.FixtureRequest) -> set[str]:
-    testcontainer = request.config.getoption("--testcontainer")
-
-    if testcontainer and "none" in testcontainer:
-        return {}
-    elif testcontainer:
-        return set(testcontainer)
+def use_testcontainer(request: pytest.FixtureRequest, store: str) -> bool:
+    testcontainers = request.config.getoption("--testcontainer")
+    if testcontainers and "none" in testcontainers:
+        return False
+    elif testcontainers:
+        return store in testcontainers
     else:
-        return TESTCONTAINER_STORES
+        return True
 
 
 @pytest.fixture(scope="session", params=ALL_STORES)
@@ -86,24 +84,23 @@ class StoreFactory(abc.ABC, Generic[T]):
         return self._create_generic(store)
 
 
-def _cassandra_store_factory(request: pytest.FixtureRequest,
-                             start_test_container: bool):
+def _cassandra_store_factory(request: pytest.FixtureRequest):
     import os
 
     from cassandra.cluster import Cluster  # type: ignore
     from langchain_community.vectorstores.cassandra import Cassandra
 
-    from graph_pancake.retrievers.traversal_adapters.eager.cassandra_traversal_adapter import (  # noqa: E501
-        CassandraTraversalAdapter,
-    )
-    from graph_pancake.retrievers.traversal_adapters.generic.cassandra import (
+    from graph_pancake.retrievers.traversal_adapters.cassandra import (
         CassandraStoreAdapter,
     )
-    from graph_pancake.retrievers.traversal_adapters.mmr.cassandra_mmr_traversal_adapter import (  # noqa: E501
-        CassandraMMRTraversalAdapter,
-    )
 
-    if "CASSANDRA_CONTACT_POINTS" in os.environ:
+    if use_testcontainer(request, "cassandra"):
+        from testcontainers.cassandra import CassandraContainer
+        container = CassandraContainer()
+        container.start()
+        request.addfinalizer(lambda: container.stop())
+        contact_points = container.get_contact_points()
+    elif "CASSANDRA_CONTACT_POINTS" in os.environ:
         contact_points = [
             cp.strip()
             for cp in os.environ["CASSANDRA_CONTACT_POINTS"].split(",")
@@ -148,34 +145,44 @@ def _cassandra_store_factory(request: pytest.FixtureRequest,
     return StoreFactory[Cassandra](
         support_normalized_metadata=False,
         create_store=create_cassandra,
-        create_eager=CassandraTraversalAdapter,
-        create_mmr=CassandraMMRTraversalAdapter,
         create_generic=CassandraStoreAdapter,
         teardown=teardown_cassandra,
     )
 
-def _opensearch_store_factory(request: pytest.FixtureRequest,
-                              start_test_container: bool)
+def _opensearch_store_factory(request: pytest.FixtureRequest):
     from langchain_community.vectorstores import OpenSearchVectorSearch
 
-    from graph_pancake.retrievers.traversal_adapters.eager.open_search_traversal_adapter import (  # noqa: E501
-        OpenSearchTraversalAdapter,
-    )
-    from graph_pancake.retrievers.traversal_adapters.generic.open_search import (
+    from graph_pancake.retrievers.traversal_adapters.open_search import (
         OpenSearchStoreAdapter,
     )
-    from graph_pancake.retrievers.traversal_adapters.mmr.open_search_mmr_traversal_adapter import (  # noqa: E501
-        OpenSearchMMRTraversalAdapter,
-    )
+
+    if use_testcontainer(request, "opensearch"):
+        from testcontainers.opensearch import OpenSearchContainer
+        # If the admin password doesn't pass the length and regex requirements
+        # starting the container will hang (`docker ps <container_id>` to debug).
+        container = OpenSearchContainer(image="opensearchproject/opensearch:2.18.0",
+                                        initial_admin_password="SomeRandomP4ssword")
+        container.start()
+        request.addfinalizer(lambda: container.stop())
+
+        config = container.get_config()
+        opensearch_url = f"http://{config['host']}:{config['port']}"
+        kwargs = {
+            "http_auth": (config["username"], config["password"])
+        }
+    else:
+        opensearch_url = "http://localhost:9200"
+        kwargs = {}
 
     def create_open_search(
         name: str, docs: list[Document], embedding: Embeddings
     ) -> OpenSearchVectorSearch:
         store = OpenSearchVectorSearch(
-            opensearch_url="http://localhost:9200",
+            opensearch_url=opensearch_url,
             index_name=name,
             embedding_function=embedding,
             engine="faiss",
+            **kwargs,
         )
         store.add_documents(docs)
         return store
@@ -187,15 +194,12 @@ def _opensearch_store_factory(request: pytest.FixtureRequest,
     return StoreFactory[OpenSearchVectorSearch](
         support_normalized_metadata=False,
         create_store=create_open_search,
-        create_eager=OpenSearchTraversalAdapter,
-        create_mmr=OpenSearchMMRTraversalAdapter,
         create_generic=OpenSearchStoreAdapter,
         teardown=teardown_open_search,
     )
 
 @pytest.fixture(scope="session")
 def store_factory(store_param: str,
-                  testcontainer_stores: set[str],
                   request: pytest.FixtureRequest) -> StoreFactory:
     if store_param == "mem" or store_param == "mem_denorm":
         support_normalized_metadata = not store_param.endswith("_denorm")
@@ -278,100 +282,9 @@ def store_factory(store_param: str,
             teardown=teardown_astra,
         )
     elif store_param == "cassandra":
-<<<<<<< HEAD
-        import os
-
-        from cassandra.cluster import Cluster  # type: ignore
-        from langchain_community.vectorstores.cassandra import Cassandra
-
-        from graph_pancake.retrievers.traversal_adapters.cassandra import (
-            CassandraStoreAdapter,
-        )
-
-        if "CASSANDRA_CONTACT_POINTS" in os.environ:
-            contact_points = [
-                cp.strip()
-                for cp in os.environ["CASSANDRA_CONTACT_POINTS"].split(",")
-                if cp.strip()
-            ]
-        else:
-            contact_points = None
-
-        cluster = Cluster(contact_points)
-        session = cluster.connect()
-
-        KEYSPACE = "graph_test_keyspace"
-        session.execute(
-            (
-                f"CREATE KEYSPACE IF NOT EXISTS {KEYSPACE}"
-                " WITH replication = "
-                "{'class': 'SimpleStrategy', 'replication_factor': 1}"
-            )
-        )
-
-        request.addfinalizer(lambda: cluster.shutdown())
-
-        def create_cassandra(
-            name: str, docs: list[Document], embedding: Embeddings
-        ) -> Cassandra:
-            session = cluster.connect()
-            session.execute(f"DROP TABLE IF EXISTS {KEYSPACE}.{name}")
-
-            store = Cassandra(
-                embedding=embedding,
-                session=session,
-                keyspace=KEYSPACE,
-                table_name=name,
-            )
-            store.add_documents(docs)
-            return store
-
-        def teardown_cassandra(cassandra: Cassandra):
-            assert cassandra.session is not None
-            cassandra.session.shutdown()
-
-        return StoreFactory[Cassandra](
-            support_normalized_metadata=False,
-            create_store=create_cassandra,
-            create_generic=CassandraStoreAdapter,
-            teardown=teardown_cassandra,
-        )
+        return _cassandra_store_factory(request)
     elif store_param == "opensearch":
-        from langchain_community.vectorstores import OpenSearchVectorSearch
-
-        from graph_pancake.retrievers.traversal_adapters.open_search import (
-            OpenSearchStoreAdapter,
-        )
-
-        def create_open_search(
-            name: str, docs: list[Document], embedding: Embeddings
-        ) -> OpenSearchVectorSearch:
-            store = OpenSearchVectorSearch(
-                opensearch_url="http://localhost:9200",
-                index_name=name,
-                embedding_function=embedding,
-                engine="faiss",
-            )
-            store.add_documents(docs)
-            return store
-
-        def teardown_open_search(store: OpenSearchVectorSearch) -> None:
-            if store.index_exists():
-                store.delete_index()
-
-        return StoreFactory[OpenSearchVectorSearch](
-            support_normalized_metadata=False,
-            create_store=create_open_search,
-            create_generic=OpenSearchStoreAdapter,
-            teardown=teardown_open_search,
-        )
-=======
-        return _cassandra_store_factory(request,
-                                        start_test_container="cassandra" in testcontainer_stores)
-    elif store_param == "opensearch":
-        return _opensearch_store_factory(request,
-                                         start_test_container="opensearch" in testcontainer_stores)
->>>>>>> d625443 (wip)
+        return _opensearch_store_factory(request)
     else:
         pytest.fail(f"Unsupported store: {store_param}")
 
