@@ -27,6 +27,10 @@ class OpenSearchStoreAdapter(StoreAdapter[OpenSearchVectorSearch]):
             )
             raise ValueError(msg)
 
+    @property
+    def supports_normalized_metadata(self) -> bool:
+        return True
+
     def _build_filter(
         self, filter: Optional[Dict[str, str]] = None
     ) -> List[Dict[str, Any]] | None:

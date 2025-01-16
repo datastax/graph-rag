@@ -31,6 +31,13 @@ class StoreAdapter(Generic[StoreT], abc.ABC):
             raise ValueError(msg)
         return self.vector_store.embeddings
 
+    @property
+    @abc.abstractmethod
+    def supports_normalized_metadata(self) -> bool:
+        """Returns ``True`` if the associated vector_store supports
+        normalized metadata storage and filtering."""
+        pass
+
     def similarity_search_with_embedding(
         self,
         query: str,

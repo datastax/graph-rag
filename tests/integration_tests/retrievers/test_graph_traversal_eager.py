@@ -1,6 +1,6 @@
 from langchain_core.documents import Document
 
-from graph_pancake.retrievers.generic_graph_traversal_retriever import (
+from graph_pancake.retrievers.graph_traversal_retriever import (
     GraphTraversalRetriever,
 )
 from graph_pancake.retrievers.strategy.eager import (
@@ -14,15 +14,12 @@ from tests.integration_tests.retrievers.animal_docs import (
 from tests.integration_tests.stores import StoreAdapter
 
 
-async def test_animals_bidir_collection_eager(
-    animal_store: StoreAdapter, support_normalized_metadata: bool, invoker
-):
+async def test_animals_bidir_collection_eager(animal_store: StoreAdapter, invoker):
     # test graph-search on a normalized bi-directional edge
     retriever = GraphTraversalRetriever(
         store=animal_store,
         edges=["keywords"],
         strategy=Eager(k=100, start_k=2, max_depth=0),
-        use_denormalized_metadata=(not support_normalized_metadata),
     )
 
     docs: list[Document] = await invoker(
@@ -63,13 +60,10 @@ async def test_animals_bidir_collection_eager(
     ]
 
 
-async def test_animals_bidir_item(
-    animal_store: StoreAdapter, support_normalized_metadata: bool, invoker
-):
+async def test_animals_bidir_item(animal_store: StoreAdapter, invoker):
     retriever = GraphTraversalRetriever(
         store=animal_store,
         edges=["habitat"],
-        use_denormalized_metadata=(not support_normalized_metadata),
     )
 
     docs: list[Document] = await invoker(
@@ -102,13 +96,10 @@ async def test_animals_bidir_item(
     ]
 
 
-async def test_animals_item_to_collection(
-    animal_store: StoreAdapter, support_normalized_metadata: bool, invoker
-):
+async def test_animals_item_to_collection(animal_store: StoreAdapter, invoker):
     retriever = GraphTraversalRetriever(
         store=animal_store,
         edges=[("habitat", "keywords")],
-        use_denormalized_metadata=(not support_normalized_metadata),
     )
 
     docs: list[Document] = await invoker(
@@ -127,14 +118,11 @@ async def test_animals_item_to_collection(
     assert sorted_doc_ids(docs) == ["bear", "bobcat", "caribou", "fox", "mongoose"]
 
 
-async def test_parser(
-    parser_store: StoreAdapter, support_normalized_metadata: bool, invoker
-):
+async def test_parser(parser_store: StoreAdapter, invoker):
     retriever = GraphTraversalRetriever(
         store=parser_store,
         edges=[("out", "in"), "tag"],
         strategy=Eager(k=10, start_k=2, max_depth=2),
-        use_denormalized_metadata=(not support_normalized_metadata),
     )
 
     docs: list[Document] = await invoker(
@@ -150,3 +138,26 @@ async def test_parser(
     ts_labels = {doc.metadata["label"] for doc in docs}
     assert ts_labels == {"AR", "A0", "BR", "B0", "TR", "T0"}
     assert_document_format(docs[0])
+
+
+async def test_earth(earth_store: StoreAdapter, invoker):
+    retriever = GraphTraversalRetriever(
+        store=earth_store,
+        edges=[("outgoing", "incoming"), "keywords"],
+        strategy=Eager(k=10, start_k=2, max_depth=0),
+    )
+
+    docs: list[Document] = await invoker(
+        retriever, "Earth", strategy=Eager(k=10, start_k=1, max_depth=0)
+    )
+    assert sorted_doc_ids(docs) == ["doc2"]
+
+    docs = await invoker(
+        retriever, "Earth", strategy=Eager(k=10, start_k=2, max_depth=0)
+    )
+    assert sorted_doc_ids(docs) == ["doc1", "doc2"]
+
+    docs = await invoker(
+        retriever, "Earth", strategy=Eager(k=10, start_k=1, max_depth=1)
+    )
+    assert sorted_doc_ids(docs) == ["doc1", "doc2", "greetings"]

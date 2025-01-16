@@ -180,7 +180,6 @@ class GraphTraversalRetriever(BaseRetriever):
     edges: List[Union[str, Tuple[str, str]]]
     strategy: TraversalStrategy | None = None
 
-    use_denormalized_metadata: bool = Field(default=False)
     denormalized_path_delimiter: str = Field(default=".")
     denormalized_static_value: Any = Field(default="$")
 
@@ -191,9 +190,9 @@ class GraphTraversalRetriever(BaseRetriever):
     def edge_helper(self) -> EdgeHelper:
         return EdgeHelper(
             edges=self.edges,
-            use_denormalized_metadata=self.use_denormalized_metadata,
             denormalized_path_delimiter=self.denormalized_path_delimiter,
             denormalized_static_value=self.denormalized_static_value,
+            use_normalized_metadata=self.store.supports_normalized_metadata,
         )
 
     def _get_relevant_documents(
@@ -450,7 +449,7 @@ class GraphTraversalRetriever(BaseRetriever):
                 **kwargs,
             )
             results.extend(docs)
-            if self.use_denormalized_metadata:
+            if not self.store.supports_normalized_metadata:
                 # If we denormalized the metadata, we actually do two queries.
                 # One, for normalized values (above) and one for denormalized.
                 # This ensures that cases where the key had a single value are
@@ -495,7 +494,7 @@ class GraphTraversalRetriever(BaseRetriever):
             )
             for outgoing_edge in outgoing_edges
         ]
-        if self.use_denormalized_metadata:
+        if not self.store.supports_normalized_metadata:
             # If we denormalized the metadata, we actually do two queries.
             # One, for normalized values (above) and one for denormalized.
             # This ensures that cases where the key had a single value are

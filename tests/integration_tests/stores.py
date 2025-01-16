@@ -11,8 +11,9 @@ from graph_pancake.document_transformers.metadata_denormalizer import (
 )
 from graph_pancake.retrievers.traversal_adapters import StoreAdapter
 
-ALL_STORES = ["mem", "mem_denorm", "astra", "cassandra", "chroma", "opensearch"]
+ALL_STORES = ["mem_norm", "mem", "astra", "cassandra", "chroma", "opensearch"]
 TESTCONTAINER_STORES = ["cassandra", "opensearch"]
+
 
 
 @pytest.fixture(scope="session")
@@ -25,7 +26,7 @@ def enabled_stores(request: pytest.FixtureRequest) -> set[str]:
     elif stores:
         return set(stores)
     else:
-        return {"mem", "mem_denorm"}
+        return {"mem_norm", "mem"}
 
 
 def use_testcontainer(request: pytest.FixtureRequest, store: str) -> bool:
@@ -47,19 +48,15 @@ def store_param(request: pytest.FixtureRequest, enabled_stores: set[str]) -> str
 
 
 T = TypeVar("T", bound=VectorStore)
-
-
 class StoreFactory(abc.ABC, Generic[T]):
     def __init__(
         self,
-        support_normalized_metadata: bool,
         create_store: Callable[[str, list[Document], Embeddings], T],
-        create_generic: Callable[[T], StoreAdapter],
+        create_adapter: Callable[[T], StoreAdapter],
         teardown: Callable[[T], None] | None = None,
     ):
-        self.support_normalized_metadata = support_normalized_metadata
         self._create_store = create_store
-        self._create_generic = create_generic
+        self._create_adapter = create_adapter
         self._teardown = teardown
         self._index = 0
 
@@ -71,8 +68,6 @@ class StoreFactory(abc.ABC, Generic[T]):
     ) -> StoreAdapter:
         name = f"test_{self._index}"
         self._index += 1
-        if not self.support_normalized_metadata:
-            docs = list(MetadataDenormalizer().transform_documents(docs))
         store = self._create_store(name, docs, embedding)
 
         if self._teardown is not None:
@@ -82,7 +77,7 @@ class StoreFactory(abc.ABC, Generic[T]):
             teardown = self._teardown
             request.addfinalizer(lambda: teardown(store))
 
-        return self._create_generic(store)
+        return self._create_adapter(store)
 
 
 def _cassandra_store_factory(request: pytest.FixtureRequest):
@@ -137,6 +132,7 @@ def _cassandra_store_factory(request: pytest.FixtureRequest):
             keyspace=KEYSPACE,
             table_name=name,
         )
+        docs = list(MetadataDenormalizer().transform_documents(docs))
         store.add_documents(docs)
         return store
 
@@ -147,7 +143,7 @@ def _cassandra_store_factory(request: pytest.FixtureRequest):
     return StoreFactory[Cassandra](
         support_normalized_metadata=False,
         create_store=create_cassandra,
-        create_generic=CassandraStoreAdapter,
+        create_adapter=CassandraStoreAdapter,
         teardown=teardown_cassandra,
     )
 
@@ -198,7 +194,7 @@ def _opensearch_store_factory(request: pytest.FixtureRequest):
     return StoreFactory[OpenSearchVectorSearch](
         support_normalized_metadata=False,
         create_store=create_open_search,
-        create_generic=OpenSearchStoreAdapter,
+        create_adapter=OpenSearchStoreAdapter,
         teardown=teardown_open_search,
     )
 
@@ -249,12 +245,12 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     return StoreFactory[AstraDBVectorStore](
         support_normalized_metadata=True,
         create_store=create_astra,
-        create_generic=AstraStoreAdapter,
+        create_adapter=AstraStoreAdapter,
         teardown=teardown_astra,
     )
 
 
-def _inmemory_store_factory(
+def _in_memory_store_factory(
     _request: pytest.FixtureRequest, support_normalized_metadata: bool
 ) -> StoreFactory:
     from langchain_core.vectorstores import InMemoryVectorStore
@@ -263,12 +259,17 @@ def _inmemory_store_factory(
         InMemoryStoreAdapter,
     )
 
+    def create_in_memory(
+        _name: str, docs: list[Document], emb: Embeddings
+    ) -> InMemoryVectorStore:
+        if not support_normalized_metadata:
+            docs = list(MetadataDenormalizer().transform_documents(docs))
+        return InMemoryVectorStore.from_documents(docs, emb)
+
     return StoreFactory[InMemoryVectorStore](
         support_normalized_metadata=support_normalized_metadata,
-        create_store=lambda _name, docs, emb: InMemoryVectorStore.from_documents(
-            docs, emb
-        ),
-        create_generic=lambda store: InMemoryStoreAdapter(
+        create_store=create_in_memory,
+        create_adapter=lambda store: InMemoryStoreAdapter(
             store, support_normalized_metadata=support_normalized_metadata
         ),
     )
@@ -281,22 +282,24 @@ def _chroma_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
         ChromaStoreAdapter,
     )
 
+    def create_chroma(name: str, docs: list[Document], emb: Embeddings) -> Chroma:
+        docs = list(MetadataDenormalizer().transform_documents(docs))
+        return Chroma.from_documents(docs, emb, collection_name=name)
+
     return StoreFactory[Chroma](
         support_normalized_metadata=False,
-        create_store=lambda name, docs, emb: Chroma.from_documents(
-            docs, emb, collection_name=name
-        ),
-        create_generic=ChromaStoreAdapter,
+        create_store=create_chroma,
+        create_adapter=ChromaStoreAdapter,
         teardown=lambda store: store.delete_collection(),
     )
 
 
 @pytest.fixture(scope="session")
 def store_factory(store_param: str, request: pytest.FixtureRequest) -> StoreFactory:
-    if store_param == "mem" or store_param == "mem_denorm":
-        return _inmemory_store_factory(request, support_normalized_metadata=True)
-    elif store_param == "mem_denorm":
-        return _inmemory_store_factory(request, support_normalized_metadata=False)
+    if store_param == "mem_norm":
+        return _in_memory_store_factory(request, support_normalized_metadata=True)
+    elif store_param == "mem":
+        return _in_memory_store_factory(request, support_normalized_metadata=False)
     elif store_param == "chroma":
         return _chroma_store_factory(request)
     elif store_param == "astra":
@@ -307,8 +310,3 @@ def store_factory(store_param: str, request: pytest.FixtureRequest) -> StoreFact
         return _opensearch_store_factory(request)
     else:
         pytest.fail(f"Unsupported store: {store_param}")
-
-
-@pytest.fixture(scope="session")
-def support_normalized_metadata(store_factory: StoreFactory) -> bool:
-    return store_factory.support_normalized_metadata

@@ -1,8 +1,7 @@
-import pytest
 from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore
 
-from graph_pancake.retrievers.generic_graph_traversal_retriever import (
+from graph_pancake.retrievers.graph_traversal_retriever import (
     GraphTraversalRetriever,
 )
 from graph_pancake.retrievers.strategy.mmr import (
@@ -20,14 +19,11 @@ from tests.integration_tests.retrievers.animal_docs import (
 from tests.integration_tests.stores import StoreAdapter
 
 
-async def test_animals_bidir_collection(
-    animal_store: StoreAdapter, support_normalized_metadata: bool, invoker
-):
+async def test_animals_bidir_collection(animal_store: StoreAdapter, invoker):
     # test graph-search on a normalized bi-directional edge
     retriever = GraphTraversalRetriever(
         store=animal_store,
         edges=["keywords"],
-        use_denormalized_metadata=(not support_normalized_metadata),
     )
 
     docs: list[Document] = await invoker(
@@ -53,13 +49,10 @@ async def test_animals_bidir_collection(
     ]
 
 
-async def test_animals_bidir_item(
-    animal_store: StoreAdapter, support_normalized_metadata: bool, invoker
-):
+async def test_animals_bidir_item(animal_store: StoreAdapter, invoker):
     retriever = GraphTraversalRetriever(
         store=animal_store,
         edges=["habitat"],
-        use_denormalized_metadata=(not support_normalized_metadata),
     )
 
     docs: list[Document] = await invoker(
@@ -92,13 +85,10 @@ async def test_animals_bidir_item(
     ]
 
 
-async def test_animals_item_to_collection(
-    animal_store: StoreAdapter, support_normalized_metadata: bool, invoker
-):
+async def test_animals_item_to_collection(animal_store: StoreAdapter, invoker):
     retriever = GraphTraversalRetriever(
         store=animal_store,
         edges=[("habitat", "keywords")],
-        use_denormalized_metadata=(not support_normalized_metadata),
     )
 
     docs: list[Document] = await invoker(
@@ -117,8 +107,7 @@ async def test_animals_item_to_collection(
     assert sorted_doc_ids(docs) == ["bear", "bobcat", "caribou", "fox", "mongoose"]
 
 
-@pytest.mark.parametrize("normalized", [True, False])
-async def test_traversal_mem(normalized: bool, invoker) -> None:
+async def test_traversal_mem(invoker) -> None:
     """ Test end to end construction and MMR search.
     The embedding function used here ensures `texts` become
     the following vectors on a circle (numbered v0 through v3):
@@ -152,11 +141,10 @@ async def test_traversal_mem(normalized: bool, invoker) -> None:
     strategy = Mmr(k=2, start_k=2, max_depth=2)
     retriever = GraphTraversalRetriever(
         store=InMemoryStoreAdapter(
-            vector_store=store, support_normalized_metadata=normalized
+            vector_store=store, support_normalized_metadata=False
         ),
         edges=[("outgoing", "incoming")],
         strategy=strategy,
-        use_denormalized_metadata=not normalized,
     )
 
     docs: list[Document] = await invoker(retriever, "0.0")

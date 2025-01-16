@@ -9,8 +9,8 @@ def test_edge_helper_initialization():
     assert edge_helper.edges == [("a", "a"), ("b", "c"), ("b", "b")]
 
 
-def test_get_incoming_outgoing():
-    edge_helper = EdgeHelper([("href", "url")])
+def test_get_incoming_outgoing_normalized():
+    edge_helper = EdgeHelper([("href", "url")], use_normalized_metadata=True)
     assert edge_helper.get_incoming_outgoing({"href": "a", "url": "b"}) == (
         {Edge("url", "b")},
         {Edge("url", "a")},
@@ -29,7 +29,7 @@ def test_get_incoming_outgoing():
 def test_get_incoming_outgoing_denormalized():
     edge_helper = EdgeHelper(
         [("href", "url")],
-        use_denormalized_metadata=True,
+        use_normalized_metadata=False,
         # Use non-default values so we can verify the fields are used.
         denormalized_path_delimiter=":",
         denormalized_static_value=57,
@@ -56,6 +56,7 @@ def test_get_incoming_outgoing_denormalized():
 def test_get_incoming_outgoing_unsupported_values():
     edge_helper = EdgeHelper(
         [("href", "url")],
+        use_normalized_metadata=True,
     )
 
     # Unsupported value
@@ -68,7 +69,7 @@ def test_get_incoming_outgoing_unsupported_values():
 
     edge_helper = EdgeHelper(
         [("href", "url")],
-        use_denormalized_metadata=True,
+        use_normalized_metadata=False,
         # Use non-default values so we can verify the fields are used.
         denormalized_path_delimiter=":",
         denormalized_static_value=57,
@@ -79,9 +80,7 @@ def test_get_incoming_outgoing_unsupported_values():
 
     # It is OK for the list to exist in the metadata, although we do issue a warning
     # for that case.
-    with pytest.warns(
-        UserWarning, match="Non-denormalized value [[]'a', 'c'] in 'href'"
-    ):
+    with pytest.warns(UserWarning, match="Normalized value [[]'a', 'c'] in 'href'"):
         assert edge_helper.get_incoming_outgoing(
             {
                 "href": ["a", "c"],
@@ -89,8 +88,8 @@ def test_get_incoming_outgoing_unsupported_values():
         ) == (set(), set())
 
 
-def test_get_metadata_filter():
-    edge_helper = EdgeHelper([])
+def test_get_metadata_filter_normalized():
+    edge_helper = EdgeHelper([], use_normalized_metadata=True)
 
     assert edge_helper.get_metadata_filter(edge=Edge(key="boolean", value=True)) == {
         "boolean": True
@@ -106,7 +105,7 @@ def test_get_metadata_filter():
 
 
 def test_get_metadata_filter_denormalized() -> None:
-    edge_helper = EdgeHelper([], use_denormalized_metadata=True)
+    edge_helper = EdgeHelper([], use_normalized_metadata=False)
 
     assert edge_helper.get_metadata_filter(edge=Edge(key="boolean", value=True)) == {
         "boolean": True

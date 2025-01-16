@@ -23,11 +23,11 @@ class EdgeHelper:
         self,
         edges: list[str | tuple[str, str]],
         *,
-        use_denormalized_metadata: bool = False,
+        use_normalized_metadata: bool = False,
         denormalized_path_delimiter: str = ".",
         denormalized_static_value: Any = "$",
     ) -> None:
-        self.use_denormalized_metadata = use_denormalized_metadata
+        self.use_normalized_metadata = use_normalized_metadata
         self.denormalized_path_delimiter = denormalized_path_delimiter
         self.denormalized_static_value = denormalized_static_value
 
@@ -50,7 +50,7 @@ class EdgeHelper:
         self,
         metadata: dict[str, Any],
         *,
-        warn_non_denormalized: bool = False,
+        warn_normalized: bool = False,
         incoming: bool = False,
     ) -> set[Edge]:
         """Extract edges from the metadata based on declared edges."""
@@ -66,8 +66,8 @@ class EdgeHelper:
             elif isinstance(value, Iterable):
                 # Note: `str` and `bytes` are in `BASIC_TYPES` so no need to
                 # guard against.
-                if warn_non_denormalized:
-                    warnings.warn(f"Non-denormalized value {value} in '{source_key}'")
+                if warn_normalized:
+                    warnings.warn(f"Normalized value {value} in '{source_key}'")
                 else:
                     for item in value:
                         if isinstance(item, BASIC_TYPES):
@@ -100,15 +100,15 @@ class EdgeHelper:
     def get_incoming_outgoing(
         self, metadata: dict[str, Any]
     ) -> tuple[set[Edge], set[Edge]]:
-        warn_non_denormalized = self.use_denormalized_metadata
+        warn_normalized = not self.use_normalized_metadata
         outgoing_edges = self._edges_from_dict(
-            metadata, warn_non_denormalized=warn_non_denormalized
+            metadata, warn_normalized=warn_normalized
         )
         incoming_edges = self._edges_from_dict(
-            metadata, incoming=True, warn_non_denormalized=warn_non_denormalized
+            metadata, incoming=True, warn_normalized=warn_normalized
         )
 
-        if self.use_denormalized_metadata:
+        if not self.use_normalized_metadata:
             normalized = self._normalize_metadata(metadata)
 
             outgoing_edges.update(self._edges_from_dict(normalized))

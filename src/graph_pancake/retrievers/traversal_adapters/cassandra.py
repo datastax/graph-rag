@@ -18,6 +18,10 @@ class CassandraStoreAdapter(StoreAdapter[Cassandra]):
     def __init__(self, vector_store: Cassandra):
         super().__init__(vector_store)
 
+    @property
+    def supports_normalized_metadata(self) -> bool:
+        return False
+
     def similarity_search_with_embedding_by_vector(  # type: ignore
         self,
         embedding: List[float],
