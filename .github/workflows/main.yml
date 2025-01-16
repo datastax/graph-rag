@@ -68,12 +68,11 @@ jobs:
 
       - name: Compute run-specific settings
         env:
-            ASTRA_DB_KEYSPACE: ${{ github.ref }}-${{ matrix.python-version }}
+            ASTRA_DB_KEYSPACE: ${{ github.ref }}_${{ matrix.python-version }}
         id: settings
         run: |
             ASTRA_DB_KEYSPACE=${{ env.ASTRA_DB_KEYSPACE }}
-            ASTRA_DB_KEYSPACE=${ASTRA_DB_KEYSPACE//[\/.]/_}
-            echo ${ASTRA_DB_KEYSPACE}
+            ASTRA_DB_KEYSPACE=${ASTRA_DB_KEYSPACE//[-\/.]/_}
             echo ASTRA_DB_KEYSPACE=${ASTRA_DB_KEYSPACE} >> $GITHUB_OUTPUT
 
       - name: Run `make test`
