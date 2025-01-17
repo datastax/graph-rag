@@ -100,7 +100,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pytest-results-${{ matrix.python-version }}
-          path: junit/test-results-${{ matrix.python-version }}.xml
+          path: packages/*/junit/test-results-${{ matrix.python-version }}.xml
 
 #   check-docs:
 #     runs-on: ubuntu-latest
