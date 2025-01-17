@@ -7,7 +7,6 @@ inputs:
     required: true
     default: "3.12"
 
-
 runs:
   using: "composite"
   steps:
