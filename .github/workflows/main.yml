@@ -68,7 +68,9 @@ jobs:
 
       - name: Run `make test`
         run:
-            uv run python -m pytest -vs ./tests/unit_tests ./tests/integration_tests/
+            uv run --package langchain-graph-rag python -m pytest -vs
+                ./packages/langchain-graph-rag/tests/unit_tests/
+                ./packages/langchain-graph-rag/tests/integration_tests/
                 --stores=mem_norm --stores=mem --stores=cassandra --stores=chroma --stores=opensearch
                 --junitxml=junit/test-results-${{ matrix.python-version }}.xml
 

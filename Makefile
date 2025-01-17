@@ -28,7 +28,7 @@ check-lock:
 .PHONY: deptry
 deptry:
 	@echo "🚀 Checking for obsolete dependencies: Running deptry"
-	@uvx $(DEPTRY) src tests
+	@uvx $(DEPTRY) packages/langchain-graph-rag/src packages/langchain-graph-rag/tests
 
 .PHONY: docker-up
 docker-up:
