@@ -11,8 +11,9 @@ from tests.integration_tests.stores import StoreAdapter, StoreFactory
 def animal_docs() -> list[Document]:
     documents = []
 
-    path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../data/animals.jsonl"))
-    print(f"PATH: {path}")
+    path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "../../../../../data/animals.jsonl")
+    )
     with open(path, "r") as file:
         for line in file:
             data = json.loads(line.strip())
