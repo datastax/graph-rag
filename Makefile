@@ -20,10 +20,14 @@ fmt:
 fmt-check:
 	uvx $(RUFF) format --check .
 
-.PHONY: check-lock
+.PHONY: check-lock lock
 check-lock:
 	@echo "🚀 Checking lock file consistency with 'pyproject.toml'"
 	@uv lock --locked
+
+lock:
+	@echo "🚀 Updating lock files"
+	@uv lock
 
 .PHONY: deptry-gr deptry-lgr deptry
 deptry-gr:

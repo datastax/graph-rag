@@ -8,8 +8,8 @@ resolution-markers = [
 
 [manifest]
 members = [
-    "graph-pancake",
     "graph-rag",
+    "graph-rag-workspace",
     "langchain-graph-rag",
 ]
 
@@ -787,7 +787,17 @@ wheels = [
 ]
 
 [[package]]
-name = "graph-pancake"
+name = "graph-rag"
+version = "0.0.0"
+source = { editable = "packages/graph-rag" }
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = []
+
+[[package]]
+name = "graph-rag-workspace"
 version = "0.1.0"
 source = { virtual = "." }
 
@@ -806,16 +816,6 @@ dev = [
     { name = "pytest-asyncio", specifier = ">=0.25.2" },
     { name = "pytest-cov", specifier = ">=4.0.0" },
 ]
-
-[[package]]
-name = "graph-rag"
-version = "0.0.0"
-source = { editable = "packages/graph-rag" }
-
-[package.metadata]
-
-[package.metadata.requires-dev]
-dev = []
 
 [[package]]
 name = "greenlet"
