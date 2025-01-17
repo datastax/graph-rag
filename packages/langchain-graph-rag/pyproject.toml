@@ -10,6 +10,13 @@ dependencies = [
     "pydantic>=2.10.4",
 ]
 
+[tool.deptry.package_module_name_map]
+beautifulsoup4 = "bs4"
+opensearch-py = "opensearchpy"
+
+[tool.deptry.per_rule_ignores]
+DEP002 = ["cassio"]
+
 [project.optional-dependencies]
 astra = [
     "langchain-astradb>=0.5.2",

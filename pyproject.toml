@@ -1,7 +1,7 @@
 [project]
-name = "graph-pancake"
+name = "graph-rag-workspace"
 version = "0.1.0"
-description = "Add your description here"
+description = "uv workspace for Graph RAG projects"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
