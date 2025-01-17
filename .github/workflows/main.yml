@@ -69,8 +69,8 @@ jobs:
       - name: Test All Stores (3.12 only)
         if: ${{ matrix.python-version == '3.12' }}
         run:
-            cd packages/langchain-graph-retriever && uv run pytest -vs . \
-                --stores=all \
+            cd packages/langchain-graph-retriever && uv run pytest -vs .
+                --stores=all
                 --junitxml=junit/test-results-${{ matrix.python-version }}.xml
         env:
             ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -79,7 +79,7 @@ jobs:
       - name: Test In-Memory Stores (non-3.12)
         if: ${{ matrix.python-version != '3.12' }}
         run:
-            cd packages/langchain-graph-retriever && uv run pytest -vs . \
+            cd packages/langchain-graph-retriever && uv run pytest -vs .
                 --junitxml=junit/test-results-${{ matrix.python-version }}.xml
 
       - name: Run `make mypy`
