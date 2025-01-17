@@ -19,6 +19,7 @@ class Angular2DEmbeddings(BaseEmbeddings):
     """
     From angles (as strings in units of pi) to unit embedding vectors on a circle.
     """
+
     def embed_query(self, text: str) -> list[float]:
         """
         Convert input text to a 'vector' (list of floats).
@@ -32,6 +33,7 @@ class Angular2DEmbeddings(BaseEmbeddings):
         except ValueError:
             # Assume: just test string, no attention is paid to values.
             return [0.0, 0.0]
+
 
 class EarthEmbeddings(BaseEmbeddings):
     def get_vector_near(self, value: float) -> list[float]:

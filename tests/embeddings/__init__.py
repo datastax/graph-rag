@@ -1,4 +1,3 @@
-
 from .simple_embeddings import (
     Angular2DEmbeddings,
     AnimalEmbeddings,

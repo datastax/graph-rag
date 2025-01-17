@@ -787,7 +787,6 @@ dependencies = [
     { name = "langchain-core" },
     { name = "numpy" },
     { name = "pydantic" },
-    { name = "torch" },
 ]
 
 [package.optional-dependencies]
@@ -850,7 +849,6 @@ requires-dist = [
     { name = "opensearch-py", marker = "extra == 'opensearch'", specifier = ">=2.8.0" },
     { name = "pydantic", specifier = ">=2.10.4" },
     { name = "simsimd", marker = "extra == 'simsimd'", specifier = ">=6.2.1" },
-    { name = "torch", specifier = ">=2.4.1" },
 ]
 
 [package.metadata.requires-dev]
