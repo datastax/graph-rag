@@ -67,17 +67,27 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Test All Stores (3.12 only)
-        if: ${{ matrix.python-version == '3.12' }}
+        if: ${{ success() && matrix.python-version == '3.12' }}
         run:
             cd packages/langchain-graph-retriever && uv run pytest -vs .
                 --stores=all
                 --junitxml=junit/test-results-${{ matrix.python-version }}.xml
         env:
-            ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-            ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
+          ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+          ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
+          ASTRA_DB_KEYSPACE: ci_${{ github.run_id }}_${{ strategy.job-index }}_${{ github.run_attempt }}
+
+      - name: Drop Astra Keyspace
+        if: ${{ matrix.python-version == '3.12' }}
+        run:
+            uv run scripts/drop-astra-keyspace.py
+        env:
+          ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+          ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
+          ASTRA_DB_KEYSPACE: ci_${{ github.run_id }}_${{ strategy.job-index }}_${{ github.run_attempt }}
 
       - name: Test In-Memory Stores (non-3.12)
-        if: ${{ matrix.python-version != '3.12' }}
+        if: ${{ success() && matrix.python-version != '3.12' }}
         run:
             cd packages/langchain-graph-retriever && uv run pytest -vs .
                 --junitxml=junit/test-results-${{ matrix.python-version }}.xml
