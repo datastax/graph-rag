@@ -1,0 +1,35 @@
+name: Astra Keyspace Creation
+description: Create a keyspace in DataStax Astra DB
+
+inputs:
+  token:
+    required: true
+    description: "Astra DB application token. It needs to have enough permissions to create/delete keyspaces in the organization."
+  id:
+    required: true
+    description: "Astra DB ID to create the keyspace in."
+  keyspace:
+    required: true
+    description: "Keyspace to create."
+  env:
+    description: "Astra DB environment. (ENV, PROD)"
+    default: "PROD"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create a keyspace
+      shell: bash
+      env:
+        TERM: linux
+      run: |
+        set -e
+        (curl -Ls "https://dtsx.io/get-astra-cli" | bash) || true
+        echo "Astra CLI installed"
+        /home/runner/.astra/cli/astra -v
+
+        (/home/runner/.astra/cli/astra db create-keyspace
+          --env "${{ inputs.env }}" \
+          "${{ inputs.id }}" -k "${{ inputs.keyspace }}" --if-not-exist \
+          --token "${{ inputs.token }}" \
+          --timeout 1200) || echo "Failed to create keyspace, check if creation is still in progress"

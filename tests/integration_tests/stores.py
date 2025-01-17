@@ -1,7 +1,8 @@
 import abc
-import os
 from typing import Callable, Generic, TypeVar
 
+import astrapy
+import astrapy.operations
 import httpx
 import pytest
 from langchain_core.documents import Document
@@ -63,9 +64,7 @@ class StoreFactory(abc.ABC, Generic[T]):
         self._create_store = create_store
         self._create_generic = create_generic
         self._teardown = teardown
-
         self._index = 0
-        self._name_prefix = os.environ.get("CI_COLLECTION_PREFIX", "test_")
 
     def create(
         self,
@@ -73,7 +72,7 @@ class StoreFactory(abc.ABC, Generic[T]):
         embedding: Embeddings,
         docs: list[Document],
     ) -> StoreAdapter:
-        name = f"{self._name_prefix}_{self._index}"
+        name = f"test_{self._index}"
         self._index += 1
         if not self.support_normalized_metadata:
             docs = list(MetadataDenormalizer().transform_documents(docs))
@@ -224,13 +223,6 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     token = StaticTokenProvider(os.environ["ASTRA_DB_APPLICATION_TOKEN"])
     keyspace = os.environ.get("ASTRA_DB_KEYSPACE", "default_keyspace")
     api_endpoint = os.environ["ASTRA_DB_API_ENDPOINT"]
-
-    admin = AstraDBDatabaseAdmin(
-        api_endpoint=api_endpoint,
-        token=token,
-    )
-    admin.create_keyspace(keyspace)
-
     def create_astra(
         name: str, docs: list[Document], embedding: Embeddings
     ) -> AstraDBVectorStore:

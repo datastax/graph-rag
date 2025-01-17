@@ -66,21 +66,28 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Create Astra Keyspace
+        uses: ./.github/actions/create-astra-keyspace
+        id: create-astra-keyspace
+        with:
+          token: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+          id: ${{ secrets.ASTRA_DB_ID }}
+          keyspace: ci_${{ github.run_id }}_${{ github.run_attempt }}_${{ strategy.job-index }}
+
       - name: Run `make test`
         run: make test
         env:
-            CI_COLLECTION_PREFIX: ci_${{ github.run_id }}_${{ github.run_attempt }}_${{ strategy.job-index }}_
             ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
             ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
-            ASTRA_DB_KEYSPACE: ci_${{ github.run_id }}_${{ github.run_attempt }}
+            ASTRA_DB_KEYSPACE: ci_${{ github.run_id }}_${{ github.run_attempt }}_${{ strategy.job-index }}
 
-      - name: Run delete Astra DB
-        run: uv run scripts/cleanup-astra.py
-        if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
-        env:
-            ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-            ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
-            ASTRA_DB_KEYSPACE: ci_${{ github.run_id }}_${{ github.run_attempt }}
+      - name: Delete Astra Keyspace
+        uses: ./.github/actions/delete-astra-keyspace
+        if: ${{ steps.create-astra-keyspace.conclusion == 'success' }}
+        with:
+          token: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+          id: ${{ secrets.ASTRA_DB_ID }}
+          keyspace: ci_${{ github.run_id }}_${{ github.run_attempt }}_${{ strategy.job-index }}
 
       - name: Run `make mypy`
         run: make mypy
