@@ -6,6 +6,13 @@ resolution-markers = [
     "python_full_version < '3.12'",
 ]
 
+[manifest]
+members = [
+    "graph-pancake",
+    "graph-rag",
+    "langchain-graph-rag",
+]
+
 [[package]]
 name = "aiohappyeyeballs"
 version = "2.4.4"
@@ -782,89 +789,33 @@ wheels = [
 [[package]]
 name = "graph-pancake"
 version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "langchain-core" },
-    { name = "numpy" },
-    { name = "pydantic" },
-]
-
-[package.optional-dependencies]
-astra = [
-    { name = "langchain-astradb" },
-]
-beautifulsoup4 = [
-    { name = "beautifulsoup4" },
-]
-cassandra = [
-    { name = "cassio" },
-    { name = "langchain-community" },
-]
-chroma = [
-    { name = "chromadb" },
-    { name = "langchain-chroma" },
-]
-gliner = [
-    { name = "gliner" },
-]
-keybert = [
-    { name = "keybert" },
-]
-opensearch = [
-    { name = "langchain-community" },
-    { name = "opensearch-py" },
-]
-simsimd = [
-    { name = "simsimd" },
-]
+source = { virtual = "." }
 
 [package.dev-dependencies]
 dev = [
-    { name = "cassio" },
-    { name = "langchain-astradb" },
-    { name = "langchain-chroma" },
-    { name = "langchain-community" },
-    { name = "langchain-opensearch" },
-    { name = "mypy" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
-    { name = "simsimd" },
-    { name = "testcontainers" },
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "beautifulsoup4", marker = "extra == 'beautifulsoup4'", specifier = ">=4.12.3" },
-    { name = "cassio", marker = "extra == 'cassandra'", specifier = ">=0.1.10" },
-    { name = "chromadb", marker = "extra == 'chroma'", specifier = ">=0.5.23" },
-    { name = "gliner", marker = "extra == 'gliner'", specifier = "==0.2.13" },
-    { name = "keybert", marker = "extra == 'keybert'", specifier = ">=0.8.5" },
-    { name = "langchain-astradb", marker = "extra == 'astra'", specifier = ">=0.5.2" },
-    { name = "langchain-chroma", marker = "extra == 'chroma'", git = "https://github.com/langchain-ai/langchain.git?subdirectory=libs%2Fpartners%2Fchroma" },
-    { name = "langchain-community", marker = "extra == 'cassandra'", specifier = ">=0.3.14" },
-    { name = "langchain-community", marker = "extra == 'opensearch'", specifier = ">=0.3.14" },
-    { name = "langchain-core", specifier = ">=0.3.29" },
-    { name = "numpy", specifier = ">=1.26.4" },
-    { name = "opensearch-py", marker = "extra == 'opensearch'", specifier = ">=2.8.0" },
-    { name = "pydantic", specifier = ">=2.10.4" },
-    { name = "simsimd", marker = "extra == 'simsimd'", specifier = ">=6.2.1" },
-]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "cassio", specifier = ">=0.1.10" },
-    { name = "langchain-astradb", specifier = ">=0.5.2" },
-    { name = "langchain-chroma", git = "https://github.com/langchain-ai/langchain.git?subdirectory=libs%2Fpartners%2Fchroma" },
-    { name = "langchain-community", specifier = ">=0.3.14" },
-    { name = "langchain-opensearch", specifier = ">=0.0.2" },
-    { name = "mypy", specifier = ">=1.14.1" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-asyncio", specifier = ">=0.25.2" },
     { name = "pytest-cov", specifier = ">=4.0.0" },
-    { name = "simsimd", specifier = ">=6.2.1" },
-    { name = "testcontainers", specifier = ">=4.9.0" },
 ]
+
+[[package]]
+name = "graph-rag"
+version = "0.0.0"
+source = { editable = "packages/graph-rag" }
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = []
 
 [[package]]
 name = "greenlet"
@@ -1266,12 +1217,16 @@ wheels = [
 [[package]]
 name = "langchain-chroma"
 version = "0.2.0"
-source = { git = "https://github.com/langchain-ai/langchain.git?subdirectory=libs%2Fpartners%2Fchroma#2b09f798e1de1717c6389e5d9f5c34c7c3248be6" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "chromadb" },
     { name = "fastapi" },
     { name = "langchain-core" },
     { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/96/eb/ec2ad3a7a5cfc02cd114cf37cde79ee781e818f909233d162f03df20eaa9/langchain_chroma-0.2.0.tar.gz", hash = "sha256:611dd5d844388cca0acd99dab230ac8512d79ac8d86ff80a6f82607f497d5930", size = 11022 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e8/97/ba7da2b62d3a8dc81099f1d3024fd75992bc73fb99b69a890bed823e2db4/langchain_chroma-0.2.0-py3-none-any.whl", hash = "sha256:2c405e8fe79267d2298342e7c80b4804ceae6b81d80b24b83ae5fbdf86676072", size = 11163 },
 ]
 
 [[package]]
@@ -1313,6 +1268,93 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/ed/05/8fc844c2f79a2c30845de2db948de1cf7c17b94f419f7ae7b616d628a54f/langchain_core-0.3.29.tar.gz", hash = "sha256:773d6aeeb612e7ce3d996c0be403433d8c6a91e77bbb7a7461c13e15cfbe5b06", size = 330785 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/95/4f/fe1de63f6fc1ac7af3ba4ae12d420af1a19f7893b5fcb72856b9fc67f650/langchain_core-0.3.29-py3-none-any.whl", hash = "sha256:817db1474871611a81105594a3e4d11704949661008e455a10e38ca9ff601a1a", size = 411593 },
+]
+
+[[package]]
+name = "langchain-graph-rag"
+version = "0.0.1"
+source = { editable = "packages/langchain-graph-rag" }
+dependencies = [
+    { name = "langchain-core" },
+    { name = "numpy" },
+    { name = "pydantic" },
+]
+
+[package.optional-dependencies]
+astra = [
+    { name = "langchain-astradb" },
+]
+beautifulsoup4 = [
+    { name = "beautifulsoup4" },
+]
+cassandra = [
+    { name = "cassio" },
+    { name = "langchain-community" },
+]
+chroma = [
+    { name = "chromadb" },
+    { name = "langchain-chroma" },
+]
+gliner = [
+    { name = "gliner" },
+]
+keybert = [
+    { name = "keybert" },
+]
+opensearch = [
+    { name = "langchain-community" },
+    { name = "opensearch-py" },
+]
+simsimd = [
+    { name = "simsimd" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "cassio" },
+    { name = "langchain-astradb" },
+    { name = "langchain-chroma" },
+    { name = "langchain-community" },
+    { name = "langchain-opensearch" },
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+    { name = "simsimd" },
+    { name = "testcontainers" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "beautifulsoup4", marker = "extra == 'beautifulsoup4'", specifier = ">=4.12.3" },
+    { name = "cassio", marker = "extra == 'cassandra'", specifier = ">=0.1.10" },
+    { name = "chromadb", marker = "extra == 'chroma'", specifier = ">=0.5.23" },
+    { name = "gliner", marker = "extra == 'gliner'", specifier = "==0.2.13" },
+    { name = "keybert", marker = "extra == 'keybert'", specifier = ">=0.8.5" },
+    { name = "langchain-astradb", marker = "extra == 'astra'", specifier = ">=0.5.2" },
+    { name = "langchain-chroma", marker = "extra == 'chroma'", specifier = ">=0.2.0" },
+    { name = "langchain-community", marker = "extra == 'cassandra'", specifier = ">=0.3.14" },
+    { name = "langchain-community", marker = "extra == 'opensearch'", specifier = ">=0.3.14" },
+    { name = "langchain-core", specifier = ">=0.3.29" },
+    { name = "numpy", specifier = ">=1.26.4" },
+    { name = "opensearch-py", marker = "extra == 'opensearch'", specifier = ">=2.8.0" },
+    { name = "pydantic", specifier = ">=2.10.4" },
+    { name = "simsimd", marker = "extra == 'simsimd'", specifier = ">=6.2.1" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "cassio", specifier = ">=0.1.10" },
+    { name = "langchain-astradb", specifier = ">=0.5.2" },
+    { name = "langchain-chroma", specifier = ">=0.2.0" },
+    { name = "langchain-community", specifier = ">=0.3.14" },
+    { name = "langchain-opensearch", specifier = ">=0.0.2" },
+    { name = "mypy", specifier = ">=1.14.1" },
+    { name = "pytest", specifier = ">=8.3.4" },
+    { name = "pytest-asyncio", specifier = ">=0.25.2" },
+    { name = "pytest-cov", specifier = ">=4.0.0" },
+    { name = "simsimd", specifier = ">=6.2.1" },
+    { name = "testcontainers", specifier = ">=4.9.0" },
 ]
 
 [[package]]

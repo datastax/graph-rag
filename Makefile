@@ -39,24 +39,42 @@ docker-up:
 docker-down:
 	docker compose down --rmi local
 
+.PHONY: sync-langchain-graph-rag
+sync-langchain-graph-rag:
+	@uv sync --package langchain-graph-rag
+
+.PHONY: sync-graph-rag
+sync-graph-rag:
+	@uv sync --package graph-rag
+
 .PHONY: integration
 integration:
-	@echo "🚀 Testing code: Running pytest ./tests/inegration_tests (in memory only)"
-	@uv run pytest -vs ./tests/integration_tests/
+	@echo "🚀 Testing code: Running pytest ./packages/langchain-graph-rag/tests/integration_tests (in memory only)"
+	@uv run --project langchain-graph-rag pytest -vs ./packages/langchain-graph-rag/tests/integration_tests/
 
 .PHONY: unit
 unit:
-	@echo "🚀 Testing code: Running pytest ./tests/unit_tests"
-	@uv run pytest -vs ./tests/unit_tests/
+	@echo "🚀 Testing code: Running pytest ./packages/langchain-graph-rag/tests/unit_tests/"
+	@uv run --project langchain-graph-rag pytest -vs ./packages/langchain-graph-rag/tests/unit_tests/
 
 .PHONY: test
-test:
+test: sync-langchain-graph-rag
 	@echo "🚀 Testing code: Running pytest"
-	@uv run python -m pytest -vs ./tests/unit_tests ./tests/integration_tests/ --stores=all
+	@uv run --project langchain-graph-rag python -m pytest -vs ./packages/langchain-graph-rag/tests/ --stores=all
 
 .PHONY: mypy
 mypy:
 	@echo "🚀 Static type checking: Running mypy"
-	@uv run mypy .
+	@uv run --project langchain-graph-rag mypy ./packages/langchain-graph-rag
 
 lint: fmt fix mypy
+
+.PHONY: build-langchain-graph-rag
+build-langchain-graph-rag: sync-langchain-graph-rag
+	@echo "🚀 Building langchain-graph-rag package"
+	@uv build --package langchain-graph-rag
+
+.PHONY: build-graph-rag
+build-graph-rag: sync-graph-rag
+	@echo "🚀 Building graph-rag package"
+	@uv build --package graph-rag

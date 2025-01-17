@@ -5,11 +5,10 @@ import pytest
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.vectorstores import VectorStore
-
-from graph_pancake.document_transformers.metadata_denormalizer import (
+from langchain_graph_rag.document_transformers.metadata_denormalizer import (
     MetadataDenormalizer,
 )
-from graph_pancake.retrievers.store_adapters import StoreAdapter
+from langchain_graph_rag.retrievers.store_adapters import StoreAdapter
 
 ALL_STORES = ["mem_norm", "mem", "astra", "cassandra", "chroma", "opensearch"]
 TESTCONTAINER_STORES = ["cassandra", "opensearch"]
@@ -86,8 +85,7 @@ def _cassandra_store_factory(request: pytest.FixtureRequest):
 
     from cassandra.cluster import Cluster  # type: ignore
     from langchain_community.vectorstores.cassandra import Cassandra
-
-    from graph_pancake.retrievers.store_adapters.cassandra import (
+    from langchain_graph_rag.retrievers.store_adapters.cassandra import (
         CassandraStoreAdapter,
     )
 
@@ -150,8 +148,7 @@ def _cassandra_store_factory(request: pytest.FixtureRequest):
 
 def _opensearch_store_factory(request: pytest.FixtureRequest):
     from langchain_community.vectorstores import OpenSearchVectorSearch
-
-    from graph_pancake.retrievers.store_adapters.open_search import (
+    from langchain_graph_rag.retrievers.store_adapters.open_search import (
         OpenSearchStoreAdapter,
     )
 
@@ -204,8 +201,7 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     from astrapy.authentication import StaticTokenProvider
     from dotenv import load_dotenv
     from langchain_astradb import AstraDBVectorStore
-
-    from graph_pancake.retrievers.store_adapters.astra import (
+    from langchain_graph_rag.retrievers.store_adapters.astra import (
         AstraStoreAdapter,
     )
 
@@ -252,8 +248,7 @@ def _in_memory_store_factory(
     _request: pytest.FixtureRequest, support_normalized_metadata: bool
 ) -> StoreFactory:
     from langchain_core.vectorstores import InMemoryVectorStore
-
-    from graph_pancake.retrievers.store_adapters.in_memory import (
+    from langchain_graph_rag.retrievers.store_adapters.in_memory import (
         InMemoryStoreAdapter,
     )
 
@@ -274,8 +269,7 @@ def _in_memory_store_factory(
 
 def _chroma_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     from langchain_chroma.vectorstores import Chroma
-
-    from graph_pancake.retrievers.store_adapters.chroma import (
+    from langchain_graph_rag.retrievers.store_adapters.chroma import (
         ChromaStoreAdapter,
     )
 

@@ -1,7 +1,6 @@
 import pytest
-
-from graph_pancake.retrievers.edge import Edge
-from graph_pancake.retrievers.edge_helper import EdgeHelper
+from langchain_graph_rag.retrievers.edge import Edge
+from langchain_graph_rag.retrievers.edge_helper import EdgeHelper
 
 
 def test_edge_helper_initialization():

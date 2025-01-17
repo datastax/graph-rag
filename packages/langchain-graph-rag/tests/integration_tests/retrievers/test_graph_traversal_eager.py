@@ -1,9 +1,8 @@
 from langchain_core.documents import Document
-
-from graph_pancake.retrievers.graph_traversal_retriever import (
+from langchain_graph_rag.retrievers.graph_traversal_retriever import (
     GraphTraversalRetriever,
 )
-from graph_pancake.retrievers.strategy.eager import (
+from langchain_graph_rag.retrievers.strategy.eager import (
     Eager,
 )
 from tests.integration_tests.assertions import assert_document_format, sorted_doc_ids

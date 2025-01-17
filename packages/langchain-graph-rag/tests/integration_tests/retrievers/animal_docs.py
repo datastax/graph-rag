@@ -2,7 +2,6 @@ import json
 
 import pytest
 from langchain_core.documents import Document
-
 from tests.embeddings import AnimalEmbeddings
 from tests.integration_tests.stores import StoreAdapter, StoreFactory
 
@@ -10,7 +9,7 @@ from tests.integration_tests.stores import StoreAdapter, StoreFactory
 @pytest.fixture(scope="session")
 def animal_docs() -> list[Document]:
     documents = []
-    with open("tests/data/animals.jsonl", "r") as file:
+    with open("data/animals.jsonl", "r") as file:
         for line in file:
             data = json.loads(line.strip())
             documents.append(

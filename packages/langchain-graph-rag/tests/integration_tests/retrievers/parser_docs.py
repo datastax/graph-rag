@@ -1,6 +1,5 @@
 import pytest
 from langchain_core.documents import Document
-
 from tests.embeddings.simple_embeddings import ParserEmbeddings
 from tests.integration_tests.stores import StoreAdapter, StoreFactory
 

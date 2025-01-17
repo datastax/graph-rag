@@ -1,0 +1,60 @@
+[project]
+name = "langchain-graph-rag"
+version = "0.0.1"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "langchain-core>=0.3.29",
+    "numpy>=1.26.4",
+    "pydantic>=2.10.4",
+]
+
+[project.optional-dependencies]
+astra = [
+    "langchain-astradb>=0.5.2",
+]
+beautifulsoup4 = [
+    "beautifulsoup4>=4.12.3",
+]
+cassandra = [
+    "cassio>=0.1.10",
+    "langchain-community>=0.3.14",
+]
+chroma = [
+    "langchain-chroma>=0.2.0",
+    "chromadb>=0.5.23",
+]
+gliner = [
+    "gliner==0.2.13",
+]
+keybert = [
+    "keybert>=0.8.5",
+]
+opensearch = [
+   "langchain-community>=0.3.14",
+   "opensearch-py>=2.8.0",
+]
+simsimd = [
+    "simsimd>=6.2.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "cassio>=0.1.10",
+    "langchain-astradb>=0.5.2",
+    "langchain-chroma>=0.2.0",
+    "langchain-community>=0.3.14",
+    "langchain-opensearch>=0.0.2",
+    "mypy>=1.14.1",
+    "pytest>=8.3.4",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.25.2",
+    "simsimd>=6.2.1",
+    "testcontainers>=4.9.0",
+]
+
