@@ -9,11 +9,10 @@ from langchain_core.vectorstores import VectorStore
 from graph_pancake.document_transformers.metadata_denormalizer import (
     MetadataDenormalizer,
 )
-from graph_pancake.retrievers.traversal_adapters import StoreAdapter
+from graph_pancake.retrievers.store_adapters import StoreAdapter
 
 ALL_STORES = ["mem_norm", "mem", "astra", "cassandra", "chroma", "opensearch"]
 TESTCONTAINER_STORES = ["cassandra", "opensearch"]
-
 
 
 @pytest.fixture(scope="session")
@@ -48,6 +47,8 @@ def store_param(request: pytest.FixtureRequest, enabled_stores: set[str]) -> str
 
 
 T = TypeVar("T", bound=VectorStore)
+
+
 class StoreFactory(abc.ABC, Generic[T]):
     def __init__(
         self,
@@ -86,7 +87,7 @@ def _cassandra_store_factory(request: pytest.FixtureRequest):
     from cassandra.cluster import Cluster  # type: ignore
     from langchain_community.vectorstores.cassandra import Cassandra
 
-    from graph_pancake.retrievers.traversal_adapters.cassandra import (
+    from graph_pancake.retrievers.store_adapters.cassandra import (
         CassandraStoreAdapter,
     )
 
@@ -141,7 +142,6 @@ def _cassandra_store_factory(request: pytest.FixtureRequest):
         cassandra.session.shutdown()
 
     return StoreFactory[Cassandra](
-        support_normalized_metadata=False,
         create_store=create_cassandra,
         create_adapter=CassandraStoreAdapter,
         teardown=teardown_cassandra,
@@ -151,7 +151,7 @@ def _cassandra_store_factory(request: pytest.FixtureRequest):
 def _opensearch_store_factory(request: pytest.FixtureRequest):
     from langchain_community.vectorstores import OpenSearchVectorSearch
 
-    from graph_pancake.retrievers.traversal_adapters.open_search import (
+    from graph_pancake.retrievers.store_adapters.open_search import (
         OpenSearchStoreAdapter,
     )
 
@@ -192,7 +192,6 @@ def _opensearch_store_factory(request: pytest.FixtureRequest):
             store.delete_index()
 
     return StoreFactory[OpenSearchVectorSearch](
-        support_normalized_metadata=False,
         create_store=create_open_search,
         create_adapter=OpenSearchStoreAdapter,
         teardown=teardown_open_search,
@@ -206,7 +205,7 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     from dotenv import load_dotenv
     from langchain_astradb import AstraDBVectorStore
 
-    from graph_pancake.retrievers.traversal_adapters.astra import (
+    from graph_pancake.retrievers.store_adapters.astra import (
         AstraStoreAdapter,
     )
 
@@ -243,7 +242,6 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
         store.delete_collection()
 
     return StoreFactory[AstraDBVectorStore](
-        support_normalized_metadata=True,
         create_store=create_astra,
         create_adapter=AstraStoreAdapter,
         teardown=teardown_astra,
@@ -255,7 +253,7 @@ def _in_memory_store_factory(
 ) -> StoreFactory:
     from langchain_core.vectorstores import InMemoryVectorStore
 
-    from graph_pancake.retrievers.traversal_adapters.in_memory import (
+    from graph_pancake.retrievers.store_adapters.in_memory import (
         InMemoryStoreAdapter,
     )
 
@@ -267,7 +265,6 @@ def _in_memory_store_factory(
         return InMemoryVectorStore.from_documents(docs, emb)
 
     return StoreFactory[InMemoryVectorStore](
-        support_normalized_metadata=support_normalized_metadata,
         create_store=create_in_memory,
         create_adapter=lambda store: InMemoryStoreAdapter(
             store, support_normalized_metadata=support_normalized_metadata
@@ -278,7 +275,7 @@ def _in_memory_store_factory(
 def _chroma_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     from langchain_chroma.vectorstores import Chroma
 
-    from graph_pancake.retrievers.traversal_adapters.chroma import (
+    from graph_pancake.retrievers.store_adapters.chroma import (
         ChromaStoreAdapter,
     )
 
@@ -287,7 +284,6 @@ def _chroma_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
         return Chroma.from_documents(docs, emb, collection_name=name)
 
     return StoreFactory[Chroma](
-        support_normalized_metadata=False,
         create_store=create_chroma,
         create_adapter=ChromaStoreAdapter,
         teardown=lambda store: store.delete_collection(),

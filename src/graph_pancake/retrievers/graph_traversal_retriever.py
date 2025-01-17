@@ -15,8 +15,8 @@ from pydantic import Field, computed_field
 from .edge import Edge
 from .edge_helper import EdgeHelper
 from .node import Node
+from .store_adapters.base import METADATA_EMBEDDING_KEY, StoreAdapter
 from .strategy.base import TraversalStrategy
-from .traversal_adapters.base import METADATA_EMBEDDING_KEY, StoreAdapter
 
 INFINITY = float("inf")
 

@@ -8,6 +8,7 @@ dependencies = [
     "langchain-core>=0.3.29",
     "numpy>=1.26.4",
     "pydantic>=2.10.4",
+    "torch>=2.4.1",
 ]
 
 [project.optional-dependencies]

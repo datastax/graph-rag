@@ -4,11 +4,11 @@ from langchain_core.vectorstores import InMemoryVectorStore
 from graph_pancake.retrievers.graph_traversal_retriever import (
     GraphTraversalRetriever,
 )
+from graph_pancake.retrievers.store_adapters.in_memory import (
+    InMemoryStoreAdapter,
+)
 from graph_pancake.retrievers.strategy.mmr import (
     Mmr,
-)
-from graph_pancake.retrievers.traversal_adapters.in_memory import (
-    InMemoryStoreAdapter,
 )
 from tests.embeddings.fake_embeddings import AngularTwoDimensionalEmbeddings
 from tests.integration_tests.assertions import sorted_doc_ids

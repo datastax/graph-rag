@@ -1,7 +1,7 @@
 import pytest
 from langchain_core.documents import Document
 
-from graph_pancake.retrievers.traversal_adapters import StoreAdapter
+from graph_pancake.retrievers.store_adapters import StoreAdapter
 from tests.embeddings.simple_embeddings import EarthEmbeddings
 from tests.integration_tests.stores import StoreFactory
 
