@@ -67,7 +67,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Run `make test`
-        run: make testci
+        run:
+            uv run python -m pytest -vs ./tests/unit_tests ./tests/integration_tests/ \
+                --stores=mem --stores=mem_denorm --stores=cassandra --stores=chroma --stores=opensearch \
+                --junitxml=junit/test-results-${{ matrix.python-version }}.xml
 
       - name: Run `make mypy`
         run: make mypy
