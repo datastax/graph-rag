@@ -25,6 +25,7 @@ class Scored(Strategy):
     @override
     def discover_nodes(self, nodes: dict[str, Node]) -> None:
         for node in nodes.values():
+            print(f"adding {node.id}: with score: {self.scorer(node)}")
             heapq.heappush(self._nodes, (self.scorer(node), node))
 
     @override
@@ -33,5 +34,7 @@ class Scored(Strategy):
         for _ in range(0, min(limit, self.select_k)):
             if len(self._nodes) == 0:
                 break
-            selected.append(heapq.heappop(self._nodes)[1])
+            select = heapq.heappop(self._nodes)[1]
+            print(f"select {select.id}: with score: {self.scorer(select)}")
+            selected.append(select)
         return selected
