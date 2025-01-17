@@ -66,12 +66,20 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Run `make test`
+      - name: Test All Stores (3.12 only)
+        if: ${{ matrix.python-version == '3.12' }}
         run:
-            uv run --package langchain-graph-retriever python -m pytest -vs
-                ./packages/langchain-graph-retriever/tests/unit_tests/
-                ./packages/langchain-graph-retriever/tests/integration_tests/
-                --stores=mem_norm --stores=mem --stores=cassandra --stores=chroma --stores=opensearch
+            cd packages/langchain-graph-retriever && uv run pytest -vs . \
+                --stores=all \
+                --junitxml=junit/test-results-${{ matrix.python-version }}.xml
+        env:
+            ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+            ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
+
+      - name: Test In-Memory Stores (non-3.12)
+        if: ${{ matrix.python-version != '3.12' }}
+        run:
+            cd packages/langchain-graph-retriever && uv run pytest -vs . \
                 --junitxml=junit/test-results-${{ matrix.python-version }}.xml
 
       - name: Run `make mypy`

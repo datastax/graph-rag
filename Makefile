@@ -70,7 +70,7 @@ unit:
 .PHONY: test
 test: sync-langchain-graph-retriever
 	@echo "🚀 Testing code: Running pytest"
-	@cd packages/langchain-graph-retriever && uv run pytest -vs ./tests/unit_tests ./tests/integration_tests --stores=all
+	@cd packages/langchain-graph-retriever && uv run pytest -vs . --stores=all
 
 .PHONY: mypy
 mypy:
