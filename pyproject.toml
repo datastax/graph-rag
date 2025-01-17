@@ -6,12 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
 
-[tool.deptry.package_module_name_map]
-beautifulsoup4 = "bs4"
-opensearch-py = "opensearchpy"
-
-[tool.deptry.per_rule_ignores]
-DEP002 = ["cassio"]
+classifiers = ["Private :: Do Not Upload"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
