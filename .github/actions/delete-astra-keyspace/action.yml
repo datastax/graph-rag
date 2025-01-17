@@ -18,7 +18,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Create a keyspace
+    - name: Delete a keyspace
       shell: bash
       env:
         TERM: linux
@@ -28,7 +28,7 @@ runs:
         echo "Astra CLI installed"
         /home/runner/.astra/cli/astra -v
 
-        (/home/runner/.astra/cli/astra db delete-keyspace
+        (/home/runner/.astra/cli/astra db delete-keyspace \
           --env "${{ inputs.env }}" \
           "${{ inputs.id }}" -k "${{ inputs.keyspace }}" --if-not-exist \
           --token "${{ inputs.token }}" \

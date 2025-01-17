@@ -28,7 +28,7 @@ runs:
         echo "Astra CLI installed"
         /home/runner/.astra/cli/astra -v
 
-        (/home/runner/.astra/cli/astra db create-keyspace
+        (/home/runner/.astra/cli/astra db create-keyspace \
           --env "${{ inputs.env }}" \
           "${{ inputs.id }}" -k "${{ inputs.keyspace }}" --if-not-exist \
           --token "${{ inputs.token }}" \
