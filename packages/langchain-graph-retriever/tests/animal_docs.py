@@ -5,8 +5,7 @@ import pytest
 from langchain_core.documents import Document
 
 
-@pytest.fixture(scope="session")
-def animal_docs() -> list[Document]:
+def get_animal_docs() -> list[Document]:
     documents = []
 
     path = os.path.abspath(
@@ -22,8 +21,21 @@ def animal_docs() -> list[Document]:
                     metadata=data["metadata"],
                 )
             )
-
     return documents
+
+
+@pytest.fixture(scope="session")
+def animal_docs() -> list[Document]:
+    return get_animal_docs()
+
+
+@pytest.fixture(scope="session")
+def animal_store(
+    request: pytest.FixtureRequest,
+    store_factory: StoreFactory,
+    animal_docs: list[Document],
+) -> Adapter:
+    return store_factory.create(request, AnimalEmbeddings(), animal_docs)
 
 
 ANIMALS_QUERY: str = "small agile mammal"

@@ -65,5 +65,6 @@ dev = [
     "pytest-asyncio>=0.25.2",
     "simsimd>=6.2.1",
     "testcontainers>=4.9.0",
+    "langchain-tests>=0.3.8",
 ]
 
