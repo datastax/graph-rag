@@ -1,5 +1,5 @@
 [project]
-name = "langchain-graph-rag"
+name = "langchain-graph-retriever"
 version = "0.0.1"
 description = "Add your description here"
 readme = "README.md"

@@ -1,12 +1,12 @@
 from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore
-from langchain_graph_rag.retrievers.graph_traversal_retriever import (
+from langchain_graph_retriever.retrievers.graph_traversal_retriever import (
     GraphTraversalRetriever,
 )
-from langchain_graph_rag.retrievers.store_adapters.in_memory import (
+from langchain_graph_retriever.retrievers.store_adapters.in_memory import (
     InMemoryStoreAdapter,
 )
-from langchain_graph_rag.retrievers.strategy.mmr import (
+from langchain_graph_retriever.retrievers.strategy.mmr import (
     Mmr,
 )
 from tests.embeddings.simple_embeddings import Angular2DEmbeddings

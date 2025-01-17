@@ -1,8 +1,8 @@
 from langchain_core.documents import Document
-from langchain_graph_rag.retrievers.graph_traversal_retriever import (
+from langchain_graph_retriever.retrievers.graph_traversal_retriever import (
     GraphTraversalRetriever,
 )
-from langchain_graph_rag.retrievers.strategy.eager import (
+from langchain_graph_retriever.retrievers.strategy.eager import (
     Eager,
 )
 from tests.integration_tests.assertions import assert_document_format, sorted_doc_ids

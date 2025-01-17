@@ -1,6 +1,6 @@
 import pytest
 from langchain_core.documents import Document
-from langchain_graph_rag.retrievers.store_adapters import StoreAdapter
+from langchain_graph_retriever.retrievers.store_adapters import StoreAdapter
 from tests.embeddings.simple_embeddings import EarthEmbeddings
 from tests.integration_tests.stores import StoreFactory
 

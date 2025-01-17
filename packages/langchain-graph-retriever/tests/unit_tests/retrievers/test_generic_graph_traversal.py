@@ -1,4 +1,4 @@
-from langchain_graph_rag.retrievers.strategy.mmr import Mmr
+from langchain_graph_retriever.retrievers.strategy.mmr import Mmr
 
 
 def test_mmr_parameters() -> None:

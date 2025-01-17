@@ -8,9 +8,9 @@ resolution-markers = [
 
 [manifest]
 members = [
-    "graph-rag",
-    "graph-rag-workspace",
-    "langchain-graph-rag",
+    "graph-retriever",
+    "graph-retriever-workspace",
+    "langchain-graph-retriever",
 ]
 
 [[package]]
@@ -787,9 +787,9 @@ wheels = [
 ]
 
 [[package]]
-name = "graph-rag"
+name = "graph-retriever"
 version = "0.0.0"
-source = { editable = "packages/graph-rag" }
+source = { editable = "packages/graph-retriever" }
 
 [package.metadata]
 
@@ -797,7 +797,7 @@ source = { editable = "packages/graph-rag" }
 dev = []
 
 [[package]]
-name = "graph-rag-workspace"
+name = "graph-retriever-workspace"
 version = "0.1.0"
 source = { virtual = "." }
 
@@ -1271,9 +1271,9 @@ wheels = [
 ]
 
 [[package]]
-name = "langchain-graph-rag"
+name = "langchain-graph-retriever"
 version = "0.0.1"
-source = { editable = "packages/langchain-graph-rag" }
+source = { editable = "packages/langchain-graph-retriever" }
 dependencies = [
     { name = "langchain-core" },
     { name = "numpy" },

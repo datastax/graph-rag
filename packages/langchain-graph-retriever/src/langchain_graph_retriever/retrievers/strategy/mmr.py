@@ -3,7 +3,7 @@ from functools import cached_property
 from typing import Iterable
 
 import numpy as np
-from langchain_graph_rag.utils.math import cosine_similarity
+from langchain_graph_retriever.utils.math import cosine_similarity
 from numpy.typing import NDArray
 from pydantic import Field
 

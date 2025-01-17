@@ -1,5 +1,5 @@
 [project]
-name = "graph-rag-workspace"
+name = "graph-retriever-workspace"
 version = "0.1.0"
 description = "uv workspace for Graph RAG projects"
 readme = "README.md"
@@ -41,6 +41,6 @@ skip_empty = true
 [tool.coverage.run]
 branch = true
 source = [
-    "packages/graph-rag/src/graph_rag",
-    "packages/langchain-graph-rag/src/langchain_graph_rag",
+    "packages/graph-retriever/src/graph_retriever",
+    "packages/langchain-graph-retriever/src/langchain_graph_retriever",
     ]

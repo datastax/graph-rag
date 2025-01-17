@@ -1,4 +1,5 @@
 import json
+import os
 
 import pytest
 from langchain_core.documents import Document
@@ -9,7 +10,10 @@ from tests.integration_tests.stores import StoreAdapter, StoreFactory
 @pytest.fixture(scope="session")
 def animal_docs() -> list[Document]:
     documents = []
-    with open("data/animals.jsonl", "r") as file:
+
+    path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../data/animals.jsonl"))
+    print(f"PATH: {path}")
+    with open(path, "r") as file:
         for line in file:
             data = json.loads(line.strip())
             documents.append(
