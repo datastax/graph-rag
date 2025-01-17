@@ -1,4 +1,5 @@
 import json
+import math
 import random
 from abc import abstractmethod
 
@@ -13,6 +14,24 @@ class BaseEmbeddings(Embeddings):
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
         return [self.embed_query(txt) for txt in texts]
 
+
+class Angular2DEmbeddings(BaseEmbeddings):
+    """
+    From angles (as strings in units of pi) to unit embedding vectors on a circle.
+    """
+    def embed_query(self, text: str) -> list[float]:
+        """
+        Convert input text to a 'vector' (list of floats).
+        If the text is a number, use it as the angle for the
+        unit vector in units of pi.
+        Any other input text becomes the singular result [0, 0] !
+        """
+        try:
+            angle = float(text)
+            return [math.cos(angle * math.pi), math.sin(angle * math.pi)]
+        except ValueError:
+            # Assume: just test string, no attention is paid to values.
+            return [0.0, 0.0]
 
 class EarthEmbeddings(BaseEmbeddings):
     def get_vector_near(self, value: float) -> list[float]:

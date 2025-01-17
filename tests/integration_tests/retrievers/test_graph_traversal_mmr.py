@@ -10,7 +10,7 @@ from graph_pancake.retrievers.store_adapters.in_memory import (
 from graph_pancake.retrievers.strategy.mmr import (
     Mmr,
 )
-from tests.embeddings.fake_embeddings import AngularTwoDimensionalEmbeddings
+from tests.embeddings.simple_embeddings import Angular2DEmbeddings
 from tests.integration_tests.assertions import sorted_doc_ids
 from tests.integration_tests.retrievers.animal_docs import (
     ANIMALS_DEPTH_0_EXPECTED,
@@ -135,7 +135,7 @@ async def test_traversal_mem(invoker) -> None:
     v2.metadata["incoming"] = "link"
     v3.metadata["incoming"] = "link"
 
-    store = InMemoryVectorStore(embedding=AngularTwoDimensionalEmbeddings())
+    store = InMemoryVectorStore(embedding=Angular2DEmbeddings())
     store.add_documents([v0, v1, v2, v3])
 
     strategy = Mmr(k=2, start_k=2, max_depth=2)

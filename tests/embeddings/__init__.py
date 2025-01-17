@@ -1,19 +1,14 @@
-from .fake_embeddings import (
-    AngularTwoDimensionalEmbeddings,
-    ConsistentFakeEmbeddings,
-    FakeEmbeddings,
-)
+
 from .simple_embeddings import (
+    Angular2DEmbeddings,
     AnimalEmbeddings,
     EarthEmbeddings,
     ParserEmbeddings,
 )
 
 __all__ = [
+    "Angular2DEmbeddings",
     "AnimalEmbeddings",
-    "AngularTwoDimensionalEmbeddings",
-    "ConsistentFakeEmbeddings",
     "EarthEmbeddings",
-    "FakeEmbeddings",
     "ParserEmbeddings",
 ]
