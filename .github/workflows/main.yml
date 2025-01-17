@@ -72,9 +72,12 @@ jobs:
       - name: Run `make mypy`
         run: make mypy
 
-      - name: Upload coverage reports to Codecov with GitHub Action on Python 3.11
-        uses: codecov/codecov-action@v4
-        if: ${{ matrix.python-version == '3.11' }}
+      - name: Upload test results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-results-${{ matrix.python-version }}
+          path: junit/test-results-${{ matrix.python-version }}.xml
 
 #   check-docs:
 #     runs-on: ubuntu-latest

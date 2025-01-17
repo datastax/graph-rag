@@ -52,12 +52,14 @@ unit:
 .PHONY: test
 test:
 	@echo "🚀 Testing code: Running pytest"
-	@uv run python -m pytest -vs ./tests/unit_tests ./tests/integration_tests/ --cov --cov-config=pyproject.toml --cov-report=xml --stores=all
+	@uv run python -m pytest -vs ./tests/unit_tests ./tests/integration_tests/ --stores=all
 
 .PHONY: test
 testci:
 	@echo "🚀 Testing code: Running pytest"
-	@uv run python -m pytest -vs ./tests/unit_tests ./tests/integration_tests/ --cov --cov-config=pyproject.toml --cov-report=xml --stores=mem --stores=mem_denorm --stores=cassandra --stores=chroma --stores=opensearch
+	@uv run python -m pytest -vs ./tests/unit_tests ./tests/integration_tests/ \
+		--stores=mem --stores=mem_denorm --stores=cassandra --stores=chroma --stores=opensearch \
+		--junitxml=junit/test-results.xml
 
 .PHONY: mypy
 mypy:
