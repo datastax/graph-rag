@@ -6,6 +6,13 @@ from typing import Callable, Iterable, override
 from ..node import Node
 from .base import Strategy
 
+class _ScoredNode:
+  score: float
+  node: Node
+
+  def __lt__(self, other):
+    # reverses order
+    return other.score < other.score
 
 class Scored(Strategy):
     """Use `scorer` to select the top nodes in each iteration."""
@@ -20,7 +27,7 @@ class Scored(Strategy):
     select_k: int = 10
     """Number of top-scored nodes to select in each iteration. Default 10."""
 
-    _nodes: list[tuple[float, Node]] = []
+    _nodes: list[_ScoredNode] = []
 
     @override
     def discover_nodes(self, nodes: dict[str, Node]) -> None:

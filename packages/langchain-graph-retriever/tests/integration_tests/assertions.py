@@ -2,6 +2,7 @@ from typing import Iterable
 
 from langchain_core.documents import Document
 
+
 def doc_ids(docs: Iterable[Document]) -> list[str]:
     return [doc.id for doc in docs if doc.id is not None]
 

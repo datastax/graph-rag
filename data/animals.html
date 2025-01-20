@@ -1,0 +1,463 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+             #loadingBar {
+                 position:absolute;
+                 top:0px;
+                 left:0px;
+                 width: 100%;
+                 height: 800px;
+                 background-color:rgba(200,200,200,0.8);
+                 -webkit-transition: all 0.5s ease;
+                 -moz-transition: all 0.5s ease;
+                 -ms-transition: all 0.5s ease;
+                 -o-transition: all 0.5s ease;
+                 transition: all 0.5s ease;
+                 opacity:1;
+             }
+
+             #bar {
+                 position:absolute;
+                 top:0px;
+                 left:0px;
+                 width:20px;
+                 height:20px;
+                 margin:auto auto auto auto;
+                 border-radius:11px;
+                 border:2px solid rgba(30,30,30,0.05);
+                 background: rgb(0, 173, 246); /* Old browsers */
+                 box-shadow: 2px 0px 4px rgba(0,0,0,0.4);
+             }
+
+             #border {
+                 position:absolute;
+                 top:10px;
+                 left:10px;
+                 width:500px;
+                 height:23px;
+                 margin:auto auto auto auto;
+                 box-shadow: 0px 0px 4px rgba(0,0,0,0.2);
+                 border-radius:10px;
+             }
+
+             #text {
+                 position:absolute;
+                 top:8px;
+                 left:530px;
+                 width:30px;
+                 height:50px;
+                 margin:auto auto auto auto;
+                 font-size:22px;
+                 color: #000000;
+             }
+
+             div.outerBorder {
+                 position:relative;
+                 top:400px;
+                 width:600px;
+                 height:44px;
+                 margin:auto auto auto auto;
+                 border:8px solid rgba(0,0,0,0.1);
+                 background: rgb(252,252,252); /* Old browsers */
+                 background: -moz-linear-gradient(top,  rgba(252,252,252,1) 0%, rgba(237,237,237,1) 100%); /* FF3.6+ */
+                 background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(252,252,252,1)), color-stop(100%,rgba(237,237,237,1))); /* Chrome,Safari4+ */
+                 background: -webkit-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* Chrome10+,Safari5.1+ */
+                 background: -o-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* Opera 11.10+ */
+                 background: -ms-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* IE10+ */
+                 background: linear-gradient(to bottom,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* W3C */
+                 filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fcfcfc', endColorstr='#ededed',GradientType=0 ); /* IE6-9 */
+                 border-radius:72px;
+                 box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+             }
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+    <script type="text/javascript">
+        function togglePhysics(color) {
+            // Access the nodes from network.body.data.nodes
+            network.body.data.nodes.update(
+                network.body.data.nodes.get().map(node => {
+                    if (node.color === color) { // Target animal nodes by color
+                        node.physics = !node.physics; // Toggle the physics property
+                    }
+                    return node; // Update the node
+                })
+            );
+        }
+    </script>
+    <button onclick="togglePhysics('lightblue')" style="background-color: lightblue;">Toggle Animal Physics</button>
+    <button onclick="togglePhysics('yellow')" style="background-color: yellow;">Toggle Keyword Physics</button>
+    <button onclick="togglePhysics('lightgreen')" style="background-color: lightgreen;">Toggle Habitat Physics</button>
+    <button onclick="togglePhysics('lightpink')" style="background-color: lightpink;">Toggle Type Physics</button>
+    <button onclick="togglePhysics('orange')" style="background-color: orange;">Toggle Diet Physics</button>
+    
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+            <div id="loadingBar">
+              <div class="outerBorder">
+                <div id="text">0%</div>
+                <div id="border">
+                  <div id="bar"></div>
+                </div>
+              </div>
+            </div>
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "lightblue", "id": "aardvark", "label": "aardvark", "physics": true, "shape": "dot"}, {"color": "lightpink", "id": "type_mammal", "label": "mammal", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_burrowing", "label": "burrowing", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_ants", "label": "ants", "physics": true, "shape": "dot"}, {"color": "lightgreen", "id": "habitat_savanna", "label": "savanna", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "albatross", "label": "albatross", "physics": true, "shape": "dot"}, {"color": "lightpink", "id": "type_bird", "label": "bird", "physics": true, "shape": "dot"}, {"color": "lightgreen", "id": "habitat_marine", "label": "marine", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "alligator", "label": "alligator", "physics": true, "shape": "dot"}, {"color": "lightpink", "id": "type_reptile", "label": "reptile", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_reptile", "label": "reptile", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_jaws", "label": "jaws", "physics": true, "shape": "dot"}, {"color": "orange", "id": "diet_carnivorous", "label": "carnivorous", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "alpaca", "label": "alpaca", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_wool", "label": "wool", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_domesticated", "label": "domesticated", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "ant", "label": "ant", "physics": true, "shape": "dot"}, {"color": "lightpink", "id": "type_insect", "label": "insect", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_social", "label": "social", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_strength", "label": "strength", "physics": true, "shape": "dot"}, {"color": "orange", "id": "diet_omnivorous", "label": "omnivorous", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "anteater", "label": "anteater", "physics": true, "shape": "dot"}, {"color": "orange", "id": "diet_insectivore", "label": "insectivore", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "antelope", "label": "antelope", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_graceful", "label": "graceful", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_herbivore", "label": "herbivore", "physics": true, "shape": "dot"}, {"color": "lightgreen", "id": "habitat_grasslands", "label": "grasslands", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "armadillo", "label": "armadillo", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "baboon", "label": "baboon", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_primates", "label": "primates", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "badger", "label": "badger", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "barracuda", "label": "barracuda", "physics": true, "shape": "dot"}, {"color": "lightpink", "id": "type_fish", "label": "fish", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "bat", "label": "bat", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_pollination", "label": "pollination", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "bear", "label": "bear", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_large", "label": "large", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_forest-floor", "label": "forest-floor", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "beaver", "label": "beaver", "physics": true, "shape": "dot"}, {"color": "orange", "id": "diet_herbivorous", "label": "herbivorous", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "bee", "label": "bee", "physics": true, "shape": "dot"}, {"color": "lightpurple", "id": "activity_diurnal", "label": "diurnal", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "beetle", "label": "beetle", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_diverse", "label": "diverse", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_hard shell", "label": "hard shell", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "bison", "label": "bison", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_grasslands", "label": "grasslands", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "blue jay", "label": "blue jay", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_intelligent", "label": "intelligent", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "boar", "label": "boar", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_tusks", "label": "tusks", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "bobcat", "label": "bobcat", "physics": true, "shape": "dot"}, {"color": "lightgreen", "id": "habitat_forest-floor", "label": "forest-floor", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "buffalo", "label": "buffalo", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "butterfly", "label": "butterfly", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_colorful", "label": "colorful", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_metamorphosis", "label": "metamorphosis", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "camel", "label": "camel", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "capybara", "label": "capybara", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_rodent", "label": "rodent", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_largest", "label": "largest", "physics": true, "shape": "dot"}, {"color": "lightgreen", "id": "habitat_wetlands", "label": "wetlands", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "caribou", "label": "caribou", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "cassowary", "label": "cassowary", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_flightless", "label": "flightless", "physics": true, "shape": "dot"}, {"color": "lightgreen", "id": "habitat_rainforest", "label": "rainforest", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "cat", "label": "cat", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_agile", "label": "agile", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "caterpillar", "label": "caterpillar", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "chameleon", "label": "chameleon", "physics": true, "shape": "dot"}, {"color": "lightgreen", "id": "habitat_forest", "label": "forest", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "cheetah", "label": "cheetah", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_speed", "label": "speed", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_predator", "label": "predator", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "chicken", "label": "chicken", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_meat", "label": "meat", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "chimpanzee", "label": "chimpanzee", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "chinchilla", "label": "chinchilla", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "cobra", "label": "cobra", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "cockroach", "label": "cockroach", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_scavenger", "label": "scavenger", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "coyote", "label": "coyote", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_adaptable", "label": "adaptable", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_cunning", "label": "cunning", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "crab", "label": "crab", "physics": true, "shape": "dot"}, {"color": "lightpink", "id": "type_crustacean", "label": "crustacean", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_pincers", "label": "pincers", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "crane", "label": "crane", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "crocodile", "label": "crocodile", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "crow", "label": "crow", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_problem-solving", "label": "problem-solving", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "deer", "label": "deer", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_antlers", "label": "antlers", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "dingo", "label": "dingo", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_australia", "label": "australia", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "dog", "label": "dog", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "dolphin", "label": "dolphin", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_marine", "label": "marine", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_playful", "label": "playful", "physics": true, "shape": "dot"}, {"color": "lightgreen", "id": "habitat_ocean", "label": "ocean", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "donkey", "label": "donkey", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_hardy", "label": "hardy", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "dove", "label": "dove", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_gentle", "label": "gentle", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "dragonfly", "label": "dragonfly", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "duck", "label": "duck", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_waterfowl", "label": "waterfowl", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "eagle", "label": "eagle", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_bird of prey", "label": "bird of prey", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "eel", "label": "eel", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "elephant", "label": "elephant", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "elk", "label": "elk", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "emu", "label": "emu", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "falcon", "label": "falcon", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "ferret", "label": "ferret", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_pet", "label": "pet", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "finch", "label": "finch", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_small", "label": "small", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "fish", "label": "fish", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "flamingo", "label": "flamingo", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_wading", "label": "wading", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_long legs", "label": "long legs", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "fox", "label": "fox", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "frog", "label": "frog", "physics": true, "shape": "dot"}, {"color": "lightpink", "id": "type_amphibian", "label": "amphibian", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_jumping", "label": "jumping", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_amphibian", "label": "amphibian", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "gazelle", "label": "gazelle", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_fast", "label": "fast", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "gecko", "label": "gecko", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_climbing", "label": "climbing", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "giraffe", "label": "giraffe", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "goat", "label": "goat", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "goose", "label": "goose", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "gorilla", "label": "gorilla", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "grasshopper", "label": "grasshopper", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "guinea pig", "label": "guinea pig", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "hamster", "label": "hamster", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "hawk", "label": "hawk", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "hedgehog", "label": "hedgehog", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "heron", "label": "heron", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "hippopotamus", "label": "hippopotamus", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "hornet", "label": "hornet", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "horse", "label": "horse", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "hummingbird", "label": "hummingbird", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "hyena", "label": "hyena", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_carnivore", "label": "carnivore", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "iguana", "label": "iguana", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_large lizard", "label": "large lizard", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "jackal", "label": "jackal", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "jaguar", "label": "jaguar", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_big cat", "label": "big cat", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_spotted coat", "label": "spotted coat", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "jellyfish", "label": "jellyfish", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "kangaroo", "label": "kangaroo", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_marsupial", "label": "marsupial", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "koala", "label": "koala", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "komodo dragon", "label": "komodo dragon", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "lark", "label": "lark", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "lemur", "label": "lemur", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "leopard", "label": "leopard", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "lion", "label": "lion", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "lizard", "label": "lizard", "physics": true, "shape": "dot"}, {"color": "yellow", "id": "keyword_regeneration", "label": "regeneration", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "llama", "label": "llama", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "lobster", "label": "lobster", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "magpie", "label": "magpie", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "manatee", "label": "manatee", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "mongoose", "label": "mongoose", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "moose", "label": "moose", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "mosquito", "label": "mosquito", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "narwhal", "label": "narwhal", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "newt", "label": "newt", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "octopus", "label": "octopus", "physics": true, "shape": "dot"}, {"color": "lightblue", "id": "ostrich", "label": "ostrich", "physics": true, "shape": "dot"}]);
+                  edges = new vis.DataSet([{"from": "aardvark", "title": "type", "to": "type_mammal"}, {"from": "aardvark", "title": "keyword", "to": "keyword_burrowing"}, {"from": "aardvark", "title": "keyword", "to": "keyword_ants"}, {"from": "aardvark", "title": "habitat", "to": "habitat_savanna"}, {"from": "albatross", "title": "type", "to": "type_bird"}, {"from": "albatross", "title": "habitat", "to": "habitat_marine"}, {"from": "alligator", "title": "type", "to": "type_reptile"}, {"from": "alligator", "title": "keyword", "to": "keyword_reptile"}, {"from": "alligator", "title": "keyword", "to": "keyword_jaws"}, {"from": "alligator", "title": "diet", "to": "diet_carnivorous"}, {"from": "alpaca", "title": "type", "to": "type_mammal"}, {"from": "alpaca", "title": "keyword", "to": "keyword_wool"}, {"from": "alpaca", "title": "keyword", "to": "keyword_domesticated"}, {"from": "ant", "title": "type", "to": "type_insect"}, {"from": "ant", "title": "keyword", "to": "keyword_social"}, {"from": "ant", "title": "keyword", "to": "keyword_strength"}, {"from": "ant", "title": "diet", "to": "diet_omnivorous"}, {"from": "anteater", "title": "type", "to": "type_mammal"}, {"from": "anteater", "title": "keyword", "to": "keyword_ants"}, {"from": "anteater", "title": "diet", "to": "diet_insectivore"}, {"from": "antelope", "title": "type", "to": "type_mammal"}, {"from": "antelope", "title": "keyword", "to": "keyword_graceful"}, {"from": "antelope", "title": "keyword", "to": "keyword_herbivore"}, {"from": "antelope", "title": "habitat", "to": "habitat_grasslands"}, {"from": "armadillo", "title": "type", "to": "type_mammal"}, {"from": "armadillo", "title": "diet", "to": "diet_insectivore"}, {"from": "baboon", "title": "type", "to": "type_mammal"}, {"from": "baboon", "title": "keyword", "to": "keyword_social"}, {"from": "baboon", "title": "keyword", "to": "keyword_primates"}, {"from": "baboon", "title": "diet", "to": "diet_omnivorous"}, {"from": "badger", "title": "type", "to": "type_mammal"}, {"from": "badger", "title": "keyword", "to": "keyword_burrowing"}, {"from": "badger", "title": "diet", "to": "diet_omnivorous"}, {"from": "barracuda", "title": "type", "to": "type_fish"}, {"from": "barracuda", "title": "habitat", "to": "habitat_marine"}, {"from": "bat", "title": "type", "to": "type_mammal"}, {"from": "bat", "title": "keyword", "to": "keyword_pollination"}, {"from": "bear", "title": "type", "to": "type_mammal"}, {"from": "bear", "title": "keyword", "to": "keyword_large"}, {"from": "bear", "title": "keyword", "to": "keyword_forest-floor"}, {"from": "bear", "title": "diet", "to": "diet_omnivorous"}, {"from": "beaver", "title": "type", "to": "type_mammal"}, {"from": "beaver", "title": "diet", "to": "diet_herbivorous"}, {"from": "bee", "title": "type", "to": "type_insect"}, {"from": "bee", "title": "keyword", "to": "keyword_pollination"}, {"from": "bee", "title": "activity", "to": "activity_diurnal"}, {"from": "beetle", "title": "type", "to": "type_insect"}, {"from": "beetle", "title": "keyword", "to": "keyword_diverse"}, {"from": "beetle", "title": "keyword", "to": "keyword_hard shell"}, {"from": "bison", "title": "type", "to": "type_mammal"}, {"from": "bison", "title": "keyword", "to": "keyword_herbivore"}, {"from": "bison", "title": "keyword", "to": "keyword_grasslands"}, {"from": "blue jay", "title": "type", "to": "type_bird"}, {"from": "blue jay", "title": "keyword", "to": "keyword_intelligent"}, {"from": "blue jay", "title": "diet", "to": "diet_omnivorous"}, {"from": "boar", "title": "type", "to": "type_mammal"}, {"from": "boar", "title": "keyword", "to": "keyword_tusks"}, {"from": "boar", "title": "diet", "to": "diet_omnivorous"}, {"from": "bobcat", "title": "type", "to": "type_mammal"}, {"from": "bobcat", "title": "keyword", "to": "keyword_forest-floor"}, {"from": "bobcat", "title": "habitat", "to": "habitat_forest-floor"}, {"from": "buffalo", "title": "type", "to": "type_mammal"}, {"from": "buffalo", "title": "keyword", "to": "keyword_herbivore"}, {"from": "buffalo", "title": "habitat", "to": "habitat_grasslands"}, {"from": "butterfly", "title": "type", "to": "type_insect"}, {"from": "butterfly", "title": "keyword", "to": "keyword_colorful"}, {"from": "butterfly", "title": "keyword", "to": "keyword_metamorphosis"}, {"from": "butterfly", "title": "activity", "to": "activity_diurnal"}, {"from": "camel", "title": "type", "to": "type_mammal"}, {"from": "capybara", "title": "type", "to": "type_mammal"}, {"from": "capybara", "title": "keyword", "to": "keyword_rodent"}, {"from": "capybara", "title": "keyword", "to": "keyword_social"}, {"from": "capybara", "title": "keyword", "to": "keyword_largest"}, {"from": "capybara", "title": "habitat", "to": "habitat_wetlands"}, {"from": "caribou", "title": "type", "to": "type_mammal"}, {"from": "caribou", "title": "keyword", "to": "keyword_herbivore"}, {"from": "caribou", "title": "diet", "to": "diet_herbivorous"}, {"from": "cassowary", "title": "type", "to": "type_bird"}, {"from": "cassowary", "title": "keyword", "to": "keyword_flightless"}, {"from": "cassowary", "title": "keyword", "to": "keyword_colorful"}, {"from": "cassowary", "title": "habitat", "to": "habitat_rainforest"}, {"from": "cat", "title": "type", "to": "type_mammal"}, {"from": "cat", "title": "keyword", "to": "keyword_domesticated"}, {"from": "cat", "title": "keyword", "to": "keyword_agile"}, {"from": "cat", "title": "diet", "to": "diet_carnivorous"}, {"from": "caterpillar", "title": "type", "to": "type_insect"}, {"from": "caterpillar", "title": "keyword", "to": "keyword_metamorphosis"}, {"from": "caterpillar", "title": "diet", "to": "diet_herbivorous"}, {"from": "chameleon", "title": "type", "to": "type_reptile"}, {"from": "chameleon", "title": "habitat", "to": "habitat_forest"}, {"from": "cheetah", "title": "type", "to": "type_mammal"}, {"from": "cheetah", "title": "keyword", "to": "keyword_speed"}, {"from": "cheetah", "title": "keyword", "to": "keyword_predator"}, {"from": "cheetah", "title": "habitat", "to": "habitat_savanna"}, {"from": "chicken", "title": "type", "to": "type_bird"}, {"from": "chicken", "title": "keyword", "to": "keyword_domesticated"}, {"from": "chicken", "title": "keyword", "to": "keyword_meat"}, {"from": "chicken", "title": "diet", "to": "diet_omnivorous"}, {"from": "chimpanzee", "title": "type", "to": "type_mammal"}, {"from": "chimpanzee", "title": "keyword", "to": "keyword_intelligent"}, {"from": "chimpanzee", "title": "keyword", "to": "keyword_primates"}, {"from": "chimpanzee", "title": "habitat", "to": "habitat_forest"}, {"from": "chinchilla", "title": "type", "to": "type_mammal"}, {"from": "chinchilla", "title": "keyword", "to": "keyword_rodent"}, {"from": "chinchilla", "title": "diet", "to": "diet_herbivorous"}, {"from": "cobra", "title": "type", "to": "type_reptile"}, {"from": "cobra", "title": "habitat", "to": "habitat_forest-floor"}, {"from": "cockroach", "title": "type", "to": "type_insect"}, {"from": "cockroach", "title": "keyword", "to": "keyword_scavenger"}, {"from": "cockroach", "title": "diet", "to": "diet_omnivorous"}, {"from": "coyote", "title": "type", "to": "type_mammal"}, {"from": "coyote", "title": "keyword", "to": "keyword_adaptable"}, {"from": "coyote", "title": "keyword", "to": "keyword_cunning"}, {"from": "coyote", "title": "habitat", "to": "habitat_grasslands"}, {"from": "crab", "title": "type", "to": "type_crustacean"}, {"from": "crab", "title": "keyword", "to": "keyword_hard shell"}, {"from": "crab", "title": "keyword", "to": "keyword_pincers"}, {"from": "crab", "title": "habitat", "to": "habitat_marine"}, {"from": "crane", "title": "type", "to": "type_bird"}, {"from": "crane", "title": "habitat", "to": "habitat_wetlands"}, {"from": "crocodile", "title": "type", "to": "type_reptile"}, {"from": "crocodile", "title": "keyword", "to": "keyword_reptile"}, {"from": "crocodile", "title": "keyword", "to": "keyword_jaws"}, {"from": "crocodile", "title": "habitat", "to": "habitat_wetlands"}, {"from": "crow", "title": "type", "to": "type_bird"}, {"from": "crow", "title": "keyword", "to": "keyword_intelligent"}, {"from": "crow", "title": "keyword", "to": "keyword_adaptable"}, {"from": "crow", "title": "keyword", "to": "keyword_problem-solving"}, {"from": "crow", "title": "diet", "to": "diet_omnivorous"}, {"from": "deer", "title": "type", "to": "type_mammal"}, {"from": "deer", "title": "keyword", "to": "keyword_antlers"}, {"from": "deer", "title": "keyword", "to": "keyword_graceful"}, {"from": "deer", "title": "keyword", "to": "keyword_herbivore"}, {"from": "deer", "title": "habitat", "to": "habitat_forest-floor"}, {"from": "dingo", "title": "type", "to": "type_mammal"}, {"from": "dingo", "title": "keyword", "to": "keyword_australia"}, {"from": "dingo", "title": "keyword", "to": "keyword_adaptable"}, {"from": "dingo", "title": "diet", "to": "diet_carnivorous"}, {"from": "dog", "title": "type", "to": "type_mammal"}, {"from": "dog", "title": "keyword", "to": "keyword_domesticated"}, {"from": "dog", "title": "diet", "to": "diet_omnivorous"}, {"from": "dolphin", "title": "type", "to": "type_mammal"}, {"from": "dolphin", "title": "keyword", "to": "keyword_intelligent"}, {"from": "dolphin", "title": "keyword", "to": "keyword_marine"}, {"from": "dolphin", "title": "keyword", "to": "keyword_playful"}, {"from": "dolphin", "title": "habitat", "to": "habitat_ocean"}, {"from": "donkey", "title": "type", "to": "type_mammal"}, {"from": "donkey", "title": "keyword", "to": "keyword_hardy"}, {"from": "donkey", "title": "keyword", "to": "keyword_strength"}, {"from": "donkey", "title": "diet", "to": "diet_herbivorous"}, {"from": "dove", "title": "type", "to": "type_bird"}, {"from": "dove", "title": "keyword", "to": "keyword_gentle"}, {"from": "dove", "title": "diet", "to": "diet_herbivorous"}, {"from": "dragonfly", "title": "type", "to": "type_insect"}, {"from": "dragonfly", "title": "habitat", "to": "habitat_wetlands"}, {"from": "duck", "title": "type", "to": "type_bird"}, {"from": "duck", "title": "keyword", "to": "keyword_waterfowl"}, {"from": "duck", "title": "habitat", "to": "habitat_wetlands"}, {"from": "eagle", "title": "type", "to": "type_bird"}, {"from": "eagle", "title": "keyword", "to": "keyword_bird of prey"}, {"from": "eagle", "title": "diet", "to": "diet_carnivorous"}, {"from": "eel", "title": "type", "to": "type_fish"}, {"from": "eel", "title": "keyword", "to": "keyword_marine"}, {"from": "eel", "title": "diet", "to": "diet_carnivorous"}, {"from": "elephant", "title": "type", "to": "type_mammal"}, {"from": "elephant", "title": "keyword", "to": "keyword_largest"}, {"from": "elephant", "title": "keyword", "to": "keyword_intelligent"}, {"from": "elephant", "title": "diet", "to": "diet_herbivorous"}, {"from": "elk", "title": "type", "to": "type_mammal"}, {"from": "elk", "title": "keyword", "to": "keyword_antlers"}, {"from": "elk", "title": "habitat", "to": "habitat_forest-floor"}, {"from": "emu", "title": "type", "to": "type_bird"}, {"from": "emu", "title": "keyword", "to": "keyword_flightless"}, {"from": "emu", "title": "keyword", "to": "keyword_speed"}, {"from": "emu", "title": "keyword", "to": "keyword_australia"}, {"from": "emu", "title": "diet", "to": "diet_omnivorous"}, {"from": "falcon", "title": "type", "to": "type_bird"}, {"from": "falcon", "title": "keyword", "to": "keyword_speed"}, {"from": "falcon", "title": "keyword", "to": "keyword_bird of prey"}, {"from": "falcon", "title": "diet", "to": "diet_carnivorous"}, {"from": "ferret", "title": "type", "to": "type_mammal"}, {"from": "ferret", "title": "keyword", "to": "keyword_playful"}, {"from": "ferret", "title": "keyword", "to": "keyword_pet"}, {"from": "ferret", "title": "diet", "to": "diet_carnivorous"}, {"from": "finch", "title": "type", "to": "type_bird"}, {"from": "finch", "title": "keyword", "to": "keyword_small"}, {"from": "finch", "title": "keyword", "to": "keyword_diverse"}, {"from": "finch", "title": "diet", "to": "diet_herbivorous"}, {"from": "fish", "title": "type", "to": "type_fish"}, {"from": "fish", "title": "keyword", "to": "keyword_marine"}, {"from": "flamingo", "title": "type", "to": "type_bird"}, {"from": "flamingo", "title": "keyword", "to": "keyword_wading"}, {"from": "flamingo", "title": "keyword", "to": "keyword_long legs"}, {"from": "flamingo", "title": "diet", "to": "diet_omnivorous"}, {"from": "fox", "title": "type", "to": "type_mammal"}, {"from": "fox", "title": "keyword", "to": "keyword_cunning"}, {"from": "fox", "title": "keyword", "to": "keyword_agile"}, {"from": "fox", "title": "diet", "to": "diet_omnivorous"}, {"from": "frog", "title": "type", "to": "type_amphibian"}, {"from": "frog", "title": "keyword", "to": "keyword_jumping"}, {"from": "frog", "title": "keyword", "to": "keyword_amphibian"}, {"from": "frog", "title": "habitat", "to": "habitat_wetlands"}, {"from": "gazelle", "title": "type", "to": "type_mammal"}, {"from": "gazelle", "title": "keyword", "to": "keyword_fast"}, {"from": "gazelle", "title": "keyword", "to": "keyword_agile"}, {"from": "gazelle", "title": "keyword", "to": "keyword_grasslands"}, {"from": "gazelle", "title": "diet", "to": "diet_herbivorous"}, {"from": "gazelle", "title": "habitat", "to": "habitat_savanna"}, {"from": "gecko", "title": "type", "to": "type_reptile"}, {"from": "gecko", "title": "keyword", "to": "keyword_climbing"}, {"from": "gecko", "title": "habitat", "to": "habitat_forest"}, {"from": "giraffe", "title": "type", "to": "type_mammal"}, {"from": "giraffe", "title": "diet", "to": "diet_herbivorous"}, {"from": "goat", "title": "type", "to": "type_mammal"}, {"from": "goat", "title": "keyword", "to": "keyword_hardy"}, {"from": "goat", "title": "keyword", "to": "keyword_meat"}, {"from": "goat", "title": "diet", "to": "diet_herbivorous"}, {"from": "goose", "title": "type", "to": "type_bird"}, {"from": "goose", "title": "keyword", "to": "keyword_waterfowl"}, {"from": "goose", "title": "diet", "to": "diet_herbivorous"}, {"from": "gorilla", "title": "type", "to": "type_mammal"}, {"from": "gorilla", "title": "keyword", "to": "keyword_strength"}, {"from": "gorilla", "title": "habitat", "to": "habitat_forest"}, {"from": "grasshopper", "title": "type", "to": "type_insect"}, {"from": "grasshopper", "title": "keyword", "to": "keyword_jumping"}, {"from": "grasshopper", "title": "diet", "to": "diet_herbivorous"}, {"from": "guinea pig", "title": "type", "to": "type_mammal"}, {"from": "guinea pig", "title": "keyword", "to": "keyword_pet"}, {"from": "guinea pig", "title": "keyword", "to": "keyword_social"}, {"from": "guinea pig", "title": "keyword", "to": "keyword_gentle"}, {"from": "guinea pig", "title": "diet", "to": "diet_herbivorous"}, {"from": "hamster", "title": "type", "to": "type_mammal"}, {"from": "hamster", "title": "diet", "to": "diet_omnivorous"}, {"from": "hawk", "title": "type", "to": "type_bird"}, {"from": "hawk", "title": "keyword", "to": "keyword_bird of prey"}, {"from": "hawk", "title": "diet", "to": "diet_carnivorous"}, {"from": "hedgehog", "title": "type", "to": "type_mammal"}, {"from": "hedgehog", "title": "diet", "to": "diet_omnivorous"}, {"from": "hedgehog", "title": "habitat", "to": "habitat_grasslands"}, {"from": "heron", "title": "type", "to": "type_bird"}, {"from": "heron", "title": "keyword", "to": "keyword_wading"}, {"from": "heron", "title": "keyword", "to": "keyword_long legs"}, {"from": "heron", "title": "habitat", "to": "habitat_wetlands"}, {"from": "hippopotamus", "title": "type", "to": "type_mammal"}, {"from": "hornet", "title": "type", "to": "type_insect"}, {"from": "hornet", "title": "diet", "to": "diet_carnivorous"}, {"from": "horse", "title": "type", "to": "type_mammal"}, {"from": "horse", "title": "keyword", "to": "keyword_domesticated"}, {"from": "horse", "title": "diet", "to": "diet_herbivorous"}, {"from": "hummingbird", "title": "type", "to": "type_bird"}, {"from": "hyena", "title": "type", "to": "type_mammal"}, {"from": "hyena", "title": "keyword", "to": "keyword_carnivore"}, {"from": "hyena", "title": "habitat", "to": "habitat_savanna"}, {"from": "iguana", "title": "type", "to": "type_reptile"}, {"from": "iguana", "title": "keyword", "to": "keyword_large lizard"}, {"from": "iguana", "title": "keyword", "to": "keyword_herbivore"}, {"from": "iguana", "title": "habitat", "to": "habitat_forest"}, {"from": "jackal", "title": "type", "to": "type_mammal"}, {"from": "jackal", "title": "keyword", "to": "keyword_scavenger"}, {"from": "jackal", "title": "keyword", "to": "keyword_adaptable"}, {"from": "jackal", "title": "keyword", "to": "keyword_carnivore"}, {"from": "jackal", "title": "diet", "to": "diet_omnivorous"}, {"from": "jaguar", "title": "type", "to": "type_mammal"}, {"from": "jaguar", "title": "keyword", "to": "keyword_big cat"}, {"from": "jaguar", "title": "keyword", "to": "keyword_spotted coat"}, {"from": "jaguar", "title": "keyword", "to": "keyword_predator"}, {"from": "jaguar", "title": "habitat", "to": "habitat_rainforest"}, {"from": "jellyfish", "title": "keyword", "to": "keyword_marine"}, {"from": "jellyfish", "title": "habitat", "to": "habitat_ocean"}, {"from": "kangaroo", "title": "type", "to": "type_mammal"}, {"from": "kangaroo", "title": "keyword", "to": "keyword_marsupial"}, {"from": "kangaroo", "title": "keyword", "to": "keyword_australia"}, {"from": "kangaroo", "title": "diet", "to": "diet_herbivorous"}, {"from": "koala", "title": "type", "to": "type_mammal"}, {"from": "koala", "title": "keyword", "to": "keyword_marsupial"}, {"from": "koala", "title": "diet", "to": "diet_herbivorous"}, {"from": "komodo dragon", "title": "type", "to": "type_reptile"}, {"from": "komodo dragon", "title": "keyword", "to": "keyword_large lizard"}, {"from": "lark", "title": "type", "to": "type_bird"}, {"from": "lark", "title": "diet", "to": "diet_herbivorous"}, {"from": "lemur", "title": "type", "to": "type_mammal"}, {"from": "lemur", "title": "keyword", "to": "keyword_primates"}, {"from": "lemur", "title": "keyword", "to": "keyword_social"}, {"from": "lemur", "title": "diet", "to": "diet_omnivorous"}, {"from": "leopard", "title": "type", "to": "type_mammal"}, {"from": "leopard", "title": "keyword", "to": "keyword_big cat"}, {"from": "leopard", "title": "keyword", "to": "keyword_spotted coat"}, {"from": "leopard", "title": "keyword", "to": "keyword_climbing"}, {"from": "leopard", "title": "habitat", "to": "habitat_forest"}, {"from": "lion", "title": "type", "to": "type_mammal"}, {"from": "lion", "title": "habitat", "to": "habitat_savanna"}, {"from": "lizard", "title": "type", "to": "type_reptile"}, {"from": "lizard", "title": "keyword", "to": "keyword_reptile"}, {"from": "lizard", "title": "keyword", "to": "keyword_regeneration"}, {"from": "lizard", "title": "keyword", "to": "keyword_diverse"}, {"from": "llama", "title": "type", "to": "type_mammal"}, {"from": "llama", "title": "keyword", "to": "keyword_domesticated"}, {"from": "llama", "title": "keyword", "to": "keyword_wool"}, {"from": "llama", "title": "diet", "to": "diet_herbivorous"}, {"from": "lobster", "title": "type", "to": "type_crustacean"}, {"from": "lobster", "title": "keyword", "to": "keyword_marine"}, {"from": "lobster", "title": "keyword", "to": "keyword_pincers"}, {"from": "lobster", "title": "diet", "to": "diet_carnivorous"}, {"from": "magpie", "title": "type", "to": "type_bird"}, {"from": "magpie", "title": "keyword", "to": "keyword_intelligent"}, {"from": "magpie", "title": "diet", "to": "diet_omnivorous"}, {"from": "manatee", "title": "type", "to": "type_mammal"}, {"from": "manatee", "title": "keyword", "to": "keyword_marine"}, {"from": "manatee", "title": "keyword", "to": "keyword_gentle"}, {"from": "manatee", "title": "diet", "to": "diet_herbivorous"}, {"from": "mongoose", "title": "type", "to": "type_mammal"}, {"from": "mongoose", "title": "keyword", "to": "keyword_carnivore"}, {"from": "mongoose", "title": "keyword", "to": "keyword_agile"}, {"from": "mongoose", "title": "habitat", "to": "habitat_forest-floor"}, {"from": "moose", "title": "type", "to": "type_mammal"}, {"from": "moose", "title": "keyword", "to": "keyword_large"}, {"from": "moose", "title": "keyword", "to": "keyword_antlers"}, {"from": "moose", "title": "diet", "to": "diet_herbivorous"}, {"from": "mosquito", "title": "type", "to": "type_insect"}, {"from": "narwhal", "title": "type", "to": "type_mammal"}, {"from": "narwhal", "title": "keyword", "to": "keyword_marine"}, {"from": "narwhal", "title": "keyword", "to": "keyword_tusks"}, {"from": "newt", "title": "type", "to": "type_amphibian"}, {"from": "newt", "title": "keyword", "to": "keyword_regeneration"}, {"from": "newt", "title": "keyword", "to": "keyword_amphibian"}, {"from": "newt", "title": "keyword", "to": "keyword_small"}, {"from": "newt", "title": "habitat", "to": "habitat_wetlands"}, {"from": "octopus", "title": "keyword", "to": "keyword_intelligent"}, {"from": "octopus", "title": "keyword", "to": "keyword_problem-solving"}, {"from": "octopus", "title": "keyword", "to": "keyword_marine"}, {"from": "octopus", "title": "diet", "to": "diet_carnivorous"}, {"from": "ostrich", "title": "type", "to": "type_bird"}, {"from": "ostrich", "title": "keyword", "to": "keyword_large"}, {"from": "ostrich", "title": "keyword", "to": "keyword_flightless"}, {"from": "ostrich", "title": "keyword", "to": "keyword_fast"}, {"from": "ostrich", "title": "habitat", "to": "habitat_savanna"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+                      network.on("stabilizationProgress", function(params) {
+                          document.getElementById('loadingBar').removeAttribute("style");
+                          var maxWidth = 496;
+                          var minWidth = 20;
+                          var widthFactor = params.iterations/params.total;
+                          var width = Math.max(minWidth,maxWidth * widthFactor);
+                          document.getElementById('bar').style.width = width + 'px';
+                          document.getElementById('text').innerHTML = Math.round(widthFactor*100) + '%';
+                      });
+                      network.once("stabilizationIterationsDone", function() {
+                          document.getElementById('text').innerHTML = '100%';
+                          document.getElementById('bar').style.width = '496px';
+                          document.getElementById('loadingBar').style.opacity = 0;
+                          // really clean the dom element
+                          setTimeout(function () {document.getElementById('loadingBar').style.display = 'none';}, 500);
+                      });
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

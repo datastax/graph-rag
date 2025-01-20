@@ -1,28 +1,23 @@
-import statistics
-from typing import Any
 
 from langchain_core.documents import Document
-
-from graph_pancake.retrievers.graph_traversal_retriever import (
-    GraphTraversalRetriever,
+from langchain_graph_retriever import (
+    GraphRetriever,
 )
-from graph_pancake.retrievers.node import Node
-from graph_pancake.retrievers.strategy.scored import (
+from langchain_graph_retriever.node import Node
+from langchain_graph_retriever.adapters import (
+    Adapter,
+)
+from langchain_graph_retriever.strategies import (
     Scored,
 )
-from graph_pancake.retrievers.store_adapters import (
-    StoreAdapter,
-)
-
-
-from tests.integration_tests.retrievers.animal_docs import (
+from tests.integration_tests.assertions import doc_ids
+from tests.animal_docs import (
     ANIMALS_DEPTH_0_EXPECTED,
     ANIMALS_QUERY,
 )
-from tests.integration_tests.assertions import doc_ids
+
 
 class AnimalScore(Scored):
-
     # score animals based on number of weight, legs, and tail-length
     def test(self, doc: Node) -> float:
         legs = doc.metadata.get("number_of_legs", 0)
@@ -31,17 +26,17 @@ class AnimalScore(Scored):
 
         score = (1000 * weight) + legs + tail_length
 
-        # score = (
-        #     10 -  - statistics.mean(doc.embedding)
-        # )
+
         return score
 
     def __init__(self, **kwargs):
         super().__init__(scorer=self.test, select_k=2, **kwargs)
 
-async def test_animals_bidir_collection(animal_store: StoreAdapter, invoker):
+
+
+async def test_animals_bidir_collection(animal_store: Adapter, invoker):
     # test graph-search on a normalized bi-directional edge
-    retriever = GraphTraversalRetriever(
+    retriever = GraphRetriever(
         store=animal_store,
         edges=["keywords"],
     )
@@ -49,12 +44,20 @@ async def test_animals_bidir_collection(animal_store: StoreAdapter, invoker):
     docs: list[Document] = await invoker(
         retriever, ANIMALS_QUERY, strategy=AnimalScore(start_k=3, max_depth=0)
     )
-    assert doc_ids(docs) == ['hedgehog', 'mongoose', 'fox']
+
+    # maybe auto includes start_k nodes before starting the section_k selections
+    assert doc_ids(docs) == ["hedgehog", "mongoose", "fox"]
+
+
     print("\n2")
+    # select_k 2, start_k2, k=6, depth=1
+    # add 2 via start_k, select 2 via select_k, traverse, find 5 more, select using select_k (in groups of select_k), until k is reached
     docs = await invoker(
         retriever, ANIMALS_QUERY, strategy=AnimalScore(k=6, start_k=2, max_depth=1)
     )
-    assert doc_ids(docs) == ['mongoose', 'fox', 'cat', 'jackal']
+    assert doc_ids(docs) == ['mongoose', 'fox', 'cat', 'jackal', 'coyote', 'gazelle']
+
+    # select_k=2, start_k=2, k=6, depth=2
     print("\n3")
     docs = await invoker(
         retriever, ANIMALS_QUERY, strategy=AnimalScore(k=6, start_k=2, max_depth=2)
@@ -69,8 +72,8 @@ async def test_animals_bidir_collection(animal_store: StoreAdapter, invoker):
     ]
 
 
-async def test_animals_bidir_item(animal_store: StoreAdapter, invoker):
-    retriever = GraphTraversalRetriever(
+async def test_animals_bidir_item(animal_store: Adapter, invoker):
+    retriever = GraphRetriever(
         store=animal_store,
         edges=["habitat"],
     )
@@ -105,8 +108,8 @@ async def test_animals_bidir_item(animal_store: StoreAdapter, invoker):
     ]
 
 
-async def test_animals_item_to_collection(animal_store: StoreAdapter, invoker):
-    retriever = GraphTraversalRetriever(
+async def test_animals_item_to_collection(animal_store: Adapter, invoker):
+    retriever = GraphRetriever(
         store=animal_store,
         edges=[("habitat", "keywords")],
     )
