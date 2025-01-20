@@ -15,12 +15,19 @@ from .base import METADATA_EMBEDDING_KEY, StoreAdapter
 
 
 class CassandraStoreAdapter(StoreAdapter[Cassandra]):
-    def __init__(self, vector_store: Cassandra):
-        super().__init__(vector_store)
-
-    @property
-    def supports_normalized_metadata(self) -> bool:
-        return False
+    def __init__(
+        self,
+        vector_store: Cassandra,
+        *,
+        denormalized_path_delimiter: str = ".",
+        denormalized_static_value: str = "$",
+    ):
+        super().__init__(
+            vector_store,
+            use_normalized_metadata=False,
+            denormalized_path_delimiter=denormalized_path_delimiter,
+            denormalized_static_value=denormalized_static_value,
+        )
 
     def similarity_search_with_embedding_by_vector(  # type: ignore
         self,

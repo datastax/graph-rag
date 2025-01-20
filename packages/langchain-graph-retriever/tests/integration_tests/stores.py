@@ -249,7 +249,7 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
 
 
 def _in_memory_store_factory(
-    _request: pytest.FixtureRequest, support_normalized_metadata: bool
+    _request: pytest.FixtureRequest, use_normalized_metadata: bool
 ) -> StoreFactory:
     from langchain_core.vectorstores import InMemoryVectorStore
     from langchain_graph_retriever.retrievers.store_adapters.in_memory import (
@@ -259,14 +259,14 @@ def _in_memory_store_factory(
     def create_in_memory(
         _name: str, docs: list[Document], emb: Embeddings
     ) -> InMemoryVectorStore:
-        if not support_normalized_metadata:
+        if not use_normalized_metadata:
             docs = list(MetadataDenormalizer().transform_documents(docs))
         return InMemoryVectorStore.from_documents(docs, emb)
 
     return StoreFactory[InMemoryVectorStore](
         create_store=create_in_memory,
         create_adapter=lambda store: InMemoryStoreAdapter(
-            store, support_normalized_metadata=support_normalized_metadata
+            store, use_normalized_metadata=use_normalized_metadata
         ),
     )
 
@@ -291,9 +291,9 @@ def _chroma_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
 @pytest.fixture(scope="session")
 def store_factory(store_param: str, request: pytest.FixtureRequest) -> StoreFactory:
     if store_param == "mem_norm":
-        return _in_memory_store_factory(request, support_normalized_metadata=True)
+        return _in_memory_store_factory(request, use_normalized_metadata=True)
     elif store_param == "mem":
-        return _in_memory_store_factory(request, support_normalized_metadata=False)
+        return _in_memory_store_factory(request, use_normalized_metadata=False)
     elif store_param == "chroma":
         return _chroma_store_factory(request)
     elif store_param == "astra":

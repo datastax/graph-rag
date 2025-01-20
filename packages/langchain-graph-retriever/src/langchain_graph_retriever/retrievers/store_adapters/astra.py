@@ -18,11 +18,7 @@ from .base import METADATA_EMBEDDING_KEY, StoreAdapter
 
 class AstraStoreAdapter(StoreAdapter[AstraDBVectorStore]):
     def __init__(self, vector_store: AstraDBVectorStore):
-        self.vector_store = vector_store
-
-    @property
-    def supports_normalized_metadata(self) -> bool:
-        return True
+        super().__init__(vector_store, use_normalized_metadata=True)
 
     def _build_docs(
         self, docs_with_embeddings: list[tuple[Document, list[float]]]

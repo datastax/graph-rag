@@ -115,26 +115,3 @@ class EdgeHelper:
             incoming_edges.update(self._edges_from_dict(normalized, incoming=True))
 
         return (incoming_edges, outgoing_edges)
-
-    def get_metadata_filter(
-        self,
-        base_filter: dict[str, Any] | None = None,
-        edge: Edge | None = None,
-        denormalize_edge: bool = False,
-    ) -> dict[str, Any]:
-        """Builds a metadata filter to search for documents
-
-        Args:
-            base_filter: Any metadata that should be used for hybrid search
-            edge: An optional outgoing edge to add to the search
-        """
-        metadata_filter = {**(base_filter or {})}
-        if edge is None:
-            metadata_filter
-        elif denormalize_edge:
-            metadata_filter[
-                f"{edge.key}{self.denormalized_path_delimiter}{edge.value}"
-            ] = self.denormalized_static_value
-        else:
-            metadata_filter[edge.key] = edge.value
-        return metadata_filter

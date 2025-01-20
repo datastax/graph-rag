@@ -20,14 +20,16 @@ class InMemoryStoreAdapter(StoreAdapter[InMemoryVectorStore]):
         self,
         vector_store: InMemoryVectorStore,
         *,
-        support_normalized_metadata: bool = False,
+        use_normalized_metadata: bool = False,
+        denormalized_path_delimiter: str = ".",
+        denormalized_static_value: str = "$",
     ):
-        super().__init__(vector_store)
-        self.support_normalized_metadata = support_normalized_metadata
-
-    @property
-    def supports_normalized_metadata(self) -> bool:
-        return self.support_normalized_metadata
+        super().__init__(
+            vector_store,
+            use_normalized_metadata=use_normalized_metadata,
+            denormalized_path_delimiter=denormalized_path_delimiter,
+            denormalized_static_value=denormalized_static_value,
+        )
 
     def get(self, ids: Sequence[str], /, **kwargs) -> list[Document]:
         return self.vector_store.get_by_ids(ids)
@@ -68,7 +70,7 @@ class InMemoryStoreAdapter(StoreAdapter[InMemoryVectorStore]):
             return True
 
         if (
-            self.support_normalized_metadata
+            self.use_normalized_metadata
             and isinstance(actual, Iterable)
             and not isinstance(actual, (str, bytes))
             and value in actual

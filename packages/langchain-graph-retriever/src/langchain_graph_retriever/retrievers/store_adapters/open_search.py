@@ -18,18 +18,14 @@ from .base import METADATA_EMBEDDING_KEY, StoreAdapter
 
 class OpenSearchStoreAdapter(StoreAdapter[OpenSearchVectorSearch]):
     def __init__(self, vector_store: OpenSearchVectorSearch):
-        super().__init__(vector_store)
-        if self.vector_store.engine not in ["lucene", "faiss"]:
+        if vector_store.engine not in ["lucene", "faiss"]:
             msg = (
                 f"Invalid engine for Traversal: '{self.vector_store.engine}'"
                 " please instantiate the Open Search Vector Store with"
                 " either the 'lucene' or 'faiss' engine"
             )
             raise ValueError(msg)
-
-    @property
-    def supports_normalized_metadata(self) -> bool:
-        return True
+        super().__init__(vector_store, use_normalized_metadata=True)
 
     def _build_filter(
         self, filter: Optional[Dict[str, str]] = None

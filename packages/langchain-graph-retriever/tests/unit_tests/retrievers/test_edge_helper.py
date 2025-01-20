@@ -85,35 +85,3 @@ def test_get_incoming_outgoing_unsupported_values():
                 "href": ["a", "c"],
             }
         ) == (set(), set())
-
-
-def test_get_metadata_filter_normalized():
-    edge_helper = EdgeHelper([], use_normalized_metadata=True)
-
-    assert edge_helper.get_metadata_filter(edge=Edge(key="boolean", value=True)) == {
-        "boolean": True
-    }
-
-    assert edge_helper.get_metadata_filter(edge=Edge(key="incoming", value=4)) == {
-        "incoming": 4
-    }
-
-    assert edge_helper.get_metadata_filter(edge=Edge(key="place", value="berlin")) == {
-        "place": "berlin"
-    }
-
-
-def test_get_metadata_filter_denormalized() -> None:
-    edge_helper = EdgeHelper([], use_normalized_metadata=False)
-
-    assert edge_helper.get_metadata_filter(edge=Edge(key="boolean", value=True)) == {
-        "boolean": True
-    }
-
-    assert edge_helper.get_metadata_filter(
-        edge=Edge(key="incoming", value=4), denormalize_edge=True
-    ) == {"incoming.4": "$"}
-
-    assert edge_helper.get_metadata_filter(
-        edge=Edge(key="place", value="berlin"), denormalize_edge=True
-    ) == {"place.berlin": "$"}

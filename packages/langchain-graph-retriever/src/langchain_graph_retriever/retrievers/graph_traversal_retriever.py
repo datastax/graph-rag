@@ -1,4 +1,3 @@
-import asyncio
 from typing import (
     Any,
     Iterable,
@@ -10,7 +9,7 @@ from typing import (
 
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
-from pydantic import Field, computed_field
+from pydantic import computed_field
 
 from .edge import Edge
 from .edge_helper import EdgeHelper
@@ -179,10 +178,6 @@ class GraphTraversalRetriever(BaseRetriever):
     store: StoreAdapter
     edges: List[Union[str, Tuple[str, str]]]
     strategy: TraversalStrategy | None = None
-
-    denormalized_path_delimiter: str = Field(default=".")
-    denormalized_static_value: Any = Field(default="$")
-
     extra_args: dict[str, Any] = {}
 
     @computed_field  # type: ignore
@@ -190,9 +185,9 @@ class GraphTraversalRetriever(BaseRetriever):
     def edge_helper(self) -> EdgeHelper:
         return EdgeHelper(
             edges=self.edges,
-            denormalized_path_delimiter=self.denormalized_path_delimiter,
-            denormalized_static_value=self.denormalized_static_value,
-            use_normalized_metadata=self.store.supports_normalized_metadata,
+            denormalized_path_delimiter=self.store.denormalized_path_delimiter,
+            denormalized_static_value=self.store.denormalized_static_value,
+            use_normalized_metadata=self.store.use_normalized_metadata,
         )
 
     def _get_relevant_documents(
@@ -251,9 +246,9 @@ class GraphTraversalRetriever(BaseRetriever):
                 break
             elif next_outgoing_edges:
                 # Find the (new) document with incoming edges from those edges.
-                adjacent_docs = self._get_adjacent(
+                adjacent_docs = self.store.get_adjacent(
                     outgoing_edges=next_outgoing_edges,
-                    state=state,
+                    strategy=state.strategy,
                     filter=filter,
                     **store_kwargs,
                 )
@@ -320,9 +315,9 @@ class GraphTraversalRetriever(BaseRetriever):
                 break
             elif next_outgoing_edges:
                 # Find the (new) document with incoming edges from those edges.
-                adjacent_docs = await self._aget_adjacent(
+                adjacent_docs = await self.store.aget_adjacent(
                     outgoing_edges=next_outgoing_edges,
-                    state=state,
+                    strategy=state.strategy,
                     filter=filter,
                     **store_kwargs,
                 )
@@ -389,10 +384,9 @@ class GraphTraversalRetriever(BaseRetriever):
         outgoing_edges = state.visit_nodes(neighborhood_nodes.values())
 
         # Fetch the candidates.
-        return self._get_adjacent(
+        return self.store.get_adjacent(
             outgoing_edges=outgoing_edges,
-            query_embedding=state.strategy.query_embedding,
-            k_per_edge=state.strategy.adjacent_k,
+            strategy=state.strategy,
             filter=filter,
             **kwargs,
         )
@@ -401,8 +395,6 @@ class GraphTraversalRetriever(BaseRetriever):
         self,
         neighborhood: Sequence[str],
         *,
-        query_embedding: list[float],
-        adjacent_k: int,
         state: _TraversalState,
         filter: dict[str, Any] | None,
         **kwargs: Any,
@@ -415,109 +407,9 @@ class GraphTraversalRetriever(BaseRetriever):
         outgoing_edges = state.visit_nodes(neighborhood_nodes.values())
 
         # Fetch the candidates.
-        return await self._aget_adjacent(
+        return await self.store.aget_adjacent(
             outgoing_edges=outgoing_edges,
-            query_embedding=query_embedding,
-            k_per_edge=adjacent_k,
+            strategy=state.strategy,
             filter=filter,
             **kwargs,
         )
-
-    def _get_adjacent(
-        self,
-        outgoing_edges: set[Edge],
-        state: _TraversalState,
-        filter: dict[str, Any] | None,
-        **kwargs: Any,
-    ) -> Iterable[Document]:
-        """Return the target docs with incoming edges from any of the given edges.
-        Args:
-            edges: The edges to look for.
-            state: Traversal state we're retrieving adjacent nodes for.
-            filter: Metadata to filter the results.
-        Returns:
-            Dictionary of adjacent nodes, keyed by node ID.
-        """
-        results: list[Document] = []
-        for outgoing_edge in outgoing_edges:
-            docs = self.store.similarity_search_with_embedding_by_vector(
-                embedding=state.strategy.query_embedding,
-                k=state.strategy.adjacent_k,
-                filter=self.edge_helper.get_metadata_filter(
-                    base_filter=filter, edge=outgoing_edge
-                ),
-                **kwargs,
-            )
-            results.extend(docs)
-            if not self.store.supports_normalized_metadata:
-                # If we denormalized the metadata, we actually do two queries.
-                # One, for normalized values (above) and one for denormalized.
-                # This ensures that cases where the key had a single value are
-                # caught as well. This could *maybe* be handled differently if
-                # we know keys that were always denormalized.
-                docs = self.store.similarity_search_with_embedding_by_vector(
-                    embedding=state.strategy.query_embedding,
-                    k=state.strategy.adjacent_k,
-                    filter=self.edge_helper.get_metadata_filter(
-                        base_filter=filter, edge=outgoing_edge, denormalize_edge=True
-                    ),
-                    **kwargs,
-                )
-                results.extend(docs)
-        return results
-
-    async def _aget_adjacent(
-        self,
-        outgoing_edges: set[Edge],
-        state: _TraversalState,
-        filter: dict[str, Any] | None,
-        **kwargs: Any,
-    ) -> Iterable[Document]:
-        """Returns document nodes with incoming edges from any of the given edges.
-        Args:
-            edges: The edges to look for.
-            query_embedding: The query embedding. Used to rank target nodes.
-            k_per_edge: The number of target nodes to fetch for each edge.
-            filter: Optional metadata to filter the results.
-        Returns:
-            Dictionary of adjacent nodes, keyed by node ID.
-        """
-
-        tasks = [
-            self.store.asimilarity_search_with_embedding_by_vector(
-                embedding=state.strategy.query_embedding,
-                k=state.strategy.adjacent_k,
-                filter=self.edge_helper.get_metadata_filter(
-                    base_filter=filter, edge=outgoing_edge
-                ),
-                **kwargs,
-            )
-            for outgoing_edge in outgoing_edges
-        ]
-        if not self.store.supports_normalized_metadata:
-            # If we denormalized the metadata, we actually do two queries.
-            # One, for normalized values (above) and one for denormalized.
-            # This ensures that cases where the key had a single value are
-            # caught as well. This could *maybe* be handled differently if
-            # we know keys that were always denormalized.
-            tasks.extend(
-                [
-                    self.store.asimilarity_search_with_embedding_by_vector(
-                        embedding=state.strategy.query_embedding,
-                        k=state.strategy.adjacent_k,
-                        filter=self.edge_helper.get_metadata_filter(
-                            base_filter=filter,
-                            edge=outgoing_edge,
-                            denormalize_edge=True,
-                        ),
-                        **kwargs,
-                    )
-                    for outgoing_edge in outgoing_edges
-                ]
-            )
-
-        results: list[Document] = []
-        for completed_task in asyncio.as_completed(tasks):
-            docs = await completed_task
-            results.extend(docs)
-        return results

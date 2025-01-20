@@ -139,9 +139,7 @@ async def test_traversal_mem(invoker) -> None:
 
     strategy = Mmr(k=2, start_k=2, max_depth=2)
     retriever = GraphTraversalRetriever(
-        store=InMemoryStoreAdapter(
-            vector_store=store, support_normalized_metadata=False
-        ),
+        store=InMemoryStoreAdapter(vector_store=store, use_normalized_metadata=False),
         edges=[("outgoing", "incoming")],
         strategy=strategy,
     )
