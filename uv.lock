@@ -1360,6 +1360,7 @@ version = "0.1.0"
 source = { editable = "packages/langchain-graph-retriever" }
 dependencies = [
     { name = "langchain-core" },
+    { name = "networkx" },
     { name = "numpy" },
     { name = "pydantic" },
 ]
@@ -1401,6 +1402,7 @@ dev = [
     { name = "langchain-community" },
     { name = "langchain-opensearch" },
     { name = "mypy" },
+    { name = "networkx-stubs" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
@@ -1420,6 +1422,7 @@ requires-dist = [
     { name = "langchain-community", marker = "extra == 'cassandra'", specifier = ">=0.3.14" },
     { name = "langchain-community", marker = "extra == 'opensearch'", specifier = ">=0.3.14" },
     { name = "langchain-core", specifier = ">=0.3.29" },
+    { name = "networkx", specifier = ">=3.4.2" },
     { name = "numpy", specifier = ">=1.26.4" },
     { name = "opensearch-py", marker = "extra == 'opensearch'", specifier = ">=2.8.0" },
     { name = "pydantic", specifier = ">=2.10.4" },
@@ -1434,6 +1437,7 @@ dev = [
     { name = "langchain-community", specifier = ">=0.3.14" },
     { name = "langchain-opensearch", specifier = ">=0.0.2" },
     { name = "mypy", specifier = ">=1.14.1" },
+    { name = "networkx-stubs", specifier = ">=0.0.1" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-asyncio", specifier = ">=0.25.2" },
     { name = "pytest-cov", specifier = ">=4.0.0" },
@@ -1792,6 +1796,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/fd/1d/06475e1cd5264c0b870ea2cc6fdb3e37177c1e565c43f56ff17a10e3937f/networkx-3.4.2.tar.gz", hash = "sha256:307c3669428c5362aab27c8a1260aa8f47c4e91d3891f48be0141738d8d053e1", size = 2151368 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b9/54/dd730b32ea14ea797530a4479b2ed46a6fb250f682a9cfb997e968bf0261/networkx-3.4.2-py3-none-any.whl", hash = "sha256:df5d4365b724cf81b8c6a7312509d0c22386097011ad1abe274afd5e9d3bbc5f", size = 1723263 },
+]
+
+[[package]]
+name = "networkx-stubs"
+version = "0.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "networkx" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a9/d6/66a8bcc3724e0909e865672f5f2d3d89a46e900e43bf0296d51b90b604a0/networkx-stubs-0.0.1.tar.gz", hash = "sha256:1751cbc87898328f89d79476ec6363174c05f9e48592f0953cc1077188717a21", size = 37466 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d1/d4/ba87f68af1ab26392dc64ef7ba7ee261bb2ab1df9a9cca1695b4454b8a16/networkx_stubs-0.0.1-py3-none-any.whl", hash = "sha256:ce58dff9b9dcbfdf895d0fce20fa8a73f2e82e581004596b7552086b5bb91366", size = 105780 },
 ]
 
 [[package]]

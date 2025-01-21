@@ -3,7 +3,10 @@ import asyncio
 import pytest
 from pytest import Parser
 
+from tests.animal_docs import animal_docs
 from tests.integration_tests.stores import ALL_STORES, TESTCONTAINER_STORES
+
+_ = (animal_docs,)
 
 
 @pytest.fixture(scope="session")

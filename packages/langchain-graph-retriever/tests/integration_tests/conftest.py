@@ -1,8 +1,12 @@
-from tests.integration_tests.animal_docs import animal_docs, animal_store
+import pytest
+from langchain_core.documents import Document
+from langchain_graph_retriever.adapters import Adapter
+from tests.embeddings import AnimalEmbeddings
 from tests.integration_tests.invoker import invoker
 
 # Imports for definitions.
 from tests.integration_tests.stores import (
+    StoreFactory,
     enabled_stores,
     store_factory,
     store_param,
@@ -14,7 +18,14 @@ _ = (
     store_factory,
     store_param,
     enabled_stores,
-    animal_docs,
-    animal_store,
     invoker,
 )
+
+
+@pytest.fixture(scope="session")
+def animal_store(
+    request: pytest.FixtureRequest,
+    store_factory: StoreFactory,
+    animal_docs: list[Document],
+) -> Adapter:
+    return store_factory.create(request, AnimalEmbeddings(), animal_docs)

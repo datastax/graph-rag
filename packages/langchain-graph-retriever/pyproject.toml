@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "langchain-core>=0.3.29",
+    "networkx>=3.4.2",
     "numpy>=1.26.4",
     "pydantic>=2.10.4",
 ]
@@ -58,6 +59,7 @@ dev = [
     "langchain-community>=0.3.14",
     "langchain-opensearch>=0.0.2",
     "mypy>=1.14.1",
+    "networkx-stubs>=0.0.1",
     "pytest>=8.3.4",
     "pytest-cov>=4.0.0",
     "pytest-asyncio>=0.25.2",

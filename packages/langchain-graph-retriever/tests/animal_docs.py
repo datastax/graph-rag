@@ -3,8 +3,6 @@ import os
 
 import pytest
 from langchain_core.documents import Document
-from tests.embeddings import AnimalEmbeddings
-from tests.integration_tests.stores import Adapter, StoreFactory
 
 
 @pytest.fixture(scope="session")
@@ -12,7 +10,7 @@ def animal_docs() -> list[Document]:
     documents = []
 
     path = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "../../../../data/animals.jsonl")
+        os.path.join(os.path.dirname(__file__), "../../../data/animals.jsonl")
     )
     with open(path, "r") as file:
         for line in file:
@@ -26,15 +24,6 @@ def animal_docs() -> list[Document]:
             )
 
     return documents
-
-
-@pytest.fixture(scope="session")
-def animal_store(
-    request: pytest.FixtureRequest,
-    store_factory: StoreFactory,
-    animal_docs: list[Document],
-) -> Adapter:
-    return store_factory.create(request, AnimalEmbeddings(), animal_docs)
 
 
 ANIMALS_QUERY: str = "small agile mammal"
