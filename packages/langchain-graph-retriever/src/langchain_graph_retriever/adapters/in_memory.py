@@ -34,23 +34,28 @@ class InMemoryAdapter(Adapter[InMemoryVectorStore]):
     def get(self, ids: Sequence[str], /, **kwargs) -> list[Document]:
         docs = self.vector_store.get_by_ids(ids)
         # NOTE: Assumes embedding is deterministic.
-        embeddings = self._safe_embedding.embed_documents(docs)
+        embeddings = self._safe_embedding.embed_documents(
+            [doc.page_content for doc in docs]
+        )
         return self._add_embeddings(docs, embeddings)
 
-
-    def _add_embeddings(self, docs: Sequence[Document], embeddings: list[list[float]]) -> list[Document]:
-        return [Document(
-            id=doc.id,
-            page_content=doc.page_content,
-            metadata={
-                METADATA_EMBEDDING_KEY: emb,
-                **doc.metadata
-            }
-        ) for doc, emb in zip(docs, embeddings)]
+    def _add_embeddings(
+        self, docs: Sequence[Document], embeddings: list[list[float]]
+    ) -> list[Document]:
+        return [
+            Document(
+                id=doc.id,
+                page_content=doc.page_content,
+                metadata={METADATA_EMBEDDING_KEY: emb, **doc.metadata},
+            )
+            for doc, emb in zip(docs, embeddings)
+        ]
 
     async def aget(self, ids: Sequence[str], /, **kwargs) -> list[Document]:
         docs = await self.vector_store.aget_by_ids(ids)
-        embeddings = await self._safe_embedding.aembed_documents(docs)
+        embeddings = await self._safe_embedding.aembed_documents(
+            [doc.page_content for doc in docs]
+        )
         return self._add_embeddings(docs, embeddings)
 
     def similarity_search_with_embedding_by_vector(

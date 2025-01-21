@@ -79,7 +79,7 @@ class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
                 page_content=doc.page_content,
                 metadata={
                     METADATA_EMBEDDING_KEY: doc.metadata["vector_field"],
-                    **doc.metadata["metadata"]
+                    **doc.metadata["metadata"],
                 },
             )
             for doc in docs

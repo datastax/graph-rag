@@ -96,15 +96,19 @@ async def test_animals_bidir_item(animal_store: Adapter, invoker):
         "mongoose",
     ]
 
+
 async def test_animals_initial_roots(animal_store: Adapter, invoker):
     retriever = GraphTraversalRetriever(
         store=animal_store,
         edges=["keywords"],
-        strategy = Eager(k=10, start_k=0),
+        strategy=Eager(k=10, start_k=0),
     )
 
     docs = await invoker(
-        retriever, ANIMALS_QUERY, initial_roots=["bobcat"], strategy={"max_depth": 0},
+        retriever,
+        ANIMALS_QUERY,
+        initial_roots=["bobcat"],
+        strategy={"max_depth": 0},
     )
 
     # bobcat is included (initial roots).
@@ -115,7 +119,10 @@ async def test_animals_initial_roots(animal_store: Adapter, invoker):
     ]
 
     docs = await invoker(
-        retriever, ANIMALS_QUERY, initial_roots=["bobcat"], strategy={"max_depth": 1},
+        retriever,
+        ANIMALS_QUERY,
+        initial_roots=["bobcat"],
+        strategy={"max_depth": 1},
     )
 
     assert sorted_doc_ids(docs) == [
@@ -126,7 +133,10 @@ async def test_animals_initial_roots(animal_store: Adapter, invoker):
     ]
 
     docs = await invoker(
-        retriever, ANIMALS_QUERY, initial_roots=["bobcat", "cheetah"], strategy={"k": 20, "max_depth": 1},
+        retriever,
+        ANIMALS_QUERY,
+        initial_roots=["bobcat", "cheetah"],
+        strategy={"k": 20, "max_depth": 1},
     )
 
     assert sorted_doc_ids(docs) == [
@@ -145,6 +155,7 @@ async def test_animals_initial_roots(animal_store: Adapter, invoker):
         "moose",
         "ostrich",
     ]
+
 
 async def test_animals_item_to_collection(animal_store: Adapter, invoker):
     retriever = GraphTraversalRetriever(

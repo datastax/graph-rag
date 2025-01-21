@@ -84,17 +84,19 @@ class ChromaAdapter(Adapter[Chroma]):
 
     def get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
         """Get documents by id."""
-        results = self.vector_store.get(ids=list(ids), include=["embeddings", "metadatas", "documents"], **kwargs)
+        results = self.vector_store.get(
+            ids=list(ids), include=["embeddings", "metadatas", "documents"], **kwargs
+        )
         return [
             Document(
                 id=id,
                 page_content=content,
-                metadata={
-                    METADATA_EMBEDDING_KEY: emb,
-                    **metadata
-                },
+                metadata={METADATA_EMBEDDING_KEY: emb, **metadata},
             )
             for (content, metadata, id, emb) in zip(
-                results["documents"], results["metadatas"], results["ids"], results["embeddings"],
+                results["documents"],
+                results["metadatas"],
+                results["ids"],
+                results["embeddings"],
             )
         ]

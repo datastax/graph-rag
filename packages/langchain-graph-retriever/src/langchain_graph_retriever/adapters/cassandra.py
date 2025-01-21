@@ -143,7 +143,7 @@ class CassandraAdapter(Adapter[Cassandra]):
             metadata={
                 METADATA_EMBEDDING_KEY: row["vector"],
                 **row["metadata"],
-            }
+            },
         )
 
     async def aget(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
@@ -165,5 +165,5 @@ class CassandraAdapter(Adapter[Cassandra]):
             metadata={
                 METADATA_EMBEDDING_KEY: row["vector"],
                 **row["metadata"],
-            }
+            },
         )
