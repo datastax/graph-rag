@@ -2,10 +2,10 @@ import heapq
 from typing import Callable, Iterable
 
 from ..node import Node
-from .base import TraversalStrategy
+from .base import Strategy
 
 
-class Scored(TraversalStrategy):
+class Scored(Strategy):
     """Node selector choosing the top `select_k` nodes according to `scorer`
     in each iteration.
     """

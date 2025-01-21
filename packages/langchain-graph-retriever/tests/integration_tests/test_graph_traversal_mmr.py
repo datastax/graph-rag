@@ -1,24 +1,22 @@
 from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore
-from langchain_graph_retriever.retrievers.graph_traversal_retriever import (
-    GraphTraversalRetriever,
+from langchain_graph_retriever import GraphTraversalRetriever
+from langchain_graph_retriever.adapters.in_memory import (
+    InMemoryAdapter,
 )
-from langchain_graph_retriever.retrievers.store_adapters.in_memory import (
-    InMemoryStoreAdapter,
-)
-from langchain_graph_retriever.retrievers.strategy.mmr import (
+from langchain_graph_retriever.strategy.mmr import (
     Mmr,
 )
 from tests.embeddings.simple_embeddings import Angular2DEmbeddings
 from tests.integration_tests.assertions import sorted_doc_ids
-from tests.integration_tests.retrievers.animal_docs import (
+from tests.integration_tests.animal_docs import (
     ANIMALS_DEPTH_0_EXPECTED,
     ANIMALS_QUERY,
 )
-from tests.integration_tests.stores import StoreAdapter
+from tests.integration_tests.stores import Adapter
 
 
-async def test_animals_bidir_collection(animal_store: StoreAdapter, invoker):
+async def test_animals_bidir_collection(animal_store: Adapter, invoker):
     # test graph-search on a normalized bi-directional edge
     retriever = GraphTraversalRetriever(
         store=animal_store,
@@ -48,7 +46,7 @@ async def test_animals_bidir_collection(animal_store: StoreAdapter, invoker):
     ]
 
 
-async def test_animals_bidir_item(animal_store: StoreAdapter, invoker):
+async def test_animals_bidir_item(animal_store: Adapter, invoker):
     retriever = GraphTraversalRetriever(
         store=animal_store,
         edges=["habitat"],
@@ -84,7 +82,7 @@ async def test_animals_bidir_item(animal_store: StoreAdapter, invoker):
     ]
 
 
-async def test_animals_item_to_collection(animal_store: StoreAdapter, invoker):
+async def test_animals_item_to_collection(animal_store: Adapter, invoker):
     retriever = GraphTraversalRetriever(
         store=animal_store,
         edges=[("habitat", "keywords")],
@@ -139,7 +137,7 @@ async def test_traversal_mem(invoker) -> None:
 
     strategy = Mmr(k=2, start_k=2, max_depth=2)
     retriever = GraphTraversalRetriever(
-        store=InMemoryStoreAdapter(vector_store=store, use_normalized_metadata=False),
+        store=InMemoryAdapter(vector_store=store, use_normalized_metadata=False),
         edges=[("outgoing", "incoming")],
         strategy=strategy,
     )

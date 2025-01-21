@@ -1,6 +1,6 @@
 import pytest
-from langchain_graph_retriever.retrievers.edge import Edge
-from langchain_graph_retriever.retrievers.edge_helper import EdgeHelper
+from langchain_graph_retriever.edge import Edge
+from langchain_graph_retriever.edge_helper import EdgeHelper
 
 
 def test_edge_helper_initialization():

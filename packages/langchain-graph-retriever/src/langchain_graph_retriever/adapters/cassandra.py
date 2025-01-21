@@ -11,10 +11,10 @@ except (ImportError, ModuleNotFoundError):
 
 from langchain_core.documents import Document
 
-from .base import METADATA_EMBEDDING_KEY, StoreAdapter
+from .base import METADATA_EMBEDDING_KEY, Adapter
 
 
-class CassandraStoreAdapter(StoreAdapter[Cassandra]):
+class CassandraAdapter(Adapter[Cassandra]):
     def __init__(
         self,
         vector_store: Cassandra,

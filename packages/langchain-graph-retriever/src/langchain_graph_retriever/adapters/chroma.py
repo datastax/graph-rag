@@ -8,7 +8,7 @@ from typing import (
 
 from langchain_core.documents import Document
 
-from .base import METADATA_EMBEDDING_KEY, StoreAdapter
+from .base import METADATA_EMBEDDING_KEY, Adapter
 
 try:
     from langchain_chroma import Chroma
@@ -17,7 +17,7 @@ except (ImportError, ModuleNotFoundError):
     raise ImportError(msg)
 
 
-class ChromaStoreAdapter(StoreAdapter[Chroma]):
+class ChromaAdapter(Adapter[Chroma]):
     def __init__(
         self,
         vector_store: Chroma,

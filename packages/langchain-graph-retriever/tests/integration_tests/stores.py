@@ -8,7 +8,7 @@ from langchain_core.vectorstores import VectorStore
 from langchain_graph_retriever.document_transformers.metadata_denormalizer import (
     MetadataDenormalizer,
 )
-from langchain_graph_retriever.retrievers.store_adapters import StoreAdapter
+from langchain_graph_retriever.adapters import Adapter
 
 ALL_STORES = ["mem_norm", "mem", "astra", "cassandra", "chroma", "opensearch"]
 TESTCONTAINER_STORES = ["cassandra", "opensearch"]
@@ -52,7 +52,7 @@ class StoreFactory(abc.ABC, Generic[T]):
     def __init__(
         self,
         create_store: Callable[[str, list[Document], Embeddings], T],
-        create_adapter: Callable[[T], StoreAdapter],
+        create_adapter: Callable[[T], Adapter],
         teardown: Callable[[T], None] | None = None,
     ):
         self._create_store = create_store
@@ -65,7 +65,7 @@ class StoreFactory(abc.ABC, Generic[T]):
         request: pytest.FixtureRequest,
         embedding: Embeddings,
         docs: list[Document],
-    ) -> StoreAdapter:
+    ) -> Adapter:
         name = f"test_{self._index}"
         self._index += 1
         store = self._create_store(name, docs, embedding)
@@ -85,8 +85,8 @@ def _cassandra_store_factory(request: pytest.FixtureRequest):
 
     from cassandra.cluster import Cluster  # type: ignore
     from langchain_community.vectorstores.cassandra import Cassandra
-    from langchain_graph_retriever.retrievers.store_adapters.cassandra import (
-        CassandraStoreAdapter,
+    from langchain_graph_retriever.adapters.cassandra import (
+        CassandraAdapter,
     )
 
     if use_testcontainer(request, "cassandra"):
@@ -141,15 +141,15 @@ def _cassandra_store_factory(request: pytest.FixtureRequest):
 
     return StoreFactory[Cassandra](
         create_store=create_cassandra,
-        create_adapter=CassandraStoreAdapter,
+        create_adapter=CassandraAdapter,
         teardown=teardown_cassandra,
     )
 
 
 def _opensearch_store_factory(request: pytest.FixtureRequest):
     from langchain_community.vectorstores import OpenSearchVectorSearch
-    from langchain_graph_retriever.retrievers.store_adapters.open_search import (
-        OpenSearchStoreAdapter,
+    from langchain_graph_retriever.adapters.open_search import (
+        OpenSearchAdapter,
     )
 
     if use_testcontainer(request, "opensearch"):
@@ -190,7 +190,7 @@ def _opensearch_store_factory(request: pytest.FixtureRequest):
 
     return StoreFactory[OpenSearchVectorSearch](
         create_store=create_open_search,
-        create_adapter=OpenSearchStoreAdapter,
+        create_adapter=OpenSearchAdapter,
         teardown=teardown_open_search,
     )
 
@@ -202,8 +202,8 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     from astrapy.authentication import StaticTokenProvider
     from dotenv import load_dotenv
     from langchain_astradb import AstraDBVectorStore
-    from langchain_graph_retriever.retrievers.store_adapters.astra import (
-        AstraStoreAdapter,
+    from langchain_graph_retriever.adapters.astra import (
+        AstraAdapter,
     )
 
     load_dotenv()
@@ -243,7 +243,7 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
 
     return StoreFactory[AstraDBVectorStore](
         create_store=create_astra,
-        create_adapter=AstraStoreAdapter,
+        create_adapter=AstraAdapter,
         teardown=teardown_astra,
     )
 
@@ -252,8 +252,8 @@ def _in_memory_store_factory(
     _request: pytest.FixtureRequest, use_normalized_metadata: bool
 ) -> StoreFactory:
     from langchain_core.vectorstores import InMemoryVectorStore
-    from langchain_graph_retriever.retrievers.store_adapters.in_memory import (
-        InMemoryStoreAdapter,
+    from langchain_graph_retriever.adapters.in_memory import (
+        InMemoryAdapter,
     )
 
     def create_in_memory(
@@ -265,7 +265,7 @@ def _in_memory_store_factory(
 
     return StoreFactory[InMemoryVectorStore](
         create_store=create_in_memory,
-        create_adapter=lambda store: InMemoryStoreAdapter(
+        create_adapter=lambda store: InMemoryAdapter(
             store, use_normalized_metadata=use_normalized_metadata
         ),
     )
@@ -273,8 +273,8 @@ def _in_memory_store_factory(
 
 def _chroma_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     from langchain_chroma.vectorstores import Chroma
-    from langchain_graph_retriever.retrievers.store_adapters.chroma import (
-        ChromaStoreAdapter,
+    from langchain_graph_retriever.adapters.chroma import (
+        ChromaAdapter,
     )
 
     def create_chroma(name: str, docs: list[Document], emb: Embeddings) -> Chroma:
@@ -283,7 +283,7 @@ def _chroma_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
 
     return StoreFactory[Chroma](
         create_store=create_chroma,
-        create_adapter=ChromaStoreAdapter,
+        create_adapter=ChromaAdapter,
         teardown=lambda store: store.delete_collection(),
     )
 

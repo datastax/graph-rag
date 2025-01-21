@@ -13,10 +13,10 @@ except (ImportError, ModuleNotFoundError):
     raise ImportError("please `pip install langchain-astradb`")
 from langchain_core.documents import Document
 
-from .base import METADATA_EMBEDDING_KEY, StoreAdapter
+from .base import METADATA_EMBEDDING_KEY, Adapter
 
 
-class AstraStoreAdapter(StoreAdapter[AstraDBVectorStore]):
+class AstraAdapter(Adapter[AstraDBVectorStore]):
     def __init__(self, vector_store: AstraDBVectorStore):
         super().__init__(vector_store, use_normalized_metadata=True)
 

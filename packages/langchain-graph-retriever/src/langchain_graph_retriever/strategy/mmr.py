@@ -9,7 +9,7 @@ from pydantic import Field
 from langchain_graph_retriever.utils.math import cosine_similarity
 
 from ..node import Node
-from .base import TraversalStrategy
+from .base import Strategy
 
 NEG_INF = float("-inf")
 
@@ -38,7 +38,7 @@ class _MmrCandidate:
             self.score = self.weighted_similarity - self.weighted_redundancy
 
 
-class Mmr(TraversalStrategy):
+class Mmr(Strategy):
     """Helper for executing an MMR traversal query.
     Args:
         query_embedding: The embedding of the query to use for scoring.

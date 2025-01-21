@@ -1,8 +1,8 @@
-from langchain_graph_retriever.retrievers.edge import Edge
-from langchain_graph_retriever.retrievers.store_adapters import StoreAdapter
+from langchain_graph_retriever.edge import Edge
+from langchain_graph_retriever.adapters import Adapter
 
 
-class FakeAdapter(StoreAdapter):
+class FakeAdapter(Adapter):
     def get(self, **kwargs):
         pass
 

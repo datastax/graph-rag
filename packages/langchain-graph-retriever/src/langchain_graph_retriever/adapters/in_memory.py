@@ -10,12 +10,12 @@ from typing import (
 from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore
 
-from .base import METADATA_EMBEDDING_KEY, StoreAdapter
+from .base import METADATA_EMBEDDING_KEY, Adapter
 
 SENTINEL = object()
 
 
-class InMemoryStoreAdapter(StoreAdapter[InMemoryVectorStore]):
+class InMemoryAdapter(Adapter[InMemoryVectorStore]):
     def __init__(
         self,
         vector_store: InMemoryVectorStore,

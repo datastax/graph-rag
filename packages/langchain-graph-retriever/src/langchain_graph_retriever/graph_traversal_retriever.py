@@ -14,8 +14,8 @@ from pydantic import computed_field
 from .edge import Edge
 from .edge_helper import EdgeHelper
 from .node import Node
-from .store_adapters.base import METADATA_EMBEDDING_KEY, StoreAdapter
-from .strategy.base import TraversalStrategy
+from .adapters.base import METADATA_EMBEDDING_KEY, Adapter
+from .strategy.base import Strategy
 
 INFINITY = float("inf")
 
@@ -27,13 +27,13 @@ class _TraversalState:
         self,
         *,
         edge_helper: EdgeHelper,
-        base_strategy: TraversalStrategy | None,
-        strategy: TraversalStrategy | dict[str, Any] | None,
+        base_strategy: Strategy | None,
+        strategy: Strategy | dict[str, Any] | None,
     ) -> None:
         self.edge_helper = edge_helper
 
         # Deep copy in case the strategy has mutable state
-        if isinstance(strategy, TraversalStrategy):
+        if isinstance(strategy, Strategy):
             self.strategy = strategy.model_copy(deep=True)
         elif isinstance(strategy, dict):
             assert (
@@ -175,9 +175,9 @@ class _TraversalState:
 # this class uses pydantic, so store and edges
 # must be provided at init time.
 class GraphTraversalRetriever(BaseRetriever):
-    store: StoreAdapter
+    store: Adapter
     edges: List[Union[str, Tuple[str, str]]]
-    strategy: TraversalStrategy | None = None
+    strategy: Strategy | None = None
     extra_args: dict[str, Any] = {}
 
     @computed_field  # type: ignore
@@ -194,7 +194,7 @@ class GraphTraversalRetriever(BaseRetriever):
         self,
         query: str,
         *,
-        strategy: TraversalStrategy | dict[str, Any] | None = None,
+        strategy: Strategy | dict[str, Any] | None = None,
         initial_roots: Sequence[str] = (),
         filter: dict[str, Any] | None = None,
         store_kwargs: dict[str, Any] = {},
@@ -261,7 +261,7 @@ class GraphTraversalRetriever(BaseRetriever):
         self,
         query: str,
         *,
-        strategy: TraversalStrategy | dict[str, Any] | None = None,
+        strategy: Strategy | dict[str, Any] | None = None,
         initial_roots: Sequence[str] = (),
         filter: dict[str, Any] | None = None,
         store_kwargs: dict[str, Any] = {},

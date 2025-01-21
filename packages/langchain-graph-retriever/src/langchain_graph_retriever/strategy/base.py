@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from ..node import Node
 
 
-class TraversalStrategy(BaseModel, abc.ABC):
+class Strategy(BaseModel, abc.ABC):
     """Interface for configuring node selection during the traversal."""
 
     k: int = 5

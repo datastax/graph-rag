@@ -1,21 +1,21 @@
 import pytest
 from langchain_core.documents import Document
-from langchain_graph_retriever.retrievers.graph_traversal_retriever import (
+from langchain_graph_retriever import (
     GraphTraversalRetriever,
 )
-from langchain_graph_retriever.retrievers.strategy.eager import (
+from langchain_graph_retriever.strategy.eager import (
     Eager,
 )
 from tests.embeddings.simple_embeddings import EarthEmbeddings, ParserEmbeddings
 from tests.integration_tests.assertions import assert_document_format, sorted_doc_ids
-from tests.integration_tests.retrievers.animal_docs import (
+from tests.integration_tests.animal_docs import (
     ANIMALS_DEPTH_0_EXPECTED,
     ANIMALS_QUERY,
 )
-from tests.integration_tests.stores import StoreAdapter, StoreFactory
+from tests.integration_tests.stores import Adapter, StoreFactory
 
 
-async def test_animals_bidir_collection_eager(animal_store: StoreAdapter, invoker):
+async def test_animals_bidir_collection_eager(animal_store: Adapter, invoker):
     # test graph-search on a normalized bi-directional edge
     retriever = GraphTraversalRetriever(
         store=animal_store,
@@ -61,7 +61,7 @@ async def test_animals_bidir_collection_eager(animal_store: StoreAdapter, invoke
     ]
 
 
-async def test_animals_bidir_item(animal_store: StoreAdapter, invoker):
+async def test_animals_bidir_item(animal_store: Adapter, invoker):
     retriever = GraphTraversalRetriever(
         store=animal_store,
         edges=["habitat"],
@@ -97,7 +97,7 @@ async def test_animals_bidir_item(animal_store: StoreAdapter, invoker):
     ]
 
 
-async def test_animals_item_to_collection(animal_store: StoreAdapter, invoker):
+async def test_animals_item_to_collection(animal_store: Adapter, invoker):
     retriever = GraphTraversalRetriever(
         store=animal_store,
         edges=[("habitat", "keywords")],

@@ -1,5 +1,5 @@
 from tests.integration_tests.invoker import invoker
-from tests.integration_tests.retrievers.animal_docs import animal_docs, animal_store
+from tests.integration_tests.animal_docs import animal_docs, animal_store
 
 # Imports for definitions.
 from tests.integration_tests.stores import (

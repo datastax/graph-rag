@@ -1,10 +1,10 @@
 from typing import Iterable
 
 from ..node import Node
-from .base import TraversalStrategy
+from .base import Strategy
 
 
-class Eager(TraversalStrategy):
+class Eager(Strategy):
     """Node selection that selects all nodes at each step."""
 
     _nodes: list[Node] = []

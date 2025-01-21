@@ -13,10 +13,10 @@ except (ImportError, ModuleNotFoundError):
 
 from langchain_core.documents import Document
 
-from .base import METADATA_EMBEDDING_KEY, StoreAdapter
+from .base import METADATA_EMBEDDING_KEY, Adapter
 
 
-class OpenSearchStoreAdapter(StoreAdapter[OpenSearchVectorSearch]):
+class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
     def __init__(self, vector_store: OpenSearchVectorSearch):
         if vector_store.engine not in ["lucene", "faiss"]:
             msg = (

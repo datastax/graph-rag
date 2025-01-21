@@ -83,14 +83,14 @@ The core library (`graph-retriever`) supports can be used in generic Python appl
 1. Wrap your existing vector store to enable graph retrieval:
 
     ```python
-    from langchain_graph_retriever.retrievers import GraphTraversalRetriever
-    from langchain_graph_retriever.retrievers.strategy import Mmr
-    from langchain_graph_retriever.retrievers.store_adapters.astra import AstraStoreAdapter
+    from langchain_graph_retriever import GraphTraversalRetriever
+    from langchain_graph_retriever.strategy.mmr import Mmr
+    from langchain_graph_retriever.adapters.astra import AstraAdapter
 
     retriever = GraphTraversalRetriever(
         # Adapt AstraDBVectorStore for use with Graph Retrievers.
         # Exposes functionality of the underlying store that is otherwise not available.
-        store = AstraStoreAdapter(store),
+        store = AstraAdapter(store),
         # Define the relationships to navigate:
         #   1. From nodes with a list of `mentions` to the nodes with the corresponding `ids`.
         #   2. From noeds with a list of related `entities` to other nodes with the same entities.

@@ -17,15 +17,15 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.runnables import run_in_executor
 from langchain_core.vectorstores import VectorStore
 
-from langchain_graph_retriever.retrievers.edge import Edge
-from langchain_graph_retriever.retrievers.strategy import TraversalStrategy
+from langchain_graph_retriever.edge import Edge
+from langchain_graph_retriever.strategy import Strategy
 
 StoreT = TypeVar("StoreT", bound=VectorStore)
 
 METADATA_EMBEDDING_KEY = "__embedding"
 
 
-class StoreAdapter(Generic[StoreT], abc.ABC):
+class Adapter(Generic[StoreT], abc.ABC):
     def __init__(
         self,
         vector_store: StoreT,
@@ -202,7 +202,7 @@ class StoreAdapter(Generic[StoreT], abc.ABC):
     def get_adjacent(
         self,
         outgoing_edges: set[Edge],
-        strategy: TraversalStrategy,
+        strategy: Strategy,
         filter: dict[str, Any] | None,
         **kwargs: Any,
     ) -> Iterable[Document]:
@@ -245,7 +245,7 @@ class StoreAdapter(Generic[StoreT], abc.ABC):
     async def aget_adjacent(
         self,
         outgoing_edges: set[Edge],
-        strategy: TraversalStrategy,
+        strategy: Strategy,
         filter: dict[str, Any] | None,
         **kwargs: Any,
     ) -> Iterable[Document]:
