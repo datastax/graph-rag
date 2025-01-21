@@ -1,5 +1,5 @@
 from langchain_graph_retriever.adapters import Adapter
-from langchain_graph_retriever.edge import Edge
+from langchain_graph_retriever.edge_helper import Edge
 
 
 class FakeAdapter(Adapter):

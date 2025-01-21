@@ -1,4 +1,5 @@
 """Define the node class."""
+
 from dataclasses import dataclass, field
 from typing import Any
 

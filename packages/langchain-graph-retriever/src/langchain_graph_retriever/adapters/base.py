@@ -17,7 +17,7 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.runnables import run_in_executor
 from langchain_core.vectorstores import VectorStore
 
-from langchain_graph_retriever.edge import Edge
+from langchain_graph_retriever.edge_helper import Edge
 from langchain_graph_retriever.strategy import Strategy
 
 StoreT = TypeVar("StoreT", bound=VectorStore)

@@ -1,4 +1,5 @@
 """Provide eager (breadth-first) traversal strategy."""
+
 from typing import Iterable, override
 
 from ..node import Node

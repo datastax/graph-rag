@@ -1,4 +1,5 @@
 """Denormalizer for sequence-based metadata fields."""
+
 from typing import Any, Sequence
 
 from langchain_core.documents import BaseDocumentTransformer, Document

@@ -1,4 +1,5 @@
 """Define the base traversal strategy."""
+
 import abc
 from typing import Iterable
 

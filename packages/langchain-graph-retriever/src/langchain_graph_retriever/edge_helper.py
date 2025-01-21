@@ -1,4 +1,5 @@
 """Provide helper for working with edges."""
+
 import warnings
 from typing import Any, Iterable, NamedTuple
 
@@ -9,6 +10,7 @@ BASIC_TYPES = (str, bool, int, float, complex, bytes)
 # between present but `None` (returns `None`) and absent (returns `SENTINEL`)
 # elements.
 SENTINEL = object()
+
 
 class Edge(NamedTuple):
     """Represents an edge to all nodes with the given key/value incoming."""
