@@ -20,6 +20,8 @@ format:
   html:
     theme: pulse
     toc: true
+    css:
+      - reference/_styles-quartodoc.css
 
 page-footer:
   border: true
@@ -35,6 +37,7 @@ quartodoc:
   style: pkgdown
   dir: reference
   out_index: _api_index.qmd
+  css: reference/_styles-quartodoc.css
   sidebar:
     file: "_sidebar.yml"
     style: docked

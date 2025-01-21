@@ -90,15 +90,14 @@ build-graph-retriever: sync-graph-retriever
 	@uv build --package graph-retriever
 
 apidocs: ## Update package installation and generate docs
-	@echo "Installing packages"
-	@uv pip install packages/* --force-reinstall
-	@cd docs && uv run quartodoc build
+	uv pip install packages/* --force-reinstall
+	cd docs && uv run quartodoc build
 
 docs-preview: apidocs ## Live docs
-	@cd docs && uv run quarto preview
+	cd docs && quarto preview
 
 docs-build: apidocs ## Generate docs site in `_site`.
-	@cd docs && uv run quarto render
+	cd docs && quarto render
 
 .PHONY: help
 help:
