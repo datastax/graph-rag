@@ -1,0 +1,41 @@
+# Graph RAG
+
+Retrievers providing both **unstructured** (similarity-search on vectors) and
+**structured** (traversal of metadata properties).
+
+## About The Project
+
+Graph RAG provides retrievers combining vector-search (for unstructured similarity) and traversal (for structured relationships in metadata).
+These retrievers are implemented using the metadata search functionality of existing vector stores, **allowing you to traverse your existing vector store**!
+
+The core library (`graph-retriever`) supports can be used in generic Python applications, while `langchain-graph-retriever` provides [langchain](https://python.langchain.com/docs/introduction/)-specific functionality.
+
+## Getting Started with LangChain
+
+1. Install `langchain-graph-retriever` (or add to your Python dependencies).
+
+    ```sh
+    pip install langchain-graph-retriever
+    ```
+
+1. Wrap your existing vector store to enable graph retrieval:
+
+    ```python
+    from langchain_graph_retriever import GraphTraversalRetriever
+    from langchain_graph_retriever.strategy.mmr import Mmr
+    from langchain_graph_retriever.adapters.astra import AstraAdapter
+
+    retriever = GraphTraversalRetriever(
+        # Adapt AstraDBVectorStore for use with Graph Retrievers.
+        # Exposes functionality of the underlying store that is otherwise not available.
+        store = AstraAdapter(store),
+        # Define the relationships to navigate:
+        #   1. From nodes with a list of `mentions` to the nodes with the corresponding `ids`.
+        #   2. From noeds with a list of related `entities` to other nodes with the same entities.
+        edges = [("mentions", "id"), "entities"],
+        # The "strategy" to use for traversing the graph. In this case, max-marginal relevance.
+        strategy = Mmr(k=10),
+    )
+
+    retriever.invoke("where is Santa Clara?")
+    ```

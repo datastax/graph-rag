@@ -1,0 +1,75 @@
+project:
+  type: website
+
+website:
+  twitter-card: true
+  navbar:
+    background: primary
+    search: true
+    left:
+      - text: "Home"
+        href: index.qmd
+      - getting_started.qmd
+      - examples/index.qmd
+      - reference/index.qmd
+
+metadata-files:
+  - _sidebar.yml
+
+format:
+  html:
+    theme: pulse
+    toc: true
+
+page-footer:
+  border: true
+  left: "© Copyright 2025, Graph RAG Contributors."
+repo-url: https://github.com/datastax/graph-rag/
+repo-subdir: docs
+repo-actions:
+  - edit
+  - source
+site-url: https://datastax.kgithub.io/graph-rag
+
+quartodoc:
+  style: pkgdown
+  dir: reference
+  out_index: _api_index.qmd
+  sidebar:
+    file: "_sidebar.yml"
+    style: docked
+    search: true
+    collapse-level: 2
+    contents:
+      - text: "Home"
+        href: index.qmd
+      - href: getting_started.qmd
+      - examples/index.qmd
+      - section: "Reference"
+        contents:
+          - "{{ contents }}"
+
+  package: langchain_graph_retriever
+  sections:
+    - title: LangChain Graph Retriever
+      desc: Graph `Retriever` implementation for LangChain `VectorStore`s.
+      contents:
+      - GraphTraversalRetriever
+    - title: Retrieval Strategies
+      desc: Strategies for use with the retrieval.
+      package: langchain_graph_retriever.strategy
+      contents:
+      - Strategy
+      - eager.Eager
+      - mmr.Mmr
+      - scored.Scored
+    - title: Adapters
+      desc: Adapters for LangChain `VectorStore`s supporting Graph traversal.
+      package: langchain_graph_retriever.adapters
+      contents:
+      - Adapter
+      - astra.AstraAdapter
+      - cassandra.CassandraAdapter
+      - chroma.ChromaAdapter
+      - in_memory.InMemoryAdapter
+      - open_search.OpenSearchAdapter
