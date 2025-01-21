@@ -4,6 +4,8 @@ from langchain_core.documents import BaseDocumentTransformer, Document
 
 
 class HierarchyLinkExtractor(BaseDocumentTransformer):
+    """Extract links from a document hierarchy."""
+
     def __init__(
         self,
         *,
@@ -40,10 +42,12 @@ class HierarchyLinkExtractor(BaseDocumentTransformer):
                 linked = transformer.transform_documents(docs)
 
         Args:
-            kind: Kind of links to produce with this extractor.
+            path_metadata_key: Metadata key containing the path.
+            path_delimiter: Delimiter of items in the path.
             parent_links: Link from a section to its parent.
             child_links: Link from a section to its children.
             sibling_links: Link from a section to other sections with the same parent.
+
         """
         self._path_metadata_key = path_metadata_key
         self._path_delimiter = path_delimiter
@@ -54,7 +58,13 @@ class HierarchyLinkExtractor(BaseDocumentTransformer):
     def transform_documents(
         self, documents: Sequence[Document], **kwargs: Any
     ) -> Sequence[Document]:
-        """Extracts hyperlinks from html documents using BeautifulSoup4"""
+        """Extract hierarchy (parent/child/sibling) links based on a path.
+
+        Args:
+            documents: Documents to transform.
+            kwargs: Unused keyword argumetns.
+
+        """
         for document in documents:
             if self._path_metadata_key not in document.metadata:
                 msg = (

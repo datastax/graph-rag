@@ -14,7 +14,15 @@ pythonpath = ["."]
 testpaths = ["tests"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "T201"]
+select = ["E", "F", "I", "T201", "D", "W"]
+ignore = ["D100", "D104", "D107"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.per-file-ignores]
+"**/{tests,docs,tools,scripts}/*" = ["D"]
+
 [tool.ruff.format]
 docstring-code-format = true
 

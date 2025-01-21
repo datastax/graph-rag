@@ -2,6 +2,7 @@ from typing import (
     Any,
     List,
     Sequence,
+    override,
 )
 
 try:
@@ -15,6 +16,8 @@ from .base import METADATA_EMBEDDING_KEY, Adapter
 
 
 class CassandraAdapter(Adapter[Cassandra]):
+    """Adapter for Cassandra vector store."""
+
     def __init__(
         self,
         vector_store: Cassandra,
@@ -29,6 +32,7 @@ class CassandraAdapter(Adapter[Cassandra]):
             denormalized_static_value=denormalized_static_value,
         )
 
+    @override
     def similarity_search_with_embedding_by_vector(  # type: ignore
         self,
         embedding: List[float],
@@ -64,8 +68,11 @@ class CassandraAdapter(Adapter[Cassandra]):
             filter: Filter on the metadata to apply.
             body_search: Document textual search terms to apply.
                 Only supported by Astra DB at the moment.
-        Returns:
+
+        Returns
+        -------
             List of (Document, embedding, id), the most similar to the query vector.
+
         """
         kwargs: dict[str, Any] = {}
         if filter is not None:
@@ -90,6 +97,7 @@ class CassandraAdapter(Adapter[Cassandra]):
             for hit in hits
         ]
 
+    @override
     async def asimilarity_search_with_embedding(
         self,
         query: str,
@@ -109,6 +117,7 @@ class CassandraAdapter(Adapter[Cassandra]):
         )
         return query_embedding, docs
 
+    @override
     async def asimilarity_search_with_embedding_by_vector(  # type: ignore
         self, **kwargs: Any
     ) -> list[Document]:
@@ -124,6 +133,7 @@ class CassandraAdapter(Adapter[Cassandra]):
             docs.append(doc)
         return docs
 
+    @override
     def get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
         """Get documents by id."""
         docs: list[Document] = []
@@ -146,6 +156,7 @@ class CassandraAdapter(Adapter[Cassandra]):
             },
         )
 
+    @override
     async def aget(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
         """Get documents by id."""
         docs: list[Document] = []

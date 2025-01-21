@@ -1,3 +1,4 @@
+"""Define the base traversal strategy."""
 import abc
 from typing import Iterable
 
@@ -29,15 +30,33 @@ class Strategy(BaseModel, abc.ABC):
     """Query embedding."""
 
     @abc.abstractmethod
-    def add_nodes(self, nodes: dict[str, Node]) -> None:
-        """Add nodes to the set of available nodes."""
+    def discover_nodes(self, nodes: dict[str, Node]) -> None:
+        """Add discovered nodes to the strategy.
+
+        Args:
+            nodes: The nodes being discovered. Keyed by node ID.
+
+        """
         ...
 
     @abc.abstractmethod
     def select_nodes(self, *, limit: int) -> Iterable[Node]:
-        """Return the nodes to select at the next iteration.
+        """Select discovered nodes to visit in the next iteration.
 
-        Iteration ends when this returns an empty list.
+        Traversal ends if this returns an empty list, even if `k` nodes haven't
+        been selected in total yet.
+
+        Any nodes reachable via new edges will be discovered before the next
+        call to `select_nodes`.
+
+        Args:
+            limit: The maximum number of nodes to select.
+
+        Returns
+        -------
+        The nodes selected for the next iteration.
+        Traversal ends if this returns empty list.
+
         """
         ...
 

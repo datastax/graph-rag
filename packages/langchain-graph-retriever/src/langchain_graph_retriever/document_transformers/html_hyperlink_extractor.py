@@ -187,6 +187,7 @@ class HtmlHyperlinkExtractor(BaseDocumentTransformer):
         kind: The kind of edge to extract. Defaults to ``hyperlink``.
         drop_fragments: Whether fragments in URLs and links should be
             dropped. Defaults to ``True``.
+
     """  # noqa: E501
 
     def __init__(
@@ -251,7 +252,13 @@ class HtmlHyperlinkExtractor(BaseDocumentTransformer):
     def transform_documents(
         self, documents: Sequence[Document], **kwargs: Any
     ) -> Sequence[Document]:
-        """Extracts hyperlinks from html documents using BeautifulSoup4"""
+        """Extract hyperlinks from html documents using BeautifulSoup4.
+
+        Args:
+            documents: The documents to transform.
+            kwargs: Arguments to pass through to the BeautifulSoup parser.
+
+        """
         for document in documents:
             if self._url_metadata_key not in document.metadata:
                 msg = (

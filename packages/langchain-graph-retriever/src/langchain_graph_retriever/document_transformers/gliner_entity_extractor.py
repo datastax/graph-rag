@@ -21,9 +21,8 @@ class GLiNEREntityExtractor(BaseDocumentTransformer):
 
         pip install -q langchain_community bs4 gliner
 
-    Example
-    -----
-
+    Example:
+    -------
     We load the ``state_of_the_union.txt`` file, chunk it, then for each chunk we
     add named entities to the metadata.
 
@@ -55,6 +54,7 @@ class GLiNEREntityExtractor(BaseDocumentTransformer):
         batch_size: The number of documents to process in each batch (default ``8``)
         metadata_key_prefix: A prefix to add to metadata keys outputted by the extractor (default ``""``)
         model: The GLiNER model to use. (default ``urchade/gliner_mediumv2.1``)
+
     """  # noqa: E501
 
     def __init__(
@@ -83,11 +83,12 @@ class GLiNEREntityExtractor(BaseDocumentTransformer):
     def transform_documents(
         self, documents: Sequence[Document], **kwargs: Any
     ) -> Sequence[Document]:
-        """Extracts named entities from documents using GLiNER.
+        """Extract named entities from documents using GLiNER.
 
         Args:
             documents: The sequence of documents to transform
             kwargs: Keyword arguments to pass to GLiNER. See: https://github.com/urchade/GLiNER/blob/v0.2.13/gliner/model.py#L419-L421
+
         """
         for i in range(0, len(documents), self._batch_size):
             batch = documents[i : i + self._batch_size]

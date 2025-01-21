@@ -5,6 +5,7 @@ from typing import (
     Iterable,
     Optional,
     Sequence,
+    override,
 )
 
 from langchain_core.documents import Document
@@ -16,6 +17,8 @@ SENTINEL = object()
 
 
 class InMemoryAdapter(Adapter[InMemoryVectorStore]):
+    """Adapter for InMemoryVectorStore."""
+
     def __init__(
         self,
         vector_store: InMemoryVectorStore,
@@ -31,6 +34,7 @@ class InMemoryAdapter(Adapter[InMemoryVectorStore]):
             denormalized_static_value=denormalized_static_value,
         )
 
+    @override
     def get(self, ids: Sequence[str], /, **kwargs) -> list[Document]:
         docs = self.vector_store.get_by_ids(ids)
         # NOTE: Assumes embedding is deterministic.
@@ -51,6 +55,7 @@ class InMemoryAdapter(Adapter[InMemoryVectorStore]):
             for doc, emb in zip(docs, embeddings)
         ]
 
+    @override
     async def aget(self, ids: Sequence[str], /, **kwargs) -> list[Document]:
         docs = await self.vector_store.aget_by_ids(ids)
         embeddings = await self._safe_embedding.aembed_documents(
@@ -58,6 +63,7 @@ class InMemoryAdapter(Adapter[InMemoryVectorStore]):
         )
         return self._add_embeddings(docs, embeddings)
 
+    @override
     def similarity_search_with_embedding_by_vector(
         self,
         embedding: list[float],
@@ -85,7 +91,7 @@ class InMemoryAdapter(Adapter[InMemoryVectorStore]):
         value: Any,
         metadata: dict[str, Any],
     ) -> bool:
-        """Tests if the key->value exists or is contained in the metadata."""
+        """Test if the key->value exists or is contained in the metadata."""
         actual = metadata.get(key, SENTINEL)
         if actual == value:
             return True

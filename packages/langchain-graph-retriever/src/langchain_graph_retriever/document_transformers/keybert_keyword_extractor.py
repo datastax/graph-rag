@@ -25,9 +25,8 @@ class KeybertKeywordExtractor(BaseDocumentTransformer):
 
         pip install -q langchain_community bs4 keybert
 
-    Example
-    -----
-
+    Example:
+    -------
     We load the ``state_of_the_union.txt`` file, chunk it, then for each chunk we
     add keywords to the metadata.
 
@@ -58,6 +57,7 @@ class KeybertKeywordExtractor(BaseDocumentTransformer):
         batch_size: The number of documents to process in each batch (default ``8``)
         metadata_key: The name of the key used in the metadata output (default ``keywords``)
         model: The KeyBERT model to use. (default ``all-MiniLM-L6-v2``)
+
     """  # noqa: E501
 
     def __init__(
@@ -83,11 +83,12 @@ class KeybertKeywordExtractor(BaseDocumentTransformer):
     def transform_documents(
         self, documents: Sequence[Document], **kwargs: Any
     ) -> Sequence[Document]:
-        """Adds keyword metadata to documents using KeyBERT.
+        """Add keyword metadata to documents using KeyBERT.
 
         Args:
             documents: The sequence of documents to transform
             kwargs: Keyword arguments to pass to KeyBERT. See: https://maartengr.github.io/KeyBERT/api/keybert.html#keybert._model.KeyBERT.extract_keywords
+
         """
         for i in range(0, len(documents), self._batch_size):
             batch = documents[i : i + self._batch_size]

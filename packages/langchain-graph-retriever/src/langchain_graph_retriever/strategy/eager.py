@@ -1,4 +1,5 @@
-from typing import Iterable
+"""Provide eager (breadth-first) traversal strategy."""
+from typing import Iterable, override
 
 from ..node import Node
 from .base import Strategy
@@ -9,9 +10,11 @@ class Eager(Strategy):
 
     _nodes: list[Node] = []
 
-    def add_nodes(self, nodes: dict[str, Node]) -> None:
+    @override
+    def discover_nodes(self, nodes: dict[str, Node]) -> None:
         self._nodes.extend(nodes.values())
 
+    @override
     def select_nodes(self, *, limit: int) -> Iterable[Node]:
         nodes = self._nodes[:limit]
         self._nodes = []

@@ -1,6 +1,8 @@
+"""Provide MMR (max-marginal-relevance) traversal strategy."""
+
 import dataclasses
 from functools import cached_property
-from typing import Iterable
+from typing import Iterable, override
 
 import numpy as np
 from numpy.typing import NDArray
@@ -40,6 +42,7 @@ class _MmrCandidate:
 
 class Mmr(Strategy):
     """Helper for executing an MMR traversal query.
+
     Args:
         query_embedding: The embedding of the query to use for scoring.
         lambda_mult: Number between 0 and 1 that determines the degree
@@ -47,6 +50,7 @@ class Mmr(Strategy):
             diversity and 1 to minimum diversity. Defaults to 0.5.
         score_threshold: Only documents with a score greater than or equal
             this threshold will be chosen. Defaults to -infinity.
+
     """
 
     lambda_mult: float = Field(default=0.5, ge=0.0, le=1.0)
@@ -110,8 +114,11 @@ class Mmr(Strategy):
         self, candidate_id: str
     ) -> tuple[_MmrCandidate, NDArray[np.float32]]:
         """Pop the candidate with the given ID.
-        Returns:
+
+        Returns
+        -------
             The document, similarity score, and embedding of the candidate.
+
         """
         # Get the embedding for the id.
         index = self._candidate_id_to_index.pop(candidate_id)
@@ -143,11 +150,16 @@ class Mmr(Strategy):
 
         return candidate, embedding
 
+    @override
     def select_nodes(self, *, limit: int) -> Iterable[Node]:
         """Select and pop the best item being considered.
+
         Updates the consideration set based on it.
-        Returns:
+
+        Returns
+        -------
             A tuple containing the ID of the best item.
+
         """
         if limit == 0:
             return []
@@ -187,7 +199,8 @@ class Mmr(Strategy):
 
         return [selected_node]
 
-    def add_nodes(self, nodes: dict[str, Node]) -> None:
+    @override
+    def discover_nodes(self, nodes: dict[str, Node]) -> None:
         """Add candidates to the consideration set."""
         # Determine the keys to actually include.
         # These are the candidates that aren't already selected
@@ -242,6 +255,3 @@ class Mmr(Strategy):
                 new_embeddings,
             )
         )
-
-    def finalize_nodes(self, nodes: Iterable[Node]) -> Iterable[Node]:
-        return nodes

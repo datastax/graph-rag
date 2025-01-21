@@ -1,7 +1,6 @@
+"""Provide helper for working with edges."""
 import warnings
-from typing import Any, Iterable
-
-from .edge import Edge
+from typing import Any, Iterable, NamedTuple
 
 BASIC_TYPES = (str, bool, int, float, complex, bytes)
 
@@ -10,6 +9,12 @@ BASIC_TYPES = (str, bool, int, float, complex, bytes)
 # between present but `None` (returns `None`) and absent (returns `SENTINEL`)
 # elements.
 SENTINEL = object()
+
+class Edge(NamedTuple):
+    """Represents an edge to all nodes with the given key/value incoming."""
+
+    key: str
+    value: Any
 
 
 class EdgeHelper:
@@ -27,6 +32,17 @@ class EdgeHelper:
         denormalized_path_delimiter: str = ".",
         denormalized_static_value: Any = "$",
     ) -> None:
+        """Create an EdgeHelper for the given edges.
+
+        Args:
+            edges: The edge definitions to use for manipulation.
+            use_normalized_metadata: Whether the edge helper is being used with
+                a store that suports normalized metadata or not.
+            denormalized_path_delimiter: Delimiter between the key and value when
+                denormalizing collections in the metadata.
+            denormalized_static_value: The value in the denormalized metadata.
+
+        """
         self.use_normalized_metadata = use_normalized_metadata
         self.denormalized_path_delimiter = denormalized_path_delimiter
         self.denormalized_static_value = denormalized_static_value
@@ -54,7 +70,6 @@ class EdgeHelper:
         incoming: bool = False,
     ) -> set[Edge]:
         """Extract edges from the metadata based on declared edges."""
-
         edges = set()
         for source_key, target_key in self.edges:
             if incoming:
@@ -100,6 +115,16 @@ class EdgeHelper:
     def get_incoming_outgoing(
         self, metadata: dict[str, Any]
     ) -> tuple[set[Edge], set[Edge]]:
+        """Return the incoming and outgoing edges in the metadata.
+
+        Args:
+            metadata: The metadata to extract edges from.
+
+        Returns
+        -------
+        A tuple containing the incoming and outgoing edge set.
+
+        """
         warn_normalized = not self.use_normalized_metadata
         outgoing_edges = self._edges_from_dict(
             metadata, warn_normalized=warn_normalized

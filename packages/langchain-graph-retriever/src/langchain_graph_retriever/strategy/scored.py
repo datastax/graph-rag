@@ -1,14 +1,14 @@
+"""Provide score-based traversal strategy."""
+
 import heapq
-from typing import Callable, Iterable
+from typing import Callable, Iterable, override
 
 from ..node import Node
 from .base import Strategy
 
 
 class Scored(Strategy):
-    """Node selector choosing the top `select_k` nodes according to `scorer`
-    in each iteration.
-    """
+    """Use `scorer` to select the top nodes in each iteration."""
 
     scorer: Callable[[Node], float]
     """Scoring function to apply to each node.
@@ -22,10 +22,12 @@ class Scored(Strategy):
 
     _nodes: list[tuple[float, Node]] = []
 
-    def add_nodes(self, nodes: dict[str, Node]) -> None:
+    @override
+    def discover_nodes(self, nodes: dict[str, Node]) -> None:
         for node in nodes.values():
             heapq.heappush(self._nodes, (self.scorer(node), node))
 
+    @override
     def select_nodes(self, *, limit: int) -> Iterable[Node]:
         selected: list[Node] = []
         for _ in range(0, min(limit, self.select_k)):

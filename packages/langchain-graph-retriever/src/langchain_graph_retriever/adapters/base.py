@@ -26,6 +26,11 @@ METADATA_EMBEDDING_KEY = "__embedding"
 
 
 class Adapter(Generic[StoreT], abc.ABC):
+    """Base class for store adapters.
+
+    Exposes the necessary methods for graph traversal.
+    """
+
     def __init__(
         self,
         vector_store: StoreT,
@@ -53,19 +58,24 @@ class Adapter(Generic[StoreT], abc.ABC):
         filter: Optional[Dict[str, str]] = None,
         **kwargs: Any,
     ) -> Tuple[List[float], List[Document]]:
-        """Returns docs (with embeddings) most similar to the query.
+        """Return docs (with embeddings) most similar to the query.
+
         Also returns the embedded query vector.
+
         Args:
             query: Input text.
             k: Number of Documents to return. Defaults to 4.
             filter: Filter on the metadata to apply.
             **kwargs: Additional keyword arguments.
-        Returns:
+
+        Returns
+        -------
             A tuple of:
                 * The embedded query vector
                 * List of Documents most similar to the query vector.
                   Documents should have their embedding added to
                   their metadata under the METADATA_EMBEDDING_KEY key.
+
         """
         query_embedding = self._safe_embedding.embed_query(text=query)
         docs = self.similarity_search_with_embedding_by_vector(
@@ -83,19 +93,24 @@ class Adapter(Generic[StoreT], abc.ABC):
         filter: Optional[Dict[str, str]] = None,
         **kwargs: Any,
     ) -> Tuple[List[float], List[Document]]:
-        """Returns docs (with embeddings) most similar to the query.
+        """Return docs (with embeddings) most similar to the query.
+
         Also returns the embedded query vector.
+
         Args:
             query: Input text.
             k: Number of Documents to return. Defaults to 4.
             filter: Filter on the metadata to apply.
             **kwargs: Additional keyword arguments.
-        Returns:
+
+        Returns
+        -------
             A tuple of:
                 * The embedded query vector
                 * List of Documents most similar to the query vector.
                   Documents should have their embedding added to
                   their metadata under the METADATA_EMBEDDING_KEY key.
+
         """
         return await run_in_executor(
             None, self.similarity_search_with_embedding, query, k, filter, **kwargs
@@ -109,16 +124,20 @@ class Adapter(Generic[StoreT], abc.ABC):
         filter: Optional[Dict[str, str]] = None,
         **kwargs: Any,
     ) -> List[Document]:
-        """Returns docs (with embeddings) most similar to the query vector.
+        """Return docs (with embeddings) most similar to the query vector.
+
         Args:
             embedding: Embedding to look up documents similar to.
             k: Number of Documents to return. Defaults to 4.
             filter: Filter on the metadata to apply.
             **kwargs: Additional keyword arguments.
-        Returns:
-            List of Documents most similar to the query vector.
-                Documents should have their embedding added to
-                their metadata under the METADATA_EMBEDDING_KEY key.
+
+        Returns
+        -------
+            List of Documents most similar to the query vector. Documents should
+            have their embedding added to their metadata under the
+            METADATA_EMBEDDING_KEY key.
+
         """
 
     async def asimilarity_search_with_embedding_by_vector(
@@ -128,16 +147,20 @@ class Adapter(Generic[StoreT], abc.ABC):
         filter: Optional[Dict[str, str]] = None,
         **kwargs: Any,
     ) -> List[Document]:
-        """Returns docs (with embeddings) most similar to the query vector.
+        """Return docs (with embeddings) most similar to the query vector.
+
         Args:
             embedding: Embedding to look up documents similar to.
             k: Number of Documents to return. Defaults to 4.
             filter: Filter on the metadata to apply.
             **kwargs: Additional keyword arguments.
-        Returns:
-            List of Documents most similar to the query vector.
-                Documents should have their embedding added to
-                their metadata under the METADATA_EMBEDDING_KEY key.
+
+        Returns
+        -------
+            List of Documents most similar to the query vector. Documents should
+            have their embedding added to their metadata under the
+            METADATA_EMBEDDING_KEY key.
+
         """
         return await run_in_executor(
             None,
@@ -156,19 +179,23 @@ class Adapter(Generic[StoreT], abc.ABC):
         **kwargs: Any,
     ) -> list[Document]:
         """Get documents by id.
-        Fewer documents may be returned than requested if some IDs are not found or
-        if there are duplicated IDs.
+
+        Fewer documents may be returned than requested if some IDs are not found
+        or if there are duplicated IDs. This method should **NOT** raise
+        exceptions if no documents are found for some IDs.
+
         Users should not assume that the order of the returned documents matches
-        the order of the input IDs. Instead, users should rely on the ID field of the
-        returned documents.
-        This method should **NOT** raise exceptions if no documents are found for
-        some IDs.
+        the order of the input IDs. Instead, users should rely on the ID field
+        of the returned documents.
 
         Args:
             ids: List of IDs to get.
             kwargs: Additional keyword arguments. These are up to the implementation.
-        Returns:
+
+        Returns
+        -------
             List[Document]: List of documents that were found.
+
         """
 
     async def aget(
@@ -178,19 +205,23 @@ class Adapter(Generic[StoreT], abc.ABC):
         **kwargs: Any,
     ) -> list[Document]:
         """Get documents by id.
-        Fewer documents may be returned than requested if some IDs are not found or
-        if there are duplicated IDs.
+
+        Fewer documents may be returned than requested if some IDs are not found
+        or if there are duplicated IDs. This method should **NOT** raise
+        exceptions if no documents are found for some IDs.
+
         Users should not assume that the order of the returned documents matches
-        the order of the input IDs. Instead, users should rely on the ID field of the
-        returned documents.
-        This method should **NOT** raise exceptions if no documents are found for
-        some IDs.
+        the order of the input IDs. Instead, users should rely on the ID field
+        of the returned documents.
 
         Args:
             ids: List of IDs to get.
             kwargs: Additional keyword arguments. These are up to the implementation.
-        Returns:
+
+        Returns
+        -------
             List[Document]: List of documents that were found.
+
         """
         return await run_in_executor(
             None,
@@ -207,12 +238,17 @@ class Adapter(Generic[StoreT], abc.ABC):
         **kwargs: Any,
     ) -> Iterable[Document]:
         """Return the target docs with incoming edges from any of the given edges.
+
         Args:
-            edges: The edges to look for.
-            state: Traversal state we're retrieving adjacent nodes for.
-            filter: Metadata to filter the results.
-        Returns:
-            Dictionary of adjacent nodes, keyed by node ID.
+            outgoing_edges: The edges to look for.
+            strategy: The traversal strategy being used.
+            filter: Optional metadata to filter the results.
+            kwargs: Keyword arguments to pass to the similarity search.
+
+        Returns
+        -------
+            Iterable of adjacent nodes.
+
         """
         results: list[Document] = []
         for outgoing_edge in outgoing_edges:
@@ -249,16 +285,19 @@ class Adapter(Generic[StoreT], abc.ABC):
         filter: dict[str, Any] | None,
         **kwargs: Any,
     ) -> Iterable[Document]:
-        """Returns document nodes with incoming edges from any of the given edges.
-        Args:
-            edges: The edges to look for.
-            query_embedding: The query embedding. Used to rank target nodes.
-            k_per_edge: The number of target nodes to fetch for each edge.
-            filter: Optional metadata to filter the results.
-        Returns:
-            Dictionary of adjacent nodes, keyed by node ID.
-        """
+        """Return document nodes with incoming edges from any of the given edges.
 
+        Args:
+            outgoing_edges: The edges to look for.
+            strategy: The traversal strategy being used.
+            filter: Optional metadata to filter the results.
+            kwargs: Keyword arguments to pass to the similarity search.
+
+        Returns
+        -------
+            Iterbale of adjacent nodes.
+
+        """
         tasks = [
             self.asimilarity_search_with_embedding_by_vector(
                 embedding=strategy.query_embedding,
@@ -304,11 +343,17 @@ class Adapter(Generic[StoreT], abc.ABC):
         edge: Edge | None = None,
         denormalize_edge: bool = False,
     ) -> dict[str, Any]:
-        """Builds a metadata filter to search for documents
+        """Build a metadata filter to search for documents.
 
         Args:
             base_filter: Any metadata that should be used for hybrid search
             edge: An optional outgoing edge to add to the search
+            denormalize_edge: Whether edges should be denormalized.
+
+        Returns
+        -------
+        The metadata dictionary to use for the given filter.
+
         """
         metadata_filter = {**(base_filter or {})}
         if edge is None:

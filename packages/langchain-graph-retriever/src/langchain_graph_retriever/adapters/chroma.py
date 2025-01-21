@@ -4,6 +4,7 @@ from typing import (
     List,
     Optional,
     Sequence,
+    override,
 )
 
 from langchain_core.documents import Document
@@ -18,6 +19,8 @@ except (ImportError, ModuleNotFoundError):
 
 
 class ChromaAdapter(Adapter[Chroma]):
+    """Adapter Chroma vector store."""
+
     def __init__(
         self,
         vector_store: Chroma,
@@ -32,6 +35,7 @@ class ChromaAdapter(Adapter[Chroma]):
             denormalized_static_value=denormalized_static_value,
         )
 
+    @override
     def similarity_search_with_embedding_by_vector(
         self,
         embedding: List[float],
@@ -39,7 +43,6 @@ class ChromaAdapter(Adapter[Chroma]):
         filter: Optional[Dict[str, str]] = None,
         **kwargs: Any,
     ) -> List[Document]:
-        """Returns docs (with embeddings) most similar to the query vector."""
         try:
             from chromadb.api.types import IncludeEnum
         except (ImportError, ModuleNotFoundError):
@@ -82,6 +85,7 @@ class ChromaAdapter(Adapter[Chroma]):
             )
         return docs
 
+    @override
     def get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
         """Get documents by id."""
         results = self.vector_store.get(

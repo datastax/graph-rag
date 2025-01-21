@@ -1,7 +1,8 @@
+"""Define the node class."""
 from dataclasses import dataclass, field
 from typing import Any
 
-from .edge import Edge
+from .edge_helper import Edge
 
 
 @dataclass

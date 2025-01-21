@@ -5,6 +5,7 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
+    override,
 )
 
 try:
@@ -17,6 +18,8 @@ from .base import METADATA_EMBEDDING_KEY, Adapter
 
 
 class AstraAdapter(Adapter[AstraDBVectorStore]):
+    """Adapter for AstraDBVectorSTore."""
+
     def __init__(self, vector_store: AstraDBVectorStore):
         super().__init__(vector_store, use_normalized_metadata=True)
 
@@ -29,6 +32,7 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
             docs.append(doc)
         return docs
 
+    @override
     def similarity_search_with_embedding(
         self,
         query: str,
@@ -36,7 +40,6 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         filter: Optional[Dict[str, str]] = None,
         **kwargs: Any,
     ) -> Tuple[List[float], List[Document]]:
-        """Returns docs (with embeddings) most similar to the query."""
         query_embedding, docs_with_embeddings = (
             self.vector_store.similarity_search_with_embedding(
                 query=query,
@@ -49,6 +52,7 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
             docs_with_embeddings=docs_with_embeddings
         )
 
+    @override
     async def asimilarity_search_with_embedding(
         self,
         query: str,
@@ -56,7 +60,6 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         filter: Optional[Dict[str, str]] = None,
         **kwargs: Any,
     ) -> Tuple[List[float], List[Document]]:
-        """Returns docs (with embeddings) most similar to the query."""
         (
             query_embedding,
             docs_with_embeddings,
@@ -70,6 +73,7 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
             docs_with_embeddings=docs_with_embeddings
         )
 
+    @override
     def similarity_search_with_embedding_by_vector(
         self,
         embedding: List[float],
@@ -77,7 +81,6 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         filter: Optional[Dict[str, str]] = None,
         **kwargs: Any,
     ) -> List[Document]:
-        """Returns docs (with embeddings) most similar to the query vector."""
         docs_with_embeddings = (
             self.vector_store.similarity_search_with_embedding_by_vector(
                 embedding=embedding,
@@ -88,6 +91,7 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         )
         return self._build_docs(docs_with_embeddings=docs_with_embeddings)
 
+    @override
     async def asimilarity_search_with_embedding_by_vector(
         self,
         embedding: List[float],
@@ -95,7 +99,6 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         filter: Optional[Dict[str, str]] = None,
         **kwargs: Any,
     ) -> List[Document]:
-        """Returns docs (with embeddings) most similar to the query vector."""
         docs_with_embeddings = (
             await self.vector_store.asimilarity_search_with_embedding_by_vector(
                 embedding=embedding,
@@ -106,8 +109,8 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         )
         return self._build_docs(docs_with_embeddings=docs_with_embeddings)
 
+    @override
     def get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
-        """Get documents by id."""
         docs: list[Document] = []
         for id in ids:
             doc = self._get_by_id_with_embedding(id)
@@ -132,8 +135,8 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         )
         return document
 
+    @override
     async def aget(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
-        """Get documents by id."""
         docs: list[Document] = []
         # TODO: Do this asynchronously?
         for id in ids:

@@ -57,9 +57,11 @@ def cosine_similarity_top_k(
         top_k: Max number of results to return.
         score_threshold: Minimum cosine similarity of results.
 
-    Returns:
+    Returns
+    -------
         Tuple of two lists. First contains two-tuples of indices (X_idx, Y_idx),
             second contains corresponding cosine similarities.
+
     """
     if len(X) == 0 or len(Y) == 0:
         return [], []

@@ -1,3 +1,5 @@
+"""Provide LangChain retriever combining vector search and graph traversal."""
+from functools import cached_property
 from typing import (
     Any,
     Iterable,
@@ -12,8 +14,7 @@ from langchain_core.retrievers import BaseRetriever
 from pydantic import computed_field
 
 from .adapters.base import METADATA_EMBEDDING_KEY, Adapter
-from .edge import Edge
-from .edge_helper import EdgeHelper
+from .edge_helper import Edge, EdgeHelper
 from .node import Node
 from .strategy.base import Strategy
 
@@ -99,7 +100,7 @@ class _TraversalState:
                 self.strategy.max_depth is None or node.depth <= self.strategy.max_depth
             )
         }
-        self.strategy.add_nodes(nodes)
+        self.strategy.discover_nodes(nodes)
         return nodes
 
     def visit_nodes(self, nodes: Iterable[Node]) -> set[Edge]:
@@ -125,7 +126,10 @@ class _TraversalState:
     def select_next_edges(self) -> set[Edge] | None:
         """Select the next round of nodes.
 
-        Returns the set of new edges that need to be explored.
+        Returns
+        -------
+        The set of new edges that need to be explored.
+
         """
         remaining = self.strategy.k - len(self.selected_nodes)
 
@@ -175,14 +179,17 @@ class _TraversalState:
 # this class uses pydantic, so store and edges
 # must be provided at init time.
 class GraphTraversalRetriever(BaseRetriever):
+    """Retriever combining vector-search and graph traversal."""
+
     store: Adapter
     edges: List[Union[str, Tuple[str, str]]]
     strategy: Strategy | None = None
     extra_args: dict[str, Any] = {}
 
     @computed_field  # type: ignore
-    @property
+    @cached_property
     def edge_helper(self) -> EdgeHelper:
+        """The edge helper to use during traversals."""
         return EdgeHelper(
             edges=self.edges,
             denormalized_path_delimiter=self.store.denormalized_path_delimiter,
@@ -201,12 +208,14 @@ class GraphTraversalRetriever(BaseRetriever):
         **kwargs: Any,
     ) -> list[Document]:
         """Retrieve document nodes from this graph vector store using MMR-traversal.
+
         This strategy first retrieves the top `start_k` results by similarity to
         the question. It then selects the top `k` results based on
-        maximum-marginal relevance using the given `lambda_mult`.
-        At each step, it considers the (remaining) documents from `start_k` as
-        well as any documents connected by edges to a selected document
-        retrieved based on similarity (a "root").
+        maximum-marginal relevance using the given `lambda_mult`. At each step,
+        it considers the (remaining) documents from `start_k` as well as any
+        documents connected by edges to a selected document retrieved based on
+        similarity (a "root").
+
         Args:
             query: The query string to search for.
             strategy: Specify or override the strategy to use for this retrieval.
@@ -217,6 +226,7 @@ class GraphTraversalRetriever(BaseRetriever):
             filter: Optional metadata to filter the results.
             store_kwargs: Optional kwargs passed to queries to the store.
             **kwargs: Additional keyword arguments passed to traversal state.
+
         """
         state = _TraversalState(
             base_strategy=self.strategy,
@@ -286,6 +296,7 @@ class GraphTraversalRetriever(BaseRetriever):
             filter: Optional metadata to filter the results.
             store_kwargs: Optional kwargs passed to queries to the store.
             **kwargs: Additional keyword arguments passed to traversal state.
+
         """
         state = _TraversalState(
             edge_helper=self.edge_helper,
@@ -334,13 +345,14 @@ class GraphTraversalRetriever(BaseRetriever):
         filter: dict[str, Any] | None,
         **kwargs: Any,
     ) -> Iterable[Document]:
-        """Gets the embedded query and the set of initial candidates.
+        """Get the embedded query and the set of initial candidates.
 
         Args:
             query: String to compute embedding and fetch initial matches for.
             state: The travel state we're retrieving candidates fore.
             filter: Optional metadata filter to apply.
             **kwargs: Additional keyword arguments.
+
         """
         query_embedding, docs = self.store.similarity_search_with_embedding(
             query=query,

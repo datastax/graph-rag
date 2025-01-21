@@ -4,6 +4,7 @@ from typing import (
     List,
     Optional,
     Sequence,
+    override,
 )
 
 try:
@@ -17,6 +18,8 @@ from .base import METADATA_EMBEDDING_KEY, Adapter
 
 
 class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
+    """Adapter to traverse OpenSearch vector stores."""
+
     def __init__(self, vector_store: OpenSearchVectorSearch):
         if vector_store.engine not in ["lucene", "faiss"]:
             msg = (
@@ -41,6 +44,7 @@ class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
             for key, value in filter.items()
         ]
 
+    @override
     def similarity_search_with_embedding_by_vector(
         self,
         embedding: List[float],
@@ -48,7 +52,7 @@ class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
         filter: Optional[Dict[str, str]] = None,
         **kwargs: Any,
     ) -> List[Document]:
-        """Returns docs (with embeddings) most similar to the query vector."""
+        """Return docs (with embeddings) most similar to the query vector."""
         if filter is not None:
             # use an efficient_filter to collect results that
             # are near the embedding vector until up to 'k'
@@ -85,6 +89,7 @@ class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
             for doc in docs
         ]
 
+    @override
     def get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
         """Get documents by id."""
         try:
