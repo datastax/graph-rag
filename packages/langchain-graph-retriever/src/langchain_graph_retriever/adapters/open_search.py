@@ -57,6 +57,9 @@ class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
                 "bool": {"must": self._build_filter(filter=filter)}
             }
 
+        if k == 0:
+            return []
+
         docs = self.vector_store.similarity_search_by_vector(
             embedding=embedding,
             k=k,
@@ -70,12 +73,17 @@ class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
         #
         # The actual document metadata is moved down into a
         # sub "metadata" key.
-        for doc in docs:
-            embedding = doc.metadata["vector_field"]
-            doc.metadata = doc.metadata["metadata"] or {}
-            doc.metadata[METADATA_EMBEDDING_KEY] = embedding
-
-        return docs
+        return [
+            Document(
+                id=doc.id,
+                page_content=doc.page_content,
+                metadata={
+                    METADATA_EMBEDDING_KEY: doc.metadata["vector_field"],
+                    **doc.metadata["metadata"]
+                },
+            )
+            for doc in docs
+        ]
 
     def get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
         """Get documents by id."""
@@ -91,13 +99,16 @@ class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
                 hit = self.vector_store.client.get(
                     index=self.vector_store.index_name,
                     id=id,
-                    _source_includes=["text", "metadata"],
+                    _source_includes=["text", "metadata", "vector_field"],
                     **kwargs,
                 )
                 docs.append(
                     Document(
                         page_content=hit["_source"]["text"],
-                        metadata=hit["_source"]["metadata"],
+                        metadata={
+                            METADATA_EMBEDDING_KEY: hit["_source"]["vector_field"],
+                            **hit["_source"]["metadata"],
+                        },
                         id=hit["_id"],
                     )
                 )

@@ -96,6 +96,55 @@ async def test_animals_bidir_item(animal_store: Adapter, invoker):
         "mongoose",
     ]
 
+async def test_animals_initial_roots(animal_store: Adapter, invoker):
+    retriever = GraphTraversalRetriever(
+        store=animal_store,
+        edges=["keywords"],
+        strategy = Eager(k=10, start_k=0),
+    )
+
+    docs = await invoker(
+        retriever, ANIMALS_QUERY, initial_roots=["bobcat"], strategy={"max_depth": 0},
+    )
+
+    # bobcat is included (initial roots).
+    # everything adjacent to bobcat is depth 0 (immediately reachable)
+    assert sorted_doc_ids(docs) == [
+        "bear",
+        "bobcat",
+    ]
+
+    docs = await invoker(
+        retriever, ANIMALS_QUERY, initial_roots=["bobcat"], strategy={"max_depth": 1},
+    )
+
+    assert sorted_doc_ids(docs) == [
+        "bear",
+        "bobcat",
+        "moose",
+        "ostrich",
+    ]
+
+    docs = await invoker(
+        retriever, ANIMALS_QUERY, initial_roots=["bobcat", "cheetah"], strategy={"k": 20, "max_depth": 1},
+    )
+
+    assert sorted_doc_ids(docs) == [
+        "bear",
+        "bobcat",
+        "cassowary",
+        "cheetah",
+        "dingo",
+        "eagle",
+        "emu",
+        "falcon",
+        "hawk",
+        "jaguar",
+        "kangaroo",
+        "leopard",
+        "moose",
+        "ostrich",
+    ]
 
 async def test_animals_item_to_collection(animal_store: Adapter, invoker):
     retriever = GraphTraversalRetriever(

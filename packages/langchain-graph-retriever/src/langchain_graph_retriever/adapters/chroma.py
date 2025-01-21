@@ -48,6 +48,8 @@ class ChromaAdapter(Adapter[Chroma]):
 
         if k > self.vector_store._collection.count():
             k = self.vector_store._collection.count()
+        if k == 0:
+            return []
 
         results = self.vector_store._collection.query(
             query_embeddings=embedding,  # type: ignore
@@ -62,33 +64,37 @@ class ChromaAdapter(Adapter[Chroma]):
         )
 
         docs: list[Document] = []
-        for result in zip(
+        for content, metadata, id, emb in zip(
             results["documents"][0],  # type: ignore
             results["metadatas"][0],  # type: ignore
             results["ids"][0],  # type: ignore
             results["embeddings"][0],  # type: ignore
         ):
-            metadata = result[1] or {}
-            metadata[METADATA_EMBEDDING_KEY] = result[3]
             docs.append(
                 Document(
-                    page_content=result[0],
-                    metadata=metadata,
-                    id=result[2],
+                    id=id,
+                    page_content=content,
+                    metadata={
+                        METADATA_EMBEDDING_KEY: emb,
+                        **metadata,
+                    },
                 )
             )
         return docs
 
     def get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
         """Get documents by id."""
-        results = self.vector_store.get(ids=list(ids), **kwargs)
+        results = self.vector_store.get(ids=list(ids), include=["embeddings", "metadatas", "documents"], **kwargs)
         return [
             Document(
-                page_content=text,
-                metadata=metadata,
                 id=id,
+                page_content=content,
+                metadata={
+                    METADATA_EMBEDDING_KEY: emb,
+                    **metadata
+                },
             )
-            for (text, metadata, id) in zip(
-                results["documents"], results["metadatas"], results["ids"]
+            for (content, metadata, id, emb) in zip(
+                results["documents"], results["metadatas"], results["ids"], results["embeddings"],
             )
         ]

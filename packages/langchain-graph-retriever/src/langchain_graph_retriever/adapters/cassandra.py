@@ -73,6 +73,9 @@ class CassandraAdapter(Adapter[Cassandra]):
         if body_search is not None:
             kwargs["body_search"] = body_search
 
+        if k == 0:
+            return []
+
         hits = self.vector_store.table.ann_search(
             vector=embedding,
             n=k,
@@ -95,6 +98,9 @@ class CassandraAdapter(Adapter[Cassandra]):
         **kwargs: Any,
     ) -> tuple[list[float], list[Document]]:
         query_embedding = self._safe_embedding.embed_query(text=query)
+        if k == 0:
+            return query_embedding, []
+
         docs = await self.asimilarity_search_with_embedding_by_vector(
             embedding=query_embedding,
             k=k,
@@ -122,16 +128,42 @@ class CassandraAdapter(Adapter[Cassandra]):
         """Get documents by id."""
         docs: list[Document] = []
         for id in ids:
-            doc = self.vector_store.get_by_document_id(id, **kwargs)
+            doc = self._get_by_document_id(id)
             if doc is not None:
                 docs.append(doc)
         return docs
+
+    def _get_by_document_id(self, id: str) -> Document | None:
+        row = self.vector_store.table.get(row_id=id)
+        if row is None:
+            return None
+        return Document(
+            id=row["row_id"],
+            page_content=row["body_blob"],
+            metadata={
+                METADATA_EMBEDDING_KEY: row["vector"],
+                **row["metadata"],
+            }
+        )
 
     async def aget(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
         """Get documents by id."""
         docs: list[Document] = []
         for id in ids:
-            doc = await self.vector_store.aget_by_document_id(id, **kwargs)
+            doc = await self._aget_by_document_id(id, **kwargs)
             if doc is not None:
                 docs.append(doc)
         return docs
+
+    async def _aget_by_document_id(self, id: str) -> Document | None:
+        row = await self.vector_store.table.aget(row_id=id)
+        if row is None:
+            return None
+        return Document(
+            id=row["row_id"],
+            page_content=row["body_blob"],
+            metadata={
+                METADATA_EMBEDDING_KEY: row["vector"],
+                **row["metadata"],
+            }
+        )
