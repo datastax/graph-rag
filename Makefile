@@ -94,10 +94,10 @@ apidocs: ## Update package installation and generate docs
 	cd docs && uv run quartodoc build
 
 docs-preview: apidocs ## Live docs
-	cd docs && quarto preview
+	cd docs && uv run quarto preview
 
 docs-build: apidocs ## Generate docs site in `_site`.
-	cd docs && quarto render
+	cd docs && uv run quarto render
 
 .PHONY: help
 help:
