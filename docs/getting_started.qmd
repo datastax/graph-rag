@@ -7,12 +7,13 @@ This page is an executable notebook demonstrating how to combine Graph Traversal
 
 ## Pre-requisites
 
-You will need to install `langchain`, `langchain-openai` (or some other embedding and LLM provider) and `langchain-graph-retriever`.
-You will also need a [vector store supported](/reference/Adapter.qmd) by `langchain-graph-retriever`.
+We assume you already have a working `langchain` installation, including an LLM and embedding model as well as a [supported vector store](/reference/Adapter.qmd).
+
+In that case, you only need to isntall `langchain-graph-retriever`:
 
 ```{python}
 #| eval: False
-%pip install langchain langchain-openai langchain-graph-retriever
+%pip install langchain langchain-graph-retriever
 ```
 
 ## Preparing Data
@@ -73,11 +74,18 @@ with open("../data/animals.jsonl", "r") as file:
 
 ```{python}
 from langchain_astradb import AstraDBVectorStore
-from langchain_openai import OpenAIEmbeddings
+from langchain_community.embeddings import HuggingFaceBgeEmbeddings
+
+embedding = HuggingFaceBgeEmbeddings(
+    model_name="BAAI/bge-small-en",
+    model_kwargs={"device": "cpu"},
+    encode_kwargs={"normalize_embeddings": True}
+)
+
 vector_store = AstraDBVectorStore.from_documents(
     collection_name="animals",
     documents=animals,
-    embedding=OpenAIEmbeddings(),
+    embedding=embedding,
 )
 ```
 
