@@ -5,7 +5,8 @@ import pytest
 from langchain_core.documents import Document
 
 
-def get_animal_docs() -> list[Document]:
+@pytest.fixture(scope="session")
+def animal_docs() -> list[Document]:
     documents = []
 
     path = os.path.abspath(
@@ -22,11 +23,6 @@ def get_animal_docs() -> list[Document]:
                 )
             )
     return documents
-
-
-@pytest.fixture(scope="session")
-def animal_docs() -> list[Document]:
-    return get_animal_docs()
 
 
 ANIMALS_QUERY: str = "small agile mammal"

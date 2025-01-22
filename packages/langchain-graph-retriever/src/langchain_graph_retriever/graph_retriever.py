@@ -18,7 +18,6 @@ from .adapters.base import METADATA_EMBEDDING_KEY, Adapter
 from .edge_helper import Edge, EdgeHelper
 from .node import Node
 from .strategies.base import Strategy
-from .strategies.utils import build_strategy
 
 INFINITY = float("inf")
 
@@ -216,8 +215,8 @@ class GraphRetriever(BaseRetriever):
         """
         state = _TraversalState(
             edge_helper=self.edge_helper,
-            strategy=build_strategy(
-                base_k=self.k, base_strategy=self.strategy, **kwargs
+            strategy=Strategy.build(
+                base_strategy=self.strategy, base_k=self.k, **kwargs
             ),
         )
 
@@ -285,8 +284,8 @@ class GraphRetriever(BaseRetriever):
         """
         state = _TraversalState(
             edge_helper=self.edge_helper,
-            strategy=build_strategy(
-                base_k=self.k, base_strategy=self.strategy, **kwargs
+            strategy=Strategy.build(
+                base_strategy=self.strategy, base_k=self.k, **kwargs
             ),
         )
 
