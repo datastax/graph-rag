@@ -74,9 +74,9 @@ with open("../data/animals.jsonl", "r") as file:
 
 ```{python}
 from langchain_astradb import AstraDBVectorStore
-from langchain_community.embeddings import HuggingFaceBgeEmbeddings
+from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 
-embedding = HuggingFaceBgeEmbeddings(
+embedding = HuggingFaceEmbeddings(
     model_name="BAAI/bge-small-en",
     model_kwargs={"device": "cpu"},
     encode_kwargs={"normalize_embeddings": True}
