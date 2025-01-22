@@ -77,46 +77,53 @@ class Strategy(BaseModel, abc.ABC):
         Build a strategy for an retrieval from the base strategy, any strategy passed in
         the invocation, and any related key word arguments.
         """
+        # Check if there is a new strategy to use. Otherwise, use the base.
         strategy: Strategy | None = None
-        if base_strategy is not None:
-            # Deep copy in case the strategy has mutable state
-            strategy = base_strategy.model_copy(deep=True)
-            if base_k is not None:
-                strategy.k = base_k
-            for key, value in kwargs.items():
-                if key == "strategy":
-                    if isinstance(value, Strategy):
-                        strategy = value.model_copy(deep=True)
-                    elif isinstance(value, dict):
-                        for k in value.keys():
-                            if k not in strategy.model_fields.keys():
-                                warnings.warn(
-                                    f"Unsupported key '{k}' in 'strategy' set, ignored."
-                                )
-                        strategy = strategy.model_copy(update=value)
-                    else:
-                        raise ValueError(f"Unsupported strategy {value}")
-                elif key in strategy.model_fields.keys():
-                    strategy = strategy.model_copy(update={key: value})
-                else:
-                    warnings.warn(f"Unsupported key '{key}' set, ignored.")
+        if "strategy" in kwargs:
+            if next(iter(kwargs.keys())) != "strategy":
+                raise ValueError("Error: 'strategy' must be set before other args.")
+            strategy = kwargs.pop("strategy")
+            if isinstance(strategy, dict):
+                if base_strategy is None:
+                    raise ValueError("Unsupported 'strategy'")
+                invalid_keys = _invalid_keys(base_strategy, strategy)
+                if invalid_keys is not None:
+                    warnings.warn(
+                        f"Unsupported key(s) {invalid_keys} in 'strategy' dict."
+                    )
 
-        else:  # no base strategy
-            for key, value in kwargs.items():
-                if key == "strategy":
-                    if isinstance(value, Strategy):
-                        strategy = value.model_copy(deep=True)
-                    else:
-                        raise ValueError(f"Unsupported 'strategy': {value}")
-                else:
-                    if strategy is None:
-                        raise ValueError(
-                            "Error: 'strategy' must be set before other args."
-                        )
-                    elif key in strategy.model_fields.keys():
-                        strategy = strategy.model_copy(update={key: value})
-                    else:
-                        warnings.warn(f"Unsupported key '{key}' set, ignored.")
-        if strategy is None:
-            raise ValueError("'strategy' must be set.")
+                # Use `model_copy` to create a new instance. Note validation
+                # won't happen until below, where we recreate the model with
+                # `model_validate`.
+                strategy = base_strategy.model_copy(update=strategy)
+        elif base_strategy is not None:
+            strategy = base_strategy
+            if base_k:
+                strategy = strategy.model_copy(update={"k": base_k})
+        else:
+            raise ValueError("'strategy' must be set in `__init__` or invocation")
+
+        # Warn if any of the kwargs don't exist in the strategy.
+        # Note: We could rely on Pydantic with forbidden extra arguments to
+        # handle this, however the experience isn't as nice (Validation error
+        # rather than warning, no indication of which field, etc.).
+        assert strategy is not None
+        invalid_keys = _invalid_keys(strategy, kwargs)
+        if invalid_keys is not None:
+            warnings.warn(f"Unsupported key(s) {invalid_keys} set.")
+
+        # Apply the kwargs to update the strategy.
+        # This uses `model_validate` rather than `model_copy`` to re-apply validation.
+        strategy = strategy.model_validate(
+            {**strategy.model_dump(), **kwargs},
+        )
+
         return strategy
+
+
+def _invalid_keys(model: BaseModel, dict: dict[str, Any]) -> str | None:
+    invalid_keys = set(dict.keys()) - set(model.model_fields.keys())
+    if invalid_keys:
+        return ", ".join([f"'{k}'" for k in invalid_keys])
+    else:
+        return None

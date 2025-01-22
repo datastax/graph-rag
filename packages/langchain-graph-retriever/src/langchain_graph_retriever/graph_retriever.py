@@ -170,7 +170,6 @@ class GraphRetriever(BaseRetriever):
     edges: List[Union[str, Tuple[str, str]]]
     strategy: Strategy | None = None
     k: int | None = None
-    extra_args: dict[str, Any] = {}
 
     @computed_field  # type: ignore
     @cached_property
