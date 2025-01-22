@@ -51,6 +51,7 @@ docs = [
     "langchain-graph-retriever>=0.1.0",
     "matplotlib>=3.10.0",
     "jupyter>=1.1.1",
+    "jupyterlab>=4.3.4",
 ]
 
 [tool.coverage.report]
