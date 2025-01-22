@@ -121,8 +121,23 @@ jobs:
 
       - name: Check if documentation can be built
         run: make docs-build
+        id: build
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+          ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
+          ASTRA_DB_KEYSPACE: docs_${{ github.run_id }}_${{ github.run_attempt }}
+
+      - name: Drop Astra Keyspace
+        # Even though it seems redundant, the `always() &&` is necessary to signal to
+        # GitHub actions that we want this to run even if the job is cancelled.
+        if: ${{ always() && steps.build.conclusion != 'skipped' }}
+        run:
+            uv run scripts/drop-astra-keyspace.py
+        env:
+          ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+          ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
+          ASTRA_DB_KEYSPACE: docs_${{ github.run_id }}_${{ github.run_attempt }}
 
       - name: Upload docs
         uses: actions/upload-pages-artifact@v2
