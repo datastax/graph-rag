@@ -93,7 +93,7 @@ The core library (`graph-retriever`) supports can be used in generic Python appl
         store = AstraAdapter(store),
         # Define the relationships to navigate:
         #   1. From nodes with a list of `mentions` to the nodes with the corresponding `ids`.
-        #   2. From noeds with a list of related `entities` to other nodes with the same entities.
+        #   2. From nodes with a list of related `entities` to other nodes with the same entities.
         edges = [("mentions", "id"), "entities"],
         # The "strategy" to use for traversing the graph. In this case, max-marginal relevance.
         strategy = Mmr(k=10),
