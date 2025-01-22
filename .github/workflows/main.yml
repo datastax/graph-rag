@@ -116,6 +116,9 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
+      - name: Sync Docs Dependencies
+        run: uv sync --group=docs
+
       - name: Check if documentation can be built
         run: make docs-build
 

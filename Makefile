@@ -90,7 +90,6 @@ build-graph-retriever: sync-graph-retriever
 	@uv build --package graph-retriever
 
 apidocs: ## Update package installation and generate docs
-	uv sync --group=docs
 	uv pip install packages/* --force-reinstall
 	cd docs && uv run quartodoc build
 
