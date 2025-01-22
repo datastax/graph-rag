@@ -4,7 +4,8 @@ version = "0.1.0"
 description = "uv workspace for Graph RAG projects"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+]
 
 classifiers = ["Private :: Do Not Upload"]
 
@@ -27,6 +28,8 @@ convention = "numpy"
 docstring-code-format = true
 
 [tool.uv.sources]
+graph-retriever = { workspace = true }
+langchain-graph-retriever = { workspace = true }
 
 [tool.uv.workspace]
 members = ["packages/*"]
@@ -43,6 +46,10 @@ docs = [
     "nbformat>=5.10.4",
     "nbclient>=0.10.2",
     "langchain-openai>=0.3.1",
+    "ipykernel>=6.29.5",
+    "langchain-astradb>=0.5.2",
+    "langchain-graph-retriever>=0.1.0",
+    "matplotlib>=3.10.0",
 ]
 
 [tool.coverage.report]

@@ -104,28 +104,30 @@ The above creates a graph traversing retriever with starts with the nearest anim
 The edges define how metadata values can be used for traversal. In this case, every animal is connected to other animals with the same habitat and/or same origin.
 
 ```{python}
-simple.invoke("what mammals come from the same region as the cassowary")
+simple_results = simple.invoke("what mammals come from the same region as the cassowary")
+
+for doc in simple_results:
+    print(doc.page_content)
 ```
 
 ## Visualizing
 
-## Polar Axis
-
-For a demonstration of a line plot on a polar axis, see @fig-polar.
+`langchain-graph-retrievers` includes code for converting the document graph into a `networkx` graph, for rendering and other analysis.
+See @fig-document-graph
 
 ```{python}
-#| eval: False
-#| label: fig-polar
-#| fig-cap: "A line plot on a polar axis"
-
-import numpy as np
+#| code-fold: True
+#| label: fig-document-graph
+#| fig-cap: "Graph of retrieved documents"
+import networkx as nx
 import matplotlib.pyplot as plt
+from langchain_graph_retriever.document_graph import create_graph
 
-r = np.arange(0, 2, 0.01)
-theta = 2 * np.pi * r
-fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-ax.plot(theta, r)
-ax.set_rticks([0.5, 1, 1.5, 2])
-ax.grid(True)
+document_graph = create_graph(
+    documents=simple_results,
+    edges = simple.edges,
+)
+
+nx.draw(document_graph, with_labels=True)
 plt.show()
 ```
