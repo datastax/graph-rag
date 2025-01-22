@@ -1,5 +1,5 @@
-from .graph_traversal_retriever import GraphTraversalRetriever
+from .graph_retriever import GraphRetriever
 
 __all__ = [
-    "GraphTraversalRetriever",
+    "GraphRetriever",
 ]

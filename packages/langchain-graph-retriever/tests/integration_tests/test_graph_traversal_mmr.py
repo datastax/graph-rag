@@ -1,6 +1,6 @@
 from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore
-from langchain_graph_retriever import GraphTraversalRetriever
+from langchain_graph_retriever import GraphRetriever
 from langchain_graph_retriever.adapters.in_memory import (
     InMemoryAdapter,
 )
@@ -18,7 +18,7 @@ from tests.integration_tests.stores import Adapter
 
 async def test_animals_bidir_collection(animal_store: Adapter, invoker):
     # test graph-search on a normalized bi-directional edge
-    retriever = GraphTraversalRetriever(
+    retriever = GraphRetriever(
         store=animal_store,
         edges=["keywords"],
     )
@@ -47,7 +47,7 @@ async def test_animals_bidir_collection(animal_store: Adapter, invoker):
 
 
 async def test_animals_bidir_item(animal_store: Adapter, invoker):
-    retriever = GraphTraversalRetriever(
+    retriever = GraphRetriever(
         store=animal_store,
         edges=["habitat"],
     )
@@ -83,7 +83,7 @@ async def test_animals_bidir_item(animal_store: Adapter, invoker):
 
 
 async def test_animals_item_to_collection(animal_store: Adapter, invoker):
-    retriever = GraphTraversalRetriever(
+    retriever = GraphRetriever(
         store=animal_store,
         edges=[("habitat", "keywords")],
     )
@@ -136,7 +136,7 @@ async def test_traversal_mem(invoker) -> None:
     store.add_documents([v0, v1, v2, v3])
 
     strategy = Mmr(k=2, start_k=2, max_depth=2)
-    retriever = GraphTraversalRetriever(
+    retriever = GraphRetriever(
         store=InMemoryAdapter(vector_store=store, use_normalized_metadata=False),
         edges=[("outgoing", "incoming")],
         strategy=strategy,

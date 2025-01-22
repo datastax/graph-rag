@@ -1,7 +1,7 @@
 import pytest
 from langchain_core.documents import Document
 from langchain_graph_retriever import (
-    GraphTraversalRetriever,
+    GraphRetriever,
 )
 from langchain_graph_retriever.strategies import (
     Eager,
@@ -17,7 +17,7 @@ from tests.integration_tests.stores import Adapter, StoreFactory
 
 async def test_animals_bidir_collection_eager(animal_store: Adapter, invoker):
     # test graph-search on a normalized bi-directional edge
-    retriever = GraphTraversalRetriever(
+    retriever = GraphRetriever(
         store=animal_store,
         edges=["keywords"],
         strategy=Eager(k=100, start_k=2, max_depth=0),
@@ -62,7 +62,7 @@ async def test_animals_bidir_collection_eager(animal_store: Adapter, invoker):
 
 
 async def test_animals_bidir_item(animal_store: Adapter, invoker):
-    retriever = GraphTraversalRetriever(
+    retriever = GraphRetriever(
         store=animal_store,
         edges=["habitat"],
     )
@@ -98,7 +98,7 @@ async def test_animals_bidir_item(animal_store: Adapter, invoker):
 
 
 async def test_animals_initial_roots(animal_store: Adapter, invoker):
-    retriever = GraphTraversalRetriever(
+    retriever = GraphRetriever(
         store=animal_store,
         edges=["keywords"],
         strategy=Eager(k=10, start_k=0),
@@ -158,7 +158,7 @@ async def test_animals_initial_roots(animal_store: Adapter, invoker):
 
 
 async def test_animals_item_to_collection(animal_store: Adapter, invoker):
-    retriever = GraphTraversalRetriever(
+    retriever = GraphRetriever(
         store=animal_store,
         edges=[("habitat", "keywords")],
     )
@@ -243,7 +243,7 @@ async def test_parser(
         doc_f.metadata["out"] = f"af_{suffix}"
     documents = docs_a + docs_b + docs_f + docs_t
 
-    retriever = GraphTraversalRetriever(
+    retriever = GraphRetriever(
         store=store_factory.create(request, ParserEmbeddings(dimension=2), documents),
         edges=[("out", "in"), "tag"],
         strategy=Eager(k=10, start_k=2, max_depth=2),
@@ -287,7 +287,7 @@ async def test_earth(
         metadata={"outgoing": "parent", "keywords": ["greeting", "earth"]},
     )
 
-    retriever = GraphTraversalRetriever(
+    retriever = GraphRetriever(
         store=store_factory.create(request, EarthEmbeddings(), [greetings, doc1, doc2]),
         edges=[("outgoing", "incoming"), "keywords"],
         strategy=Eager(k=10, start_k=2, max_depth=0),

@@ -57,7 +57,7 @@ quartodoc:
     - title: LangChain Graph Retriever
       desc: Graph `Retriever` implementation for LangChain `VectorStore`s.
       contents:
-      - GraphTraversalRetriever
+      - GraphRetriever
     - title: Retrieval Strategies
       desc: Strategies for use with the retrieval.
       package: langchain_graph_retriever.strategies
