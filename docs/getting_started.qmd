@@ -74,18 +74,12 @@ with open("../data/animals.jsonl", "r") as file:
 
 ```{python}
 from langchain_astradb import AstraDBVectorStore
-from langchain_huggingface.embeddings import HuggingFaceEmbeddings
-
-embedding = HuggingFaceEmbeddings(
-    model_name="BAAI/bge-small-en",
-    model_kwargs={"device": "cpu"},
-    encode_kwargs={"normalize_embeddings": True}
-)
+from langchain_openai import OpenAIEmbeddings
 
 vector_store = AstraDBVectorStore.from_documents(
     collection_name="animals",
     documents=animals,
-    embedding=embedding,
+    embedding=OpenAIEmbeddings(),
 )
 ```
 
