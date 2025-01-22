@@ -3,10 +3,10 @@ from typing import Type
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_graph_retriever import GraphTraversalRetriever
 from langchain_graph_retriever.adapters.in_memory import InMemoryAdapter
-from langchain_graph_retriever.strategy.eager import Eager
+from langchain_graph_retriever.strategies import Eager
 from langchain_tests.integration_tests import RetrieversIntegrationTests
+from tests.animal_docs import get_animal_docs
 from tests.embeddings.simple_embeddings import AnimalEmbeddings
-from tests.integration_tests.animal_docs import get_animal_docs
 
 
 class TestGraphTraversalRetriever(RetrieversIntegrationTests):
