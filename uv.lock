@@ -1225,6 +1225,7 @@ docs = [
     { name = "nbclient" },
     { name = "nbformat" },
     { name = "quartodoc" },
+    { name = "sentence-transformers" },
 ]
 
 [package.metadata]
@@ -1246,6 +1247,7 @@ docs = [
     { name = "nbclient", specifier = ">=0.10.2" },
     { name = "nbformat", specifier = ">=5.10.4" },
     { name = "quartodoc", specifier = ">=0.9.1" },
+    { name = "sentence-transformers", specifier = ">=3.3.1" },
 ]
 
 [[package]]
