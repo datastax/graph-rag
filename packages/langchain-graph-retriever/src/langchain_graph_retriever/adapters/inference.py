@@ -1,14 +1,26 @@
-from .base import Adapter
-from langchain_core.vectorstores import VectorStore
 import importlib
+from typing import Type
+
+from langchain_core.vectorstores import VectorStore
+
+from .base import Adapter
 
 ADAPTERS_PKG = "langchain_graph_retriever.adapters"
 _KNOWN_STORES = {
     "langchain_astradb.AstraDBVectorStore": (f"{ADAPTERS_PKG}.astra", "AstraAdapter"),
-    "langchain_community.vectorstores.Cassandra": (f"{ADAPTERS_PKG}.cassandra", "CassandraAdapter"),
+    "langchain_community.vectorstores.Cassandra": (
+        f"{ADAPTERS_PKG}.cassandra",
+        "CassandraAdapter",
+    ),
     "langchain_chroma.Chroma": (f"{ADAPTERS_PKG}.chroma", "ChromaAdapter"),
-    "langchain_core.vectorstores.in_memory.InMemoryVectorStore": (f"{ADAPTERS_PKG}.in_memory", "InMemoryAdapter"),
-    "langchain_community.vectorstores.OpenSearchVectorSearch": (f"{ADAPTERS_PKG}.open_search", "OpenSearchAdapter"),
+    "langchain_core.vectorstores.in_memory.InMemoryVectorStore": (
+        f"{ADAPTERS_PKG}.in_memory",
+        "InMemoryAdapter",
+    ),
+    "langchain_community.vectorstores.OpenSearchVectorSearch": (
+        f"{ADAPTERS_PKG}.open_search",
+        "OpenSearchAdapter",
+    ),
 }
 
 # Class names that indicate we don't need to keep traversing.
@@ -17,6 +29,11 @@ STOP_NAMES = {
     "builtins.object",
     "langchain_core.vectorstores.base.VectorStore",
 }
+
+
+def _full_class_name(cls: Type) -> str:
+    return f"{cls.__module__}.{cls.__name__}"
+
 
 def infer_adapter(store: Adapter | VectorStore) -> Adapter:
     """Infer the adapter to use for the given store."""
@@ -27,11 +44,11 @@ def infer_adapter(store: Adapter | VectorStore) -> Adapter:
     while store_classes:
         store_class = store_classes.pop()
 
-        store_name = f"{store_class.__module__}.{store_class.__name__}"
-        if store_name in STOP_NAMES:
+        store_class_name = _full_class_name(store_class)
+        if store_class_name in STOP_NAMES:
             continue
 
-        adapter = _KNOWN_STORES.get(store_name, None)
+        adapter = _KNOWN_STORES.get(store_class_name, None)
         if adapter is not None:
             module_name, class_name = adapter
             adapter_module = importlib.import_module(module_name)
@@ -43,4 +60,7 @@ def infer_adapter(store: Adapter | VectorStore) -> Adapter:
         # matching subclasses of supported vector stores.
         store_classes.extend(store_class.__bases__)
 
-    return None
+    store_class_name = _full_class_name(store.__class__)
+    raise ValueError(
+        f"Expected adapter or supported vector store, but got {store_class_name}"
+    )

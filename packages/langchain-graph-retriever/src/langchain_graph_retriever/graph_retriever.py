@@ -12,9 +12,11 @@ from typing import (
 
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
+from langchain_core.vectorstores import VectorStore
 from pydantic import computed_field
 
 from .adapters.base import METADATA_EMBEDDING_KEY, Adapter
+from .adapters.inference import infer_adapter
 from .edge_helper import Edge, EdgeHelper
 from .node import Node
 from .strategies.base import Strategy
@@ -166,7 +168,7 @@ class _TraversalState:
 class GraphRetriever(BaseRetriever):
     """Retriever combining vector-search and graph traversal."""
 
-    store: Adapter
+    store: Adapter | VectorStore
     edges: List[Union[str, Tuple[str, str]]]
     strategy: Strategy | None = None
     k: int | None = None
@@ -177,10 +179,16 @@ class GraphRetriever(BaseRetriever):
         """The edge helper to use during traversals."""
         return EdgeHelper(
             edges=self.edges,
-            denormalized_path_delimiter=self.store.denormalized_path_delimiter,
-            denormalized_static_value=self.store.denormalized_static_value,
-            use_normalized_metadata=self.store.use_normalized_metadata,
+            denormalized_path_delimiter=self.adapter.denormalized_path_delimiter,
+            denormalized_static_value=self.adapter.denormalized_static_value,
+            use_normalized_metadata=self.adapter.use_normalized_metadata,
         )
+
+    @computed_field  # type: ignore
+    @cached_property
+    def adapter(self) -> Adapter:
+        """The adapter to use during traversals."""
+        return infer_adapter(self.store)
 
     def _get_relevant_documents(
         self,
@@ -241,7 +249,7 @@ class GraphRetriever(BaseRetriever):
                 break
             elif next_outgoing_edges:
                 # Find the (new) document with incoming edges from those edges.
-                adjacent_docs = self.store.get_adjacent(
+                adjacent_docs = self.adapter.get_adjacent(
                     outgoing_edges=next_outgoing_edges,
                     strategy=state.strategy,
                     filter=filter,
@@ -310,7 +318,7 @@ class GraphRetriever(BaseRetriever):
                 break
             elif next_outgoing_edges:
                 # Find the (new) document with incoming edges from those edges.
-                adjacent_docs = await self.store.aget_adjacent(
+                adjacent_docs = await self.adapter.aget_adjacent(
                     outgoing_edges=next_outgoing_edges,
                     strategy=state.strategy,
                     filter=filter,
@@ -338,7 +346,7 @@ class GraphRetriever(BaseRetriever):
             **kwargs: Additional keyword arguments.
 
         """
-        query_embedding, docs = self.store.similarity_search_with_embedding(
+        query_embedding, docs = self.adapter.similarity_search_with_embedding(
             query=query,
             k=state.strategy.start_k,
             filter=filter,
@@ -355,7 +363,7 @@ class GraphRetriever(BaseRetriever):
         filter: dict[str, Any] | None,
         **kwargs: Any,
     ) -> Iterable[Document]:
-        query_embedding, docs = await self.store.asimilarity_search_with_embedding(
+        query_embedding, docs = await self.adapter.asimilarity_search_with_embedding(
             query=query,
             k=state.strategy.start_k,
             filter=filter,
@@ -372,7 +380,7 @@ class GraphRetriever(BaseRetriever):
         filter: dict[str, Any] | None,
         **kwargs: Any,
     ) -> Iterable[Document]:
-        neighborhood_docs = self.store.get(neighborhood)
+        neighborhood_docs = self.adapter.get(neighborhood)
         neighborhood_nodes = state.add_docs(neighborhood_docs)
 
         # Record the neighborhood nodes (specifically the outgoing edges from the
@@ -380,7 +388,7 @@ class GraphRetriever(BaseRetriever):
         outgoing_edges = state.visit_nodes(neighborhood_nodes.values())
 
         # Fetch the candidates.
-        return self.store.get_adjacent(
+        return self.adapter.get_adjacent(
             outgoing_edges=outgoing_edges,
             strategy=state.strategy,
             filter=filter,
@@ -395,7 +403,7 @@ class GraphRetriever(BaseRetriever):
         filter: dict[str, Any] | None,
         **kwargs: Any,
     ):
-        neighborhood_docs = await self.store.aget(neighborhood)
+        neighborhood_docs = await self.adapter.aget(neighborhood)
         neighborhood_nodes = state.add_docs(neighborhood_docs)
 
         # Record the neighborhood nodes (specifically the outgoing edges from the
@@ -403,7 +411,7 @@ class GraphRetriever(BaseRetriever):
         outgoing_edges = state.visit_nodes(neighborhood_nodes.values())
 
         # Fetch the candidates.
-        return await self.store.aget_adjacent(
+        return await self.adapter.aget_adjacent(
             outgoing_edges=outgoing_edges,
             strategy=state.strategy,
             filter=filter,

@@ -91,18 +91,17 @@ For our first retrieval and graph traversal, we're going to start with a single 
 ```{python}
 from langchain_graph_retriever import GraphRetriever
 from langchain_graph_retriever.strategies import Eager
-from langchain_graph_retriever.adapters.astra import AstraAdapter
 
 simple = GraphRetriever(
     # Adapt AstraDBVectorStore for use with Graph Retrievers.
-    store = AstraAdapter(vector_store),
+    store = vector_store,
     # Define the relationships to navigate:
     edges = ["habitat", "origin"],
     strategy = Eager(k=10, start_k=1, depth=2),
 )
 ```
 
-The above creates a graph traversing retriever with starts with the nearest animal (`start_k=1`), retrieves 10 documents (`k=10`) and limits the search to docuemnts that are at most 2 steps away from the first animal (`depth=2`).
+The above creates a graph traversing retriever that starts with the nearest animal (`start_k=1`), retrieves 10 documents (`k=10`) and limits the search to docuemnts that are at most 2 steps away from the first animal (`depth=2`).
 
 The edges define how metadata values can be used for traversal. In this case, every animal is connected to other animals with the same habitat and/or same origin.
 

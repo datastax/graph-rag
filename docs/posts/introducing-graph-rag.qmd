@@ -58,19 +58,14 @@ Assuming you already have a LangChain project using a Vector Store, all you need
     ```
 
 3. Add the following code using your existing Vector Store.
-    We were using DataStax AstraDB, so we use the `AstraAdapter`.
-    Adapters exist for other vector stores, including Chroma, OpenSearch and Apache Cassandra.
 
     ```python
     from langchain_graph_retriever import GraphRetriever
-    from langchain_graph_retriever.adapters import AstraAdapter
-    from langchain_graph_retriever.strategies import Eager
 
     # Define your graph traversal
     traversal = GraphRetriever(
-        store=AstraAdapter(store),
+        store=vector_store,
         edges=[("mentions", "id"), "entities"],
-        strategy=Eager(k=10, start_k=4, depth=2),
     )
 
     # Query the graph

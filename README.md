@@ -84,19 +84,15 @@ The core library (`graph-retriever`) supports can be used in generic Python appl
 
     ```python
     from langchain_graph_retriever import GraphRetriever
-    from langchain_graph_retriever.strategy import Mmr
-    from langchain_graph_retriever.adapters.astra import AstraAdapter
 
     retriever = GraphRetriever(
         # Adapt AstraDBVectorStore for use with Graph Retrievers.
         # Exposes functionality of the underlying store that is otherwise not available.
-        store = AstraAdapter(store),
+        store = store,
         # Define the relationships to navigate:
         #   1. From nodes with a list of `mentions` to the nodes with the corresponding `ids`.
         #   2. From nodes with a list of related `entities` to other nodes with the same entities.
         edges = [("mentions", "id"), "entities"],
-        # The "strategy" to use for traversing the graph. In this case, max-marginal relevance.
-        strategy = Mmr(k=10),
     )
 
     retriever.invoke("where is Santa Clara?")
