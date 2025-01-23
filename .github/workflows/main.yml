@@ -128,7 +128,7 @@ jobs:
           ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
 
       - name: Upload docs
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           # Automatically uploads an artifact from the './_site' directory by default
           path: ${{ github.workspace }}/docs/_site
