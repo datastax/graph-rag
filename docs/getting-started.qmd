@@ -1,6 +1,7 @@
 ---
 title: "Getting Started"
 jupyter: python3
+lightbox: auto
 ---
 
 This page is an executable notebook demonstrating how to combine Graph Traversal and Vector Search using `langchain-graph-retriever` with `langchain`.

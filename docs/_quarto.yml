@@ -2,6 +2,7 @@ project:
   type: website
 
 website:
+  title: Graph RAG
   twitter-card: true
   navbar:
     background: primary
@@ -9,9 +10,25 @@ website:
     left:
       - text: "Home"
         href: index.qmd
-      - getting_started.qmd
+      - posts/index.qmd
+      - getting-started.qmd
       - examples/index.qmd
       - reference/index.qmd
+    right:
+      - icon: github
+        href: https://github.com/datastax/graph-rag
+      - icon: rss
+        href: index.xml
+  page-footer:
+    border: true
+    left: "© Copyright 2025, Graph RAG Contributors."
+  repo-url: https://github.com/datastax/graph-rag/
+  repo-subdir: docs
+  repo-actions:
+    - edit
+    - source
+  site-url: https://datastax.github.io/graph-rag
+
 
 metadata-files:
   - _sidebar.yml
@@ -20,18 +37,13 @@ format:
   html:
     theme: pulse
     toc: true
+    anchor-sections: true
     css:
       - reference/_styles-quartodoc.css
 
-page-footer:
-  border: true
-  left: "© Copyright 2025, Graph RAG Contributors."
-repo-url: https://github.com/datastax/graph-rag/
-repo-subdir: docs
-repo-actions:
-  - edit
-  - source
-site-url: https://datastax.kgithub.io/graph-rag
+    link-external-icon: true
+    link-external-newwindow: true
+    link-external-filter: '^(?:http:|https:)\/\/datastax.github.io\/graph-rag'
 
 quartodoc:
   style: pkgdown
@@ -46,7 +58,7 @@ quartodoc:
     contents:
       - text: "Home"
         href: index.qmd
-      - href: getting_started.qmd
+      - href: getting-started.qmd
       - examples/index.qmd
       - section: "Reference"
         contents:
