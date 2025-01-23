@@ -63,25 +63,13 @@ def test_build_strategy_base_override():
         )
         assert strategy == override_strategy.model_copy(update={"k": 4})
 
-    # override base strategy with dict and change params
-    strategy = Strategy.build(
-        base_strategy=base_strategy,
-        strategy={"k": 9, "start_k": 7, "adjacent_k": 11},
-        adjacent_k=7,
-    )
-    assert strategy == Eager(k=9, start_k=7, adjacent_k=7, max_depth=2)
-
-    # override base strategy with dict (with invalid kwarg) and change params
-    with pytest.warns(
-        UserWarning,
-        match=r"Unsupported key\(s\) 'invalid_kwarg' in 'strategy' dict.",
-    ):
+    # attempt override base strategy with dict
+    with pytest.raises(ValueError, match="Unsupported 'strategy'"):
         strategy = Strategy.build(
             base_strategy=base_strategy,
-            strategy={"k": 9, "start_k": 7, "invalid_kwarg": 11},
-            adjacent_k=7,
+            strategy={"k": 9, "start_k": 7, "adjacent_k": 11},
         )
-        assert strategy == Eager(k=9, start_k=7, adjacent_k=7, max_depth=2)
+
 
 
 def test_build_strategy_base_override_mmr():

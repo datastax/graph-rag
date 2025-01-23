@@ -83,19 +83,8 @@ class Strategy(BaseModel, abc.ABC):
             if next(iter(kwargs.keys())) != "strategy":
                 raise ValueError("Error: 'strategy' must be set before other args.")
             strategy = kwargs.pop("strategy")
-            if isinstance(strategy, dict):
-                if base_strategy is None:
-                    raise ValueError("Unsupported 'strategy'")
-                invalid_keys = _invalid_keys(base_strategy, strategy)
-                if invalid_keys is not None:
-                    warnings.warn(
-                        f"Unsupported key(s) {invalid_keys} in 'strategy' dict."
-                    )
-
-                # Use `model_copy` to create a new instance. Note validation
-                # won't happen until below, where we recreate the model with
-                # `model_validate`.
-                strategy = base_strategy.model_copy(update=strategy)
+            if not isinstance(strategy, Strategy):
+                raise ValueError(f"Unsupported 'strategy' type {type(strategy).__name__}. Must be a sub-class of Strategy")
         elif base_strategy is not None:
             strategy = base_strategy
             if base_k:
