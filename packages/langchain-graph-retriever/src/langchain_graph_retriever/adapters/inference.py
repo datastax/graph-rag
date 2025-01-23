@@ -11,7 +11,7 @@ _KNOWN_STORES = {
         f"{ADAPTERS_PKG}.astra",
         "AstraAdapter",
     ),
-    "langchain_community.vectorstores.Cassandra": (
+    "langchain_community.vectorstores.cassandra.Cassandra": (
         f"{ADAPTERS_PKG}.cassandra",
         "CassandraAdapter",
     ),
