@@ -7,7 +7,7 @@ from .base import Adapter
 
 ADAPTERS_PKG = "langchain_graph_retriever.adapters"
 _KNOWN_STORES = {
-    "langchain_astradb.AstraDBVectorStore": (f"{ADAPTERS_PKG}.astra", "AstraAdapter"),
+    "langchain_astradb.vectorstores.AstraDBVectorStore": (f"{ADAPTERS_PKG}.astra", "AstraAdapter"),
     "langchain_community.vectorstores.Cassandra": (
         f"{ADAPTERS_PKG}.cassandra",
         "CassandraAdapter",
