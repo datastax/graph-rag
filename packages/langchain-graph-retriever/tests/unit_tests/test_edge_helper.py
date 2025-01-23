@@ -23,6 +23,7 @@ def test_get_incoming_outgoing_normalized():
         {"href": ["a", "c"], "url": ["b", "d"]}
     ) == ({Edge("url", "b"), Edge("url", "d")}, {Edge("url", "a"), Edge("url", "c")})
 
+
 def test_get_incoming_outgoing_denormalized():
     edge_helper = EdgeHelper(
         [("href", "url")],
