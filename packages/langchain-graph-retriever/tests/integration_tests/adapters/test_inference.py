@@ -4,7 +4,7 @@ from typing import Any, override
 
 import pytest
 from langchain_core.documents import Document
-from langchain_core.embeddings import FakeEmbeddings, Embeddings
+from langchain_core.embeddings import Embeddings, FakeEmbeddings
 from langchain_core.vectorstores import VectorStore
 from langchain_graph_retriever.adapters import Adapter, infer_adapter
 from tests.integration_tests.stores import StoreFactory
