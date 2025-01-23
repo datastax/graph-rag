@@ -90,11 +90,11 @@ class EdgeHelper:
                         if isinstance(item, BASIC_TYPES):
                             edges.add(Edge(target_key, item))
                         else:
-                            raise ValueError(
+                            warnings.warn(
                                 f"Unsupported item value {item} in '{source_key}'"
                             )
             elif value is not SENTINEL:
-                raise ValueError(f"Unsupported value {value} in '{source_key}'")
+                warnings.warn(f"Unsupported value {value} in '{source_key}'")
         return edges
 
     def _normalize_metadata(
