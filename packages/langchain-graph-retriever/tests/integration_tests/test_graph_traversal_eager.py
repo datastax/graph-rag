@@ -23,12 +23,10 @@ async def test_animals_bidir_collection_eager(animal_store: Adapter, invoker):
         strategy=Eager(k=100, start_k=2, max_depth=0),
     )
 
-    docs: list[Document] = await invoker(
-        retriever, ANIMALS_QUERY, strategy={"max_depth": 0}
-    )
+    docs: list[Document] = await invoker(retriever, ANIMALS_QUERY, max_depth=0)
     assert sorted_doc_ids(docs) == ANIMALS_DEPTH_0_EXPECTED
 
-    docs = await invoker(retriever, ANIMALS_QUERY, strategy={"max_depth": 1})
+    docs = await invoker(retriever, ANIMALS_QUERY, max_depth=1)
     assert sorted_doc_ids(docs) == [
         "cat",
         "coyote",
@@ -39,7 +37,7 @@ async def test_animals_bidir_collection_eager(animal_store: Adapter, invoker):
         "mongoose",
     ]
 
-    docs = await invoker(retriever, ANIMALS_QUERY, strategy={"max_depth": 2})
+    docs = await invoker(retriever, ANIMALS_QUERY, max_depth=2)
     assert sorted_doc_ids(docs) == [
         "alpaca",
         "bison",
@@ -108,7 +106,7 @@ async def test_animals_initial_roots(animal_store: Adapter, invoker):
         retriever,
         ANIMALS_QUERY,
         initial_roots=["bobcat"],
-        strategy={"max_depth": 0},
+        max_depth=0,
     )
 
     # bobcat is included (initial roots).
@@ -122,7 +120,7 @@ async def test_animals_initial_roots(animal_store: Adapter, invoker):
         retriever,
         ANIMALS_QUERY,
         initial_roots=["bobcat"],
-        strategy={"max_depth": 1},
+        max_depth=1,
     )
 
     assert sorted_doc_ids(docs) == [
@@ -136,7 +134,8 @@ async def test_animals_initial_roots(animal_store: Adapter, invoker):
         retriever,
         ANIMALS_QUERY,
         initial_roots=["bobcat", "cheetah"],
-        strategy={"k": 20, "max_depth": 1},
+        k=20,
+        max_depth=1,
     )
 
     assert sorted_doc_ids(docs) == [

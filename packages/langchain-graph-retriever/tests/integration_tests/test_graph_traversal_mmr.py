@@ -147,17 +147,17 @@ async def test_traversal_mem(invoker) -> None:
 
     # With max depth 0, no edges are traversed, so this doesn't reach v2 or v3.
     # So it ends up picking "v1" even though it's similar to "v0".
-    docs = await invoker(retriever, "0.0", strategy={"max_depth": 0})
+    docs = await invoker(retriever, "0.0", max_depth=0)
     assert sorted_doc_ids(docs) == ["v0", "v1"]
 
     # With max depth 0 but higher `start_k`, we encounter v2
-    docs = await invoker(retriever, "0.0", strategy={"start_k": 3, "max_depth": 0})
+    docs = await invoker(retriever, "0.0", start_k=3, max_depth=0)
     assert sorted_doc_ids(docs) == ["v0", "v2"]
 
     # v0 score is .46, v2 score is 0.16 so it won't be chosen.
-    docs = await invoker(retriever, "0.0", strategy={"score_threshold": 0.2})
+    docs = await invoker(retriever, "0.0", score_threshold=0.2)
     assert sorted_doc_ids(docs) == ["v0"]
 
     # with k=4 we should get all of the documents.
-    docs = await invoker(retriever, "0.0", strategy={"k": 4})
+    docs = await invoker(retriever, "0.0", k=4)
     assert sorted_doc_ids(docs) == ["v0", "v1", "v2", "v3"]
