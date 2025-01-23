@@ -1218,15 +1218,12 @@ docs = [
     { name = "ipykernel" },
     { name = "jupyterlab" },
     { name = "langchain-astradb" },
-    { name = "langchain-community" },
     { name = "langchain-graph-retriever" },
-    { name = "langchain-huggingface" },
     { name = "langchain-openai" },
     { name = "matplotlib" },
     { name = "nbclient" },
     { name = "nbformat" },
     { name = "quartodoc" },
-    { name = "sentence-transformers" },
 ]
 
 [package.metadata]
@@ -1241,15 +1238,12 @@ docs = [
     { name = "ipykernel", specifier = ">=6.29.5" },
     { name = "jupyterlab", specifier = ">=4.3.4" },
     { name = "langchain-astradb", specifier = ">=0.5.2" },
-    { name = "langchain-community", specifier = ">=0.3.14" },
     { name = "langchain-graph-retriever", editable = "packages/langchain-graph-retriever" },
-    { name = "langchain-huggingface", specifier = ">=0.1.2" },
     { name = "langchain-openai", specifier = ">=0.3.1" },
     { name = "matplotlib", specifier = ">=3.10.0" },
     { name = "nbclient", specifier = ">=0.10.2" },
     { name = "nbformat", specifier = ">=5.10.4" },
     { name = "quartodoc", specifier = ">=0.9.1" },
-    { name = "sentence-transformers", specifier = ">=3.3.1" },
 ]
 
 [[package]]
@@ -2225,22 +2219,6 @@ dev = [
     { name = "pytest-cov", specifier = ">=4.0.0" },
     { name = "simsimd", specifier = ">=6.2.1" },
     { name = "testcontainers", specifier = ">=4.9.0" },
-]
-
-[[package]]
-name = "langchain-huggingface"
-version = "0.1.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "huggingface-hub" },
-    { name = "langchain-core" },
-    { name = "sentence-transformers" },
-    { name = "tokenizers" },
-    { name = "transformers" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/a1/0f/8277d993d5307f06523e72c9bc8a505ed028f7b1c1e5276d8e89044b6036/langchain_huggingface-0.1.2.tar.gz", hash = "sha256:4a66d5c449298fd353bd84c9ed01f9bf4303bf2e4ffce14aab8c55c584eee57c", size = 16129 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/9d/f8/77a303ddc492f6eed8bf0979f2bc6db4fa6eb1089c5e9f0f977dd87bc9c2/langchain_huggingface-0.1.2-py3-none-any.whl", hash = "sha256:7de5cfcae32bfb6a99c084fc16176f02583a4f8d94febb6bb45bed5b34699174", size = 21251 },
 ]
 
 [[package]]
