@@ -88,11 +88,11 @@ vector_store = AstraDBVectorStore.from_documents(
 For our first retrieval and graph traversal, we're going to start with a single animal best matching the query, and then traverse to other animals with the same `habitat` and/or `origin`.
 
 ```{python}
-from langchain_graph_retriever import GraphTraversalRetriever
+from langchain_graph_retriever import GraphRetriever
 from langchain_graph_retriever.strategies import Eager
 from langchain_graph_retriever.adapters.astra import AstraAdapter
 
-simple = GraphTraversalRetriever(
+simple = GraphRetriever(
     # Adapt AstraDBVectorStore for use with Graph Retrievers.
     store = AstraAdapter(vector_store),
     # Define the relationships to navigate:
