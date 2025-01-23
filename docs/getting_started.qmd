@@ -106,10 +106,10 @@ The above creates a graph traversing retriever with starts with the nearest anim
 The edges define how metadata values can be used for traversal. In this case, every animal is connected to other animals with the same habitat and/or same origin.
 
 ```{python}
-simple_results = simple.invoke("what mammals come from the same region as the cassowary")
+simple_results = simple.invoke("what mammals could be found near a capybara")
 
 for doc in simple_results:
-    print(doc.page_content)
+    print(f"{doc.id}: {doc.page_content}")
 ```
 
 ## Visualizing
