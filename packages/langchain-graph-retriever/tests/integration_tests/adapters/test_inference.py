@@ -20,7 +20,10 @@ def test_infer_store(store_factory: StoreFactory) -> None:
     store = store_factory._create_store("foo", [doc], FakeEmbeddings(size=8))
 
     adapter = infer_adapter(store)
+
     assert isinstance(adapter, Adapter)
+    if store_factory._teardown:
+        store_factory._teardown(store)
 
 
 class UnsupportedVectorStore(VectorStore):
