@@ -27,19 +27,17 @@ There is a Makefile with some standard commands:
 
 ### Linting
 
-* `make fmt` Uses Ruff to format all code
-* `make check` Uses Ruff to check all code
-* `make fix` Uses Ruff to check and attempt to fix all code
-* `make mypy` Runs the Mypy static type check.
+* `uv run poe fmt` Uses Ruff to format all code
+* `uv run poe check` Uses Ruff to check all code
+* `uv run poe fix` Uses Ruff to check and attempt to fix all code
+* `uv run poe mypy` Runs the Mypy static type check.
 
-`make lint`: Does `fmt`, `fix`, and `mypy` in a single command
+`uv run poe lint`: Does `fmt`, `fix`, and `mypy` in a single command
 
 ### Testing
 
-* `make docker-up` Launch containers for integration tests
-* `make docker-down` Shutdown containers for integration tests
-* `make integration` Run integration tests
-* `make unit` Run unit tests
+* `uv run poe integration` Run integration tests
+* `uv run poe unit` Run unit tests
 
 ## Releasing
 
