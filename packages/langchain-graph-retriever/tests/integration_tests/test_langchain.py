@@ -2,7 +2,7 @@ from typing import Type
 
 from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore
-from langchain_graph_retriever import GraphTraversalRetriever
+from langchain_graph_retriever import GraphRetriever
 from langchain_graph_retriever.adapters.in_memory import InMemoryAdapter
 from langchain_graph_retriever.strategies import Eager
 from langchain_tests.integration_tests import RetrieversIntegrationTests
@@ -15,8 +15,8 @@ class TestGraphTraversalRetriever(RetrieversIntegrationTests):
         self.animal_docs = animal_docs
 
     @property
-    def retriever_constructor(self) -> Type[GraphTraversalRetriever]:
-        return GraphTraversalRetriever
+    def retriever_constructor(self) -> Type[GraphRetriever]:
+        return GraphRetriever
 
     @property
     def retriever_constructor_params(self) -> dict:
