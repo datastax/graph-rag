@@ -3,3 +3,6 @@ _sidebar.yml
 reference/
 ^reference/index.qmd
 _site
+*.quarto_ipynb
+*_files/execute-results
+*_files/figure-html
