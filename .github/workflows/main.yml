@@ -27,23 +27,23 @@ jobs:
         uses: ./.github/actions/setup-python-env
         id: setup
 
-      - name: Run `make fmt-check`
-        run: make fmt-check
+      - name: Run `fmt-check`
+        run: uv run poe fmt-check
         # Runs this as long as setup succeeds.
         if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
 
-      - name: Run `make check`
-        run: make check
+      - name: Run `check`
+        run: uv run poe check
         # Runs this as long as setup succeeds.
         if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
 
-      - name: Run `make check-lock`
-        run: make check-lock
+      - name: Run `check-lock`
+        run: uv run poe check-lock
         # Runs this as long as setup succeeds.
         if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
 
-      - name: Run `make deptry`
-        run: make deptry
+      - name: Run `deptry`
+        run: uv run poe deptry
         # Runs this as long as setup succeeds.
         if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
 
@@ -94,8 +94,8 @@ jobs:
             cd packages/langchain-graph-retriever && uv run pytest -vs .
                 --junitxml=junit/test-results-${{ matrix.python-version }}.xml
 
-      - name: Run `make mypy`
-        run: make mypy
+      - name: Run `mypy`
+        run: uv run poe mypy
 
       - name: Upload test results
         if: ${{ always() }}
@@ -120,7 +120,7 @@ jobs:
         run: uv sync --group=docs
 
       - name: Check if documentation can be built
-        run: make docs-build
+        run: uv run poe docs-build
         id: build
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
