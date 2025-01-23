@@ -20,7 +20,10 @@ _KNOWN_STORES = {
         f"{ADAPTERS_PKG}.in_memory",
         "InMemoryAdapter",
     ),
-    "langchain_community.vectorstores.opensearch_vector_search.OpenSearchVectorSearch": (
+    (
+        "langchain_community.vectorstores."
+        "opensearch_vector_search.OpenSearchVectorSearch"
+    ): (
         f"{ADAPTERS_PKG}.open_search",
         "OpenSearchAdapter",
     ),
