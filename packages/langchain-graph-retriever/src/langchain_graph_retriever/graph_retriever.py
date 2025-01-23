@@ -179,7 +179,7 @@ class _TraversalState:
 
 # this class uses pydantic, so store and edges
 # must be provided at init time.
-class GraphTraversalRetriever(BaseRetriever):
+class GraphRetriever(BaseRetriever):
     """Retriever combining vector-search and graph traversal."""
 
     store: Adapter
