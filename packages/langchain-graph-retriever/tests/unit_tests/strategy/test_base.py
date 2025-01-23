@@ -71,7 +71,6 @@ def test_build_strategy_base_override():
         )
 
 
-
 def test_build_strategy_base_override_mmr():
     base_strategy = Eager(k=6, start_k=5, adjacent_k=9, max_depth=2)
     override_strategy = Mmr(k=7, start_k=4, adjacent_k=8, max_depth=3, lambda_mult=0.3)

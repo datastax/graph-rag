@@ -84,7 +84,10 @@ class Strategy(BaseModel, abc.ABC):
                 raise ValueError("Error: 'strategy' must be set before other args.")
             strategy = kwargs.pop("strategy")
             if not isinstance(strategy, Strategy):
-                raise ValueError(f"Unsupported 'strategy' type {type(strategy).__name__}. Must be a sub-class of Strategy")
+                raise ValueError(
+                    f"Unsupported 'strategy' type {type(strategy).__name__}."
+                    " Must be a sub-class of Strategy"
+                )
         elif base_strategy is not None:
             strategy = base_strategy
             if base_k:
