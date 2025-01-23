@@ -4,6 +4,7 @@ from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_graph_retriever import GraphRetriever
 from langchain_graph_retriever.adapters.in_memory import InMemoryAdapter
 from langchain_tests.integration_tests import RetrieversIntegrationTests
+
 from tests.animal_docs import load_animal_docs
 from tests.embeddings.simple_embeddings import AnimalEmbeddings
 

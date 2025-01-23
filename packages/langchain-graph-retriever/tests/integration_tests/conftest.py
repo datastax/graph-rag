@@ -1,6 +1,7 @@
 import pytest
 from langchain_core.documents import Document
 from langchain_graph_retriever.adapters import Adapter
+
 from tests.embeddings import AnimalEmbeddings
 from tests.integration_tests.invoker import invoker
 

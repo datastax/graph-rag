@@ -7,6 +7,7 @@ from langchain_graph_retriever.adapters.in_memory import (
 from langchain_graph_retriever.strategies import (
     Mmr,
 )
+
 from tests.animal_docs import (
     ANIMALS_DEPTH_0_EXPECTED,
     ANIMALS_QUERY,
