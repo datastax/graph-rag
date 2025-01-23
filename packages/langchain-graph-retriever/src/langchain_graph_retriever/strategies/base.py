@@ -1,8 +1,10 @@
 """Define the base traversal strategy."""
 
+from __future__ import annotations
+
 import abc
 import warnings
-from typing import Any, Iterable, Optional
+from typing import Any, Iterable
 
 from pydantic import BaseModel
 
@@ -68,17 +70,16 @@ class Strategy(BaseModel, abc.ABC):
 
     @staticmethod
     def build(
-        base_strategy: Optional["Strategy"] = None,
-        base_k: int | None = None,
+        base_strategy: Strategy,
         **kwargs: Any,
-    ) -> "Strategy":
+    ) -> Strategy:
         """Build a strategy for an retrieval.
 
         Build a strategy for an retrieval from the base strategy, any strategy passed in
         the invocation, and any related key word arguments.
         """
         # Check if there is a new strategy to use. Otherwise, use the base.
-        strategy: Strategy | None = None
+        strategy: Strategy
         if "strategy" in kwargs:
             if next(iter(kwargs.keys())) != "strategy":
                 raise ValueError("Error: 'strategy' must be set before other args.")
@@ -90,8 +91,6 @@ class Strategy(BaseModel, abc.ABC):
                 )
         elif base_strategy is not None:
             strategy = base_strategy
-            if base_k:
-                strategy = strategy.model_copy(update={"k": base_k})
         else:
             raise ValueError("'strategy' must be set in `__init__` or invocation")
 

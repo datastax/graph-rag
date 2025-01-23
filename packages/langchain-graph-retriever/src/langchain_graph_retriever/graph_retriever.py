@@ -5,6 +5,7 @@ from typing import (
     Any,
     Iterable,
     List,
+    Self,
     Sequence,
     Tuple,
     Union,
@@ -12,12 +13,12 @@ from typing import (
 
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
-from pydantic import computed_field
+from pydantic import ConfigDict, computed_field, model_validator
 
 from .adapters.base import METADATA_EMBEDDING_KEY, Adapter
 from .edge_helper import Edge, EdgeHelper
 from .node import Node
-from .strategies.base import Strategy
+from .strategies import Eager, Strategy
 
 INFINITY = float("inf")
 
@@ -168,8 +169,26 @@ class GraphRetriever(BaseRetriever):
 
     store: Adapter
     edges: List[Union[str, Tuple[str, str]]]
-    strategy: Strategy | None = None
-    k: int | None = None
+    strategy: Strategy = Eager()
+
+    @computed_field
+    def k(self) -> int:
+        """Return the (maximum) number of documents which will be fetched."""
+        return self.strategy.k
+
+    # Capture the extra fields in `self.model_extra` rather than ignoring.
+    model_config = ConfigDict(extra="allow")
+
+    # Move the `k` extra argument (if any) to the strategy.
+    @model_validator(mode="after")
+    def apply_extra(self) -> Self:
+        """Apply the value of `k` to the strategy."""
+        if self.model_extra:
+            self.strategy = self.strategy.model_validate(
+                {**self.strategy.model_dump(), **self.model_extra}
+            )
+            self.model_extra.clear()
+        return self
 
     @computed_field  # type: ignore
     @cached_property
@@ -214,9 +233,7 @@ class GraphRetriever(BaseRetriever):
         """
         state = _TraversalState(
             edge_helper=self.edge_helper,
-            strategy=Strategy.build(
-                base_strategy=self.strategy, base_k=self.k, **kwargs
-            ),
+            strategy=Strategy.build(base_strategy=self.strategy, **kwargs),
         )
 
         # Retrieve initial candidates.
@@ -283,9 +300,7 @@ class GraphRetriever(BaseRetriever):
         """
         state = _TraversalState(
             edge_helper=self.edge_helper,
-            strategy=Strategy.build(
-                base_strategy=self.strategy, base_k=self.k, **kwargs
-            ),
+            strategy=Strategy.build(base_strategy=self.strategy, **kwargs),
         )
 
         # Retrieve initial candidates and initialize state.
