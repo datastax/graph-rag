@@ -1,11 +1,12 @@
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, override
 
 from langchain_core.documents import BaseDocumentTransformer, Document
 
 
 class GLiNEREntityExtractor(BaseDocumentTransformer):
-    """Add metadata to documents about named entities using `GLiNER`_.
+    """
+    Add metadata to documents about named entities using `GLiNER`_.
 
     `GLiNER`_ is a Named Entity Recognition (NER) model capable of identifying any
     entity type using a bidirectional transformer encoder (BERT-like).
@@ -22,7 +23,7 @@ class GLiNEREntityExtractor(BaseDocumentTransformer):
 
         pip install -q langchain_community bs4 gliner
 
-    Example:
+    Example
     -------
     We load the ``state_of_the_union.txt`` file, chunk it, then for each chunk we
     add named entities to the metadata.
@@ -50,11 +51,18 @@ class GLiNEREntityExtractor(BaseDocumentTransformer):
 
         {'source': 'https://raw.githubusercontent.com/hwchase17/chat-your-data/master/state_of_the_union.txt', 'person': ['president zelenskyy', 'vladimir putin']}
 
-    Args:
-        labels: List of entity kinds to extract.
-        batch_size: The number of documents to process in each batch (default ``8``)
-        metadata_key_prefix: A prefix to add to metadata keys outputted by the extractor (default ``""``)
-        model: The GLiNER model to use. (default ``urchade/gliner_mediumv2.1``)
+    Parameters
+    ----------
+    labels : list[str]
+        List of entity kinds to extract.
+    batch_size : int, default 8
+        The number of documents to process in each batch.
+    metadata_key_prefix : str, default ""
+        A prefix to add to metadata keys outputted by the extractor.
+        This will be prepended to the label, with the value (or values) holding the
+        generated keywords for that entity kind.
+    model : str, default "urchade/gliner_mediumv2.1"
+        The GLiNER model to use.
 
     """  # noqa: E501
 
@@ -81,16 +89,10 @@ class GLiNEREntityExtractor(BaseDocumentTransformer):
         self._labels = labels
         self.metadata_key_prefix = metadata_key_prefix
 
+    @override
     def transform_documents(
         self, documents: Sequence[Document], **kwargs: Any
     ) -> Sequence[Document]:
-        """Extract named entities from documents using GLiNER.
-
-        Args:
-            documents: The sequence of documents to transform
-            kwargs: Keyword arguments to pass to GLiNER. See: https://github.com/urchade/GLiNER/blob/v0.2.13/gliner/model.py#L419-L421
-
-        """
         for i in range(0, len(documents), self._batch_size):
             batch = documents[i : i + self._batch_size]
             texts = [item.page_content for item in batch]

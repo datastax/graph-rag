@@ -49,17 +49,20 @@ def infer_adapter(store: Adapter | VectorStore) -> Adapter:
     This function identifies the correct adapter based on the vector store type
     and instantiates it with the provided arguments.
 
-    Args:
-        vector_store (VectorStore): The vector store instance.
-        **kwargs: Additional keyword arguments for the adapter initialization.
+    Parameters
+    ----------
+    vector_store : VectorStore
+        The vector store instance.
 
     Returns
     -------
-        Any: The initialized adapter for the given vector store.
+    Any
+        The initialized adapter for the given vector store.
 
     Raises
     ------
-        ValueError: If the vector store type is not recognized.
+    ValueError
+        If the vector store type is not recognized.
     """
     if isinstance(store, Adapter):
         return store

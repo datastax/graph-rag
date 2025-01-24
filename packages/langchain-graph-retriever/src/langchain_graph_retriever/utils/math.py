@@ -10,29 +10,35 @@ Matrix = list[list[float]] | list[np.ndarray] | np.ndarray
 
 
 def cosine_similarity(X: Matrix, Y: Matrix) -> np.ndarray:
-    """Compute row-wise cosine similarity between two equal-width matrices.
+    """
+    Compute row-wise cosine similarity between two equal-width matrices.
 
-    Args:
-        X (Matrix): A matrix of shape (m, n), where `m` is the number of rows and
-            `n` is the number of columns (features).
-        Y (Matrix): A matrix of shape (p, n), where `p` is the number of rows and
-            `n` is the number of columns (features).
+    Parameters
+    ----------
+    X : Matrix
+        A matrix of shape (m, n), where `m` is the number of rows and `n` is the
+        number of columns (features).
+    Y : Matrix
+        A matrix of shape (p, n), where `p` is the number of rows and `n` is the
+        number of columns (features).
 
     Returns
     -------
-        np.ndarray: A matrix of shape (m, p) containing the cosine similarity scores
+    np.ndarray
+        A matrix of shape (m, p) containing the cosine similarity scores
         between each row of `X` and each row of `Y`.
 
     Raises
     ------
-        ValueError: If the number of columns in `X` and `Y` are not equal.
+    ValueError
+        If the number of columns in `X` and `Y` are not equal.
 
     Notes
     -----
-        - If the `simsimd` library is available, it will be used for performance
-          optimization. Otherwise, the function falls back to a NumPy implementation.
-        - Divide-by-zero and invalid values in similarity calculations are replaced
-          with 0.0 in the output.
+    - If the `simsimd` library is available, it will be used for performance
+      optimization. Otherwise, the function falls back to a NumPy implementation.
+    - Divide-by-zero and invalid values in similarity calculations are replaced
+      with 0.0 in the output.
     """
     if len(X) == 0 or len(Y) == 0:
         return np.array([])
@@ -71,34 +77,40 @@ def cosine_similarity_top_k(
     top_k: int | None = 5,
     score_threshold: float | None = None,
 ) -> tuple[list[tuple[int, int]], list[float]]:
-    """Compute cosine similarity with filtering for top-k results and a score threshold.
+    """
+    Compute cosine similarity with filtering for top-k results and a score threshold.
 
     This function calculates the row-wise cosine similarity between two matrices and
     returns the indices and scores of the top results based on the provided
     parameters.
 
-    Args:
-        X (Matrix): A matrix of shape (m, n), where `m` is the number of rows and
-            `n` is the number of columns (features).
-        Y (Matrix): A matrix of shape (p, n), where `p` is the number of rows and
-            `n` is the number of columns (features).
-        top_k (int | None, optional): The maximum number of results to return.
-            Defaults to 5. If None, returns all results above the score threshold.
-        score_threshold (float | None, optional): Minimum cosine similarity score
-            for results to be included. Defaults to -1.0.
+    Parameters
+    ----------
+    X : Matrix
+        A matrix of shape (m, n), where `m` is the number of rows and `n` is the
+        number of columns (features).
+    Y : Matrix
+        A matrix of shape (p, n), where `p` is the number of rows and `n` is the
+        number of columns (features).
+    top_k : int, default 5
+        The maximum number of results to return. If `None`, returns all results
+        above the score threshold.
+    score_threshold: float, default -1.0
+        Minimum cosine similarity score for results to be included.
 
     Returns
     -------
-        tuple[list[tuple[int, int]], list[float]]:
-            - A list of index pairs (X_idx, Y_idx) corresponding to the highest
-              similarity scores.
-            - A list of the corresponding similarity scores.
+    indices : list[tuple[int, int]]
+        A list of index pairs (X_idx, Y_idx) corresponding to the highest
+        similarity scores.
+    scores : list[float]
+        A list of the corresponding similarity scores.
 
     Notes
     -----
-        - If `top_k` is None or greater than the number of valid scores, all scores
-          above the threshold will be returned.
-        - The results are sorted in descending order of similarity scores.
+    - If `top_k` is None or greater than the number of valid scores, all scores
+      above the threshold will be returned.
+    - The results are sorted in descending order of similarity scores.
     """
     if len(X) == 0 or len(Y) == 0:
         return [], []

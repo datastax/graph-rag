@@ -1,13 +1,14 @@
 """Denormalizer for sequence-based metadata fields."""
 
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, override
 
 from langchain_core.documents import BaseDocumentTransformer, Document
 
 
 class MetadataDenormalizer(BaseDocumentTransformer):
-    """Denormalizes sequence-based metadata fields.
+    """
+    Denormalizes sequence-based metadata fields.
 
     Certain vector stores do not support storing or searching on metadata fields
     with sequence-based values. This transformer converts sequence-based fields
@@ -39,11 +40,15 @@ class MetadataDenormalizer(BaseDocumentTransformer):
 
         {'place.berlin': True, 'place.paris': True, 'topic.weather': True}
 
-    Args:
-        keys: A set of metadata keys to denormalize. If empty, all
-            sequence-based fields will be denormalized.
-        path_delimiter: The path delimiter to use when building denormalized keys.
-        static_value: The value to set on each denormalized key.
+    Parameters
+    ----------
+    keys : set[str], optional:
+        A set of metadata keys to denormalize.
+        If empty, all sequence-based fields will be denormalized.
+    path_delimiter : str, default "."
+        The path delimiter to use when building denormalized keys.
+    static_value : str, default "$"
+        The value to set on each denormalized key.
 
     """  # noqa: E501
 
@@ -54,24 +59,14 @@ class MetadataDenormalizer(BaseDocumentTransformer):
         path_delimiter: str = ".",
         static_value: Any = "$",
     ):
-        """Create a metadata denormalizing transformation.
-
-        Args:
-            keys: The set of keys to denormalize. If empty (default), all metadata
-                entries containing a collection will be denormalized.
-            path_delimiter: The delimiter to use in the denormalized key between the
-                original key and the item value.
-            static_value: The value to use the denormalized metadata entries.
-
-        """
         self.keys = keys
         self.path_delimiter = path_delimiter
         self.static_value = static_value
 
+    @override
     def transform_documents(
         self, documents: Sequence[Document], **kwargs: Any
     ) -> Sequence[Document]:
-        """Denormalizes sequence-based metadata fields."""
         transformed_docs = []
         for document in documents:
             new_doc = Document(id=document.id, page_content=document.page_content)

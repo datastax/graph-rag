@@ -8,26 +8,32 @@ from .edge_helper import Edge
 
 @dataclass
 class Node:
-    """Represents a node in the traversal graph.
+    """
+    Represents a node in the traversal graph.
 
     The `Node` class contains information about a document during graph traversal,
     including its depth, embedding, edges, and metadata.
 
     Attributes
     ----------
-        id (str): The unique identifier of the document represented by this node.
-        depth (int): The depth (number of edges) through which this node was discovered.
-            This depth may not reflect the true depth in the full graph if only a subset
-            of edges is retrieved.
-        embedding (list[float]): The embedding vector of the document, used for
-            similarity calculations.
-        incoming_edges (set[Edge]): The set of edges pointing to this node.
-        outgoing_edges (set[Edge]): The set of edges originating from this node.
-        metadata (dict[str, Any]): Metadata from the original document. This is a
-            reference to the original document metadata and should not be modified
-            directly.
-        extra_metadata (dict[str, Any]): Additional metadata to override or augment
-            the original document metadata during traversal.
+    id : str
+        The unique identifier of the document represented by this node.
+    depth : int
+        The depth (number of edges) through which this node was discovered. This
+        depth may not reflect the true depth in the full graph if only a subset
+        of edges is retrieved.
+    embedding : list[float])
+        The embedding vector of the document, used for similarity calculations.
+    incoming_edges : set[Edge]
+        The set of edges pointing to this node.
+    outgoing_edges : set[Edge]
+        The set of edges originating from this node.
+    metadata : dict[str, Any]
+        Metadata from the original document. This is a reference to the original
+        document metadata and should not be modified directly.
+    extra_metadata : dict[str, Any]
+        Additional metadata to override or augment the original document
+        metadata during traversal.
     """
 
     id: str

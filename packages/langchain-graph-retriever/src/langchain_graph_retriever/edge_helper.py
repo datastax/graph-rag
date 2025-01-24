@@ -14,7 +14,8 @@ SENTINEL = object()
 
 
 class Edge(NamedTuple):
-    """Represents an edge to all nodes with the given key/value pair.
+    """
+    Represents an edge to all nodes with the given key/value pair.
 
     Attributes
     ----------
@@ -29,7 +30,8 @@ class Edge(NamedTuple):
 
 
 class EdgeHelper:
-    """Helper for extracting and encoding edges in metadata.
+    """
+    Helper for extracting and encoding edges in metadata.
 
     This class provides tools to extract incoming and outgoing edges from document
     metadata and normalize metadata where needed. Both incoming and outgoing edges
@@ -104,23 +106,27 @@ class EdgeHelper:
         warn_normalized: bool = False,
         incoming: bool = False,
     ) -> set[Edge]:
-        """Extract edges from the metadata based on declared edge definitions.
+        """
+        Extract edges from the metadata based on declared edge definitions.
 
-        Args:
-            metadata (dict[str, Any]): The metadata dictionary to process.
-            warn_normalized (bool, optional): If True, warnings are issued for
-                normalized metadata. Defaults to False.
-            incoming (bool, optional): If True, extracts edges for incoming
-                relationships. Defaults to False.
+        Parameters
+        ----------
+        metadata :dict[str, Any]
+            The metadata dictionary to process.
+        warn_normalized : bool, default False
+            If True, warnings are issued for normalized metadata.
+        incoming : bool, default False
+            If True, extracts edges for incoming relationships.
 
         Returns
         -------
-            set[Edge]: A set of edges extracted from the metadata.
+        set[Edge]
+            A set of edges extracted from the metadata.
 
         Notes
         -----
-            - Handles both simple (key-value) and iterable metadata fields.
-            - Issues warnings for unsupported or unexpected values.
+        - Handles both simple (key-value) and iterable metadata fields.
+        - Issues warnings for unsupported or unexpected values.
         """
         edges = set()
         for source_key, target_key in self.edges:
@@ -150,20 +156,23 @@ class EdgeHelper:
     def _normalize_metadata(
         self, denormalized_metadata: dict[str, Any]
     ) -> dict[str, Any]:
-        """Normalize metadata by extracting key-value pairs based on the delimiter.
+        """
+        Normalize metadata by extracting key-value pairs based on the delimiter.
 
-        Args:
-            denormalized_metadata (dict[str, Any]): The denormalized metadata
-                dictionary.
+        Parameters
+        ----------
+        denormalized_metadata : dict[str, Any]
+            The denormalized metadata dictionary.
 
         Returns
         -------
-            dict[str, Any]: A dictionary containing normalized key-value pairs.
+        dict[str, Any]
+            A dictionary containing normalized key-value pairs.
 
         Notes
         -----
-            - Only processes keys with the `denormalized_static_value`.
-            - Skips items that cannot be compared or are invalid.
+        - Only processes keys with the `denormalized_static_value`.
+        - Skips items that cannot be compared or are invalid.
         """
         normalized: dict[str, Any] = {}
         for key, value in denormalized_metadata.items():
@@ -182,20 +191,24 @@ class EdgeHelper:
     def get_incoming_outgoing(
         self, metadata: dict[str, Any]
     ) -> tuple[set[Edge], set[Edge]]:
-        """Extract incoming and outgoing edges from metadata.
+        """
+        Extract incoming and outgoing edges from metadata.
 
         This method retrieves edges based on the declared edge definitions, taking
         into account whether normalized metadata is used. It combines normalized
         and denormalized edge data as needed.
 
-        Args:
-            metadata (dict[str, Any]): The metadata dictionary to extract edges from.
+        Parameters
+        ----------
+        metadata : dict[str, Any]
+            The metadata dictionary to extract edges from.
 
         Returns
         -------
-            tuple[set[Edge], set[Edge]]: A tuple containing:
-                - Incoming edges as a set of `Edge` objects.
-                - Outgoing edges as a set of `Edge` objects.
+        incoming : set[Edge]
+            Incoming edges as a set of `Edge` objects.
+        outgoing : set[Edge]
+            Outgoing edges as a set of `Edge` objects.
         """
         warn_normalized = not self.use_normalized_metadata
         outgoing_edges = self._edges_from_dict(

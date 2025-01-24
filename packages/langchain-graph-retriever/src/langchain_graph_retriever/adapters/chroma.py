@@ -21,10 +21,14 @@ class ChromaAdapter(Adapter[Chroma]):
     This adapter integrates the Chroma vector store with the graph retriever system,
     allowing for similarity search and document retrieval.
 
-    Args:
-        vector_store (Chroma): The Chroma vector store instance.
-        denormalized_path_delimiter (str): Delimiter for denormalized metadata keys.
-        denormalized_static_value (str): Value to use for denormalized metadata entries.
+    Parameters
+    ----------
+    vector_store : Chroma
+        The Chroma vector store instance.
+    denormalized_path_delimiter : str, default "."
+        Delimiter for denormalized metadata keys.
+    denormalized_static_value : str, default "$"
+        Value to use for denormalized metadata entries.
     """
 
     def __init__(
@@ -93,7 +97,6 @@ class ChromaAdapter(Adapter[Chroma]):
 
     @override
     def get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
-        """Get documents by id."""
         results = self.vector_store.get(
             ids=list(ids), include=["embeddings", "metadatas", "documents"], **kwargs
         )

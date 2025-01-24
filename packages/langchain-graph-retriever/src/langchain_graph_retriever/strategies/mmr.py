@@ -42,37 +42,55 @@ class _MmrCandidate:
 
 
 class Mmr(Strategy):
-    """Maximal Marginal Relevance (MMR) traversal strategy.
+    """
+    Maximal Marginal Relevance (MMR) traversal strategy.
 
     This strategy selects nodes by balancing relevance to the query and diversity
     among the results. It uses a `lambda_mult` parameter to control the trade-off
     between relevance and redundancy. Nodes are scored based on their similarity
     to the query and their distance from already selected nodes.
 
+    Parameters
+    ----------
+    k : int, default 5
+        Maximum number of nodes to retrieve during traversal.
+    start_k : int, default 4
+        Number of documents to fetch via similarity for starting the traversal.
+        Added to any initial roots provided to the traversal.
+    adjacent_k : int, default 10
+        Number of documents to fetch for each outgoing edge.
+    max_depth : int, optional
+        Maximum traversal depth. If `None`, there is no limit.
+    lambda_mult : float, default 0.5
+        Controls the trade-off between relevance and diversity. A value closer
+        to 1 prioritizes relevance, while a value closer to 0 prioritizes
+        diversity. Must be between 0 and 1 (inclusive).
+    score_threshold : float, default -infinity
+        Only nodes with a score greater than or equal to this value will be
+        selected.
+
     Attributes
     ----------
-        k (int): Number of nodes to retrieve during traversal. Default is 5.
-        start_k (int): Number of initial documents to fetch via similarity, added
-            to any specified starting nodes. Default is 4.
-        adjacent_k (int): Number of adjacent documents to fetch for each outgoing edge.
-            Default is 10.
-        max_depth (int | None): Maximum traversal depth. If None, there is no limit.
-        query_embedding (list[float]): Embedding vector for the query.
-        lambda_mult (float): Controls the trade-off between relevance and diversity.
-            A value closer to 1 prioritizes relevance, while a value closer to 0
-            prioritizes diversity. Must be between 0 and 1 (inclusive). Default is 0.5.
-        score_threshold (float): Only nodes with a score greater than or equal to this
-            value will be selected. Default is -infinity.
+    k : int
+        Maximum number of nodes to retrieve during traversal.
+    start_k : int
+        Number of documents to fetch via similarity for starting the traversal.
+        Added to any initial roots provided to the traversal.
+    adjacent_k : int
+        Number of documents to fetch for each outgoing edge.
+    max_depth : int
+        Maximum traversal depth. If `None`, there is no limit.
+    lambda_mult : float
+        Controls the trade-off between relevance and diversity. A value closer
+        to 1 prioritizes relevance, while a value closer to 0 prioritizes
+        diversity. Must be between 0 and 1 (inclusive).
+    score_threshold : float
+        Only nodes with a score greater than or equal to this value will be
+        selected.
     """
 
     lambda_mult: float = Field(default=0.5, ge=0.0, le=1.0)
-    """Number between 0 and 1.
-
-    Determines the degree of diversity among the results with 0 corresponding to
-    maximum diversity and 1 to minimum diversity."""
-
     score_threshold: float = NEG_INF
-    """Only documents with a score greater than or equal to this will be chosen."""
 
     _selected_ids: list[str] = []
     """List of selected IDs (in selection order)."""
@@ -91,9 +109,9 @@ class Mmr(Strategy):
     @cached_property
     def _nd_query_embedding(self) -> NDArray[np.float32]:
         assert (
-            self.query_embedding
+            self._query_embedding
         ), "shouldn't access embedding / dimensions until initialized"
-        return _emb_to_ndarray(self.query_embedding)
+        return _emb_to_ndarray(self._query_embedding)
 
     @property
     def _dimensions(self) -> int:
@@ -105,31 +123,75 @@ class Mmr(Strategy):
 
     @cached_property
     def _selected_embeddings(self) -> NDArray[np.float32]:
-        """(N, dim) ndarray with a row for each selected node."""
+        """
+        (N, dim) ndarray with a row for each selected node.
+
+        Returns
+        -------
+        NDArray[np.float32]
+            (N, dim) ndarray with a row for each selected node.
+        """
         return np.ndarray((self.k, self._dimensions), dtype=np.float32)
 
     @cached_property
     def _candidate_embeddings(self) -> NDArray[np.float32]:
-        """(N, dim) ndarray with a row for each candidate."""
+        """
+        (N, dim) ndarray with a row for each candidate.
+
+        Returns
+        -------
+        NDArray[np.float32]
+            (N, dim) ndarray with a row for each candidate.
+        """
         return np.ndarray((0, self._dimensions), dtype=np.float32)
 
     def candidate_ids(self) -> Iterable[str]:
-        """Return the IDs of the candidates."""
+        """
+        Return the IDs of the candidates.
+
+        Returns
+        -------
+        Iterable[str]
+            The IDs of the candidates.
+        """
         return self._candidate_id_to_index.keys()
 
     def _already_selected_embeddings(self) -> NDArray[np.float32]:
-        """Return the selected embeddings sliced to the already assigned values."""
+        """
+        Return the selected embeddings sliced to the already assigned values.
+
+        Returns
+        -------
+        NDArray[np.float32]
+            The selected embeddings sliced to the already assigned values.
+        """
         selected = len(self._selected_ids)
         return np.vsplit(self._selected_embeddings, [selected])[0]
 
     def _pop_candidate(
         self, candidate_id: str
     ) -> tuple[_MmrCandidate, NDArray[np.float32]]:
-        """Pop the candidate with the given ID.
+        """
+        Pop the candidate with the given ID.
+
+        Parameters
+        ----------
+        candidate_id : str
+            The ID of the candidate to pop.
 
         Returns
         -------
-            The document, similarity score, and embedding of the candidate.
+        candidate : _MmrCandidate
+            The candidate with the given ID.
+        embedding : NDArray[np.float32]
+            The `NDArray` embedding of the candidate.
+
+        Raises
+        ------
+        ValueError
+            If `self._candidates[self._candidate_id_to_index[candidate_id]].id`
+            does not match `candidate_id`. This would indicate an internal
+            book-keeping error in the positions of candidates.
         """
         # Get the embedding for the id.
         index = self._candidate_id_to_index.pop(candidate_id)
@@ -163,7 +225,8 @@ class Mmr(Strategy):
 
     @override
     def select_nodes(self, *, limit: int) -> Iterable[Node]:
-        """Select and pop the best item being considered.
+        """
+        Select and pop the best item being considered.
 
         Updates the consideration set based on it.
 

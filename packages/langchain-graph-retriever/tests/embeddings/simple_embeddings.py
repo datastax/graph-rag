@@ -23,9 +23,19 @@ class Angular2DEmbeddings(BaseEmbeddings):
     def embed_query(self, text: str) -> list[float]:
         """
         Convert input text to a 'vector' (list of floats).
-        If the text is a number, use it as the angle for the
-        unit vector in units of pi.
-        Any other input text becomes the singular result [0, 0] !
+
+        Parameters
+        ----------
+        text: str
+            The text to embed.
+
+        Returns
+        -------
+        list[float]
+            If the text is a number, use it as the angle for the unit vector in
+            units of pi.
+
+            Any other input text becomes the singular result `[0, 0]`.
         """
         try:
             angle = float(text)

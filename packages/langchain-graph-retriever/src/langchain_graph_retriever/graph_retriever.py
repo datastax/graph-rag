@@ -21,7 +21,8 @@ from .strategies import Eager, Strategy
 
 # this class uses pydantic, so store must be provided at init time.
 class GraphRetriever(BaseRetriever):
-    """Retriever combining vector search and graph traversal.
+    """
+    Retriever combining vector search and graph traversal.
 
     The `GraphRetriever` class performs retrieval by first using vector search to find
     relevant documents, and then applying graph traversal to explore connected
@@ -34,9 +35,10 @@ class GraphRetriever(BaseRetriever):
         The vector store or adapter used for document retrieval.
     edges : list[str | tuple[str, str]]
         Definitions of edges used for graph traversal.
-    strategy : Strategy
-        The traversal strategy to use. Defaults to an `Eager`
-        (breadth-first) strategy.
+    strategy : Strategy, default Eager()
+        The traversal strategy to use.
+        Defaults to an `Eager` (breadth-first) strategy which explores
+        the top `adjacent_k` for each edge.
 
     Attributes
     ----------
@@ -58,7 +60,8 @@ class GraphRetriever(BaseRetriever):
     # Move the `k` extra argument (if any) to the strategy.
     @model_validator(mode="after")
     def apply_extra(self) -> Self:
-        """Apply extra configuration to the traversal strategy.
+        """
+        Apply extra configuration to the traversal strpategy.
 
         This method captures additional fields provided in `model_extra` and applies
         them to the current traversal strategy. Any extra fields are cleared after
@@ -66,7 +69,8 @@ class GraphRetriever(BaseRetriever):
 
         Returns
         -------
-            Self: The updated `GraphRetriever` instance.
+        Self
+            The updated `GraphRetriever` instance.
         """
         if self.model_extra:
             self.strategy = self.strategy.model_validate(
@@ -78,15 +82,18 @@ class GraphRetriever(BaseRetriever):
     def _edge_helper(
         self, edges: list[str | tuple[str, str]] | None = None
     ) -> EdgeHelper:
-        """Create an `EdgeHelper` instance for managing edges during traversal.
+        """
+        Create an `EdgeHelper` instance for managing edges during traversal.
 
-        Args:
-            edges (list[str | tuple[str, str]] | None): Optional edge definitions.
-                If not provided, uses the default edge definitions from the retriever.
+        Parameters
+        ----------
+        edges : list[str | tuple[str, str]], optional
+            Overridden edge definitions from the invocation.
 
         Returns
         -------
-            EdgeHelper: An instance of `EdgeHelper` configured with the specified edges.
+        EdgeHelper
+            An instance of `EdgeHelper` configured with the specified edges.
         """
         return EdgeHelper(
             edges=self.edges if edges is None else edges,
@@ -111,25 +118,32 @@ class GraphRetriever(BaseRetriever):
         store_kwargs: dict[str, Any] = {},
         **kwargs: Any,
     ) -> list[Document]:
-        """Retrieve doc nodes using graph traversal and similarity search.
+        """
+        Retrieve doc nodes using graph traversal and similarity search.
 
         This method first retrieves documents based on similarity to the query, and
         then applies a traversal strategy to explore connected nodes in the graph.
 
-        Args:
-            query (str): The query string to search for.
-            edges (list[str | tuple[str, str]] | None): Optional edge definitions for
-                this retrieval.
-            initial_roots (Sequence[str]): Document IDs to use as initial roots. The top
-                `adjacent_k` nodes connected to each root are included in the initial
-                candidates.
-            filter (dict[str, Any] | None): Optional metadata filter to apply.
-            store_kwargs (dict[str, Any]): Additional keyword arguments for the store.
-            **kwargs (Any): Additional arguments for configuring the traversal strategy.
+        Parameters
+        ----------
+        query : str
+            The query string to search for.
+        edges : list[str | tuple[str, str]], optional
+            Optional edge definitions for this retrieval.
+        initial_roots : Sequence[str]
+            Document IDs to use as initial roots. The top `adjacent_k` nodes
+            connected to each root are included in the initial candidates.
+        filter : dict[str, Any], optional
+            Optional metadata filter to apply.
+        store_kwargs : dict[str, Any], optional
+            Additional keyword arguments for the store.
+        **kwargs : Any
+            Additional arguments for configuring the traversal strategy.
 
         Returns
         -------
-            list[Document]: The retrieved documents.
+        list[Document]
+            The retrieved documents.
         """
         traversal = Traversal(
             query=query,
@@ -159,20 +173,26 @@ class GraphRetriever(BaseRetriever):
         This method first retrieves documents based on similarity to the query, and
         then applies a traversal strategy to explore connected nodes in the graph.
 
-        Args:
-            query (str): The query string to search for.
-            edges (list[str | tuple[str, str]] | None): Optional edge definitions for
-                this retrieval.
-            initial_roots (Sequence[str]): Document IDs to use as initial roots. The top
-                `adjacent_k` nodes connected to each root are included in the initial
-                candidates.
-            filter (dict[str, Any] | None): Optional metadata filter to apply.
-            store_kwargs (dict[str, Any]): Additional keyword arguments for the store.
-            **kwargs (Any): Additional arguments for configuring the traversal strategy.
+        Parameters
+        ----------
+        query : str
+            The query string to search for.
+        edges : list[str | tuple[str, str]], optional
+            Override edge definitions for this invocation.
+        initial_roots : Sequence[str]
+            Document IDs to use as initial roots. The top `adjacent_k` nodes
+            connected to each root are included in the initial candidates.
+        filter : dict[str, Any], optional
+            Optional metadata filter to apply.
+        store_kwargs : dict[str, Any], optional
+            Additional keyword arguments for the store.
+        **kwargs : Any
+            Additional arguments for configuring the traversal strategy.
 
         Returns
         -------
-            list[Document]: The retrieved documents.
+        list[Document]
+            The retrieved documents.
         """
         traversal = Traversal(
             query=query,

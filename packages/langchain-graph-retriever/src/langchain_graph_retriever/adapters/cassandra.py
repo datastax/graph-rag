@@ -20,10 +20,14 @@ class CassandraAdapter(Adapter[Cassandra]):
     This class integrates the Cassandra vector store with the graph retriever system,
     providing functionality for similarity search and document retrieval.
 
-    Args:
-        vector_store (Cassandra): The Cassandra vector store instance.
-        denormalized_path_delimiter (str): Delimiter for denormalized metadata keys.
-        denormalized_static_value (str): Value to use for denormalized metadata entries.
+    Parameters
+    ----------
+    vector_store : Cassandra
+        The Cassandra vector store instance.
+    denormalized_path_delimiter : str, default "."
+        Delimiter for denormalized metadata keys.
+    denormalized_static_value : str, default "$"
+        Value to use for denormalized metadata entries.
     """
 
     def __init__(
@@ -68,21 +72,6 @@ class CassandraAdapter(Adapter[Cassandra]):
         filter: dict[str, str] | None = None,
         body_search: str | list[str] | None = None,
     ) -> list[tuple[Document, list[float], str]]:
-        """
-        Return documents most similar to the embedding vector, including their IDs.
-
-        Args:
-            embedding (list[float]): The query embedding vector.
-            k (int): Number of top documents to retrieve. Defaults to 4.
-            filter (dict[str, str] | None): Metadata filter to apply.
-            body_search (str | list[str] | None): Textual search terms. Supported only
-                by Astra DB.
-
-        Returns
-        -------
-            list[tuple[Document, list[float], str]]: List of tuples containing
-                documents, embeddings, and IDs.
-        """
         kwargs: dict[str, Any] = {}
         if filter is not None:
             kwargs["metadata"] = filter
@@ -152,16 +141,6 @@ class CassandraAdapter(Adapter[Cassandra]):
         return docs
 
     def _get_by_document_id(self, id: str) -> Document | None:
-        """
-        Retrieve a document by its ID.
-
-        Args:
-            id (str): The document ID.
-
-        Returns
-        -------
-            Document | None: The retrieved document, or None if not found.
-        """
         row = self.vector_store.table.get(row_id=id)
         if row is None:
             return None
@@ -184,16 +163,6 @@ class CassandraAdapter(Adapter[Cassandra]):
         return docs
 
     async def _aget_by_document_id(self, id: str) -> Document | None:
-        """
-        Asynchronously retrieve a document by its ID.
-
-        Args:
-            id (str): The document ID.
-
-        Returns
-        -------
-            Document | None: The retrieved document, or None if not found.
-        """
         row = await self.vector_store.table.aget(row_id=id)
         if row is None:
             return None

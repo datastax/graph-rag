@@ -19,11 +19,16 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
     """
     Adapter for AstraDBVectorStore.
 
-    This adapter integrates the AstraDB vector store with the graph retriever system,
-    enabling similarity search and document retrieval.
+    This adapter provides DataStax AstraDB support for the graph retriever
+    system, enabling similarity search and document retrieval.
 
-    Args:
-        vector_store (AstraDBVectorStore): The AstraDB vector store instance.
+    It supports normalized metadata (collections of values) without
+    denormalization.
+
+    Parameters
+    ----------
+    vector_store : AstraDBVectorStore
+        The AstraDB vector store instance.
     """
 
     def __init__(self, vector_store: AstraDBVectorStore):
@@ -128,13 +133,15 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         """
         Retrieve a document by its ID, including its embedding.
 
-        Args:
-            document_id (str): The document ID.
+        Parameters
+        ----------
+        document_id : str
+            The document ID.
 
         Returns
         -------
-            Document | None: The retrieved document with embedding, or None if not
-                found.
+        Document | None
+            The retrieved document with embedding, or `None` if not found.
         """
         self.vector_store.astra_env.ensure_db_setup()
 
@@ -166,13 +173,15 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         """
         Asynchronously retrieve a document by its ID, including its embedding.
 
-        Args:
-            document_id (str): The document ID.
+        Parameters
+        ----------
+        document_id : str
+            The document ID.
 
         Returns
         -------
-            Document | None: The retrieved document with embedding, or None if
-                not found.
+        Document | None
+            The retrieved document with embedding, or `None` if not found.
         """
         await self.vector_store.astra_env.aensure_db_setup()
 

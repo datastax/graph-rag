@@ -1,11 +1,12 @@
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, override
 
 from langchain_core.documents import BaseDocumentTransformer, Document
 
 
 class KeybertKeywordExtractor(BaseDocumentTransformer):
-    """Add metadata to documents about keywords using `KeyBERT <https://maartengr.github.io/KeyBERT/>`_.
+    """
+    Add metadata to documents about keywords using `KeyBERT <https://maartengr.github.io/KeyBERT/>`_.
 
     KeyBERT is a minimal and easy-to-use keyword extraction technique that
     leverages BERT embeddings to create keywords and keyphrases that are most
@@ -26,7 +27,7 @@ class KeybertKeywordExtractor(BaseDocumentTransformer):
 
         pip install -q langchain_community bs4 keybert
 
-    Example:
+    Example
     -------
     We load the ``state_of_the_union.txt`` file, chunk it, then for each chunk we
     add keywords to the metadata.
@@ -54,11 +55,14 @@ class KeybertKeywordExtractor(BaseDocumentTransformer):
 
         {'source': 'https://raw.githubusercontent.com/hwchase17/chat-your-data/master/state_of_the_union.txt', 'keywords': ['putin', 'vladimir', 'ukrainian', 'russia', 'ukraine']}
 
-    Args:
-        batch_size: The number of documents to process in each batch (default ``8``)
-        metadata_key: The name of the key used in the metadata output (default ``keywords``)
-        model: The KeyBERT model to use. (default ``all-MiniLM-L6-v2``)
-
+    Parameters
+    ----------
+    batch_size : int, default 8
+        The number of documents to process in each batch.
+    metadata_key : str, default "keywords"
+        The name of the key used in the metadata output.
+    model : str, default "all-MiniLM-L6-v2"
+        The KeyBERT model to use.
     """  # noqa: E501
 
     def __init__(
@@ -81,16 +85,10 @@ class KeybertKeywordExtractor(BaseDocumentTransformer):
         self._batch_size = batch_size
         self._metadata_key = metadata_key
 
+    @override
     def transform_documents(
         self, documents: Sequence[Document], **kwargs: Any
     ) -> Sequence[Document]:
-        """Add keyword metadata to documents using KeyBERT.
-
-        Args:
-            documents: The sequence of documents to transform
-            kwargs: Keyword arguments to pass to KeyBERT. See: https://maartengr.github.io/KeyBERT/api/keybert.html#keybert._model.KeyBERT.extract_keywords
-
-        """
         for i in range(0, len(documents), self._batch_size):
             batch = documents[i : i + self._batch_size]
             texts = [item.page_content for item in batch]

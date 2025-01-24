@@ -18,11 +18,16 @@ class InMemoryAdapter(Adapter[InMemoryVectorStore]):
     This adapter integrates the in-memory vector store with the graph retriever system,
     enabling similarity search and document retrieval.
 
-    Args:
-        vector_store (InMemoryVectorStore): The in-memory vector store instance.
-        use_normalized_metadata (bool): Indicates whether normalized metadata is used.
-        denormalized_path_delimiter (str): Delimiter for denormalized metadata keys.
-        denormalized_static_value (str): Value to use for denormalized metadata entries.
+    Parameters
+    ----------
+    vector_store : InMemoryVectorStore
+        The in-memory vector store instance.
+    use_normalized_metadata : bool, default False
+        Indicates whether normalized metadata is used.
+    denormalized_path_delimiter : str, default "."
+        Delimiter for denormalized metadata keys.
+    denormalized_static_value : str, default "$"
+        Value to use for denormalized metadata entries.
     """
 
     def __init__(
@@ -55,13 +60,17 @@ class InMemoryAdapter(Adapter[InMemoryVectorStore]):
         """
         Add embeddings to the metadata of documents.
 
-        Args:
-            docs (Sequence[Document]): List of documents.
-            embeddings (list[list[float]]): Corresponding embeddings.
+        Parameters
+        ----------
+        docs : Sequence[Document]
+            List of documents.
+        embeddings : list[list[float]])
+            Corresponding embeddings.
 
         Returns
         -------
-            list[Document]: Documents with updated metadata containing embeddings.
+        list[Document]
+            Documents with updated metadata containing embeddings.
         """
         return [
             Document(
@@ -111,15 +120,20 @@ class InMemoryAdapter(Adapter[InMemoryVectorStore]):
         """
         Check if a key-value pair exists or if the value is contained in the metadata.
 
-        Args:
-            key (str): Metadata key to look for.
-            value (Any): Value to check for equality or containment.
-            metadata (dict[str, Any]): Metadata dictionary to inspect.
+        Parameters
+        ----------
+        key : str
+            Metadata key to look for.
+        value : Any
+            Value to check for equality or containment.
+        metadata : dict[str, Any]
+            Metadata dictionary to inspect.
 
         Returns
         -------
-            bool: True if the key-value pair exists or if the value is contained,
-            False otherwise.
+        bool
+            True if and only if `metadata[key] == value` or `metadata[key]` is a
+            list containing `value`.
         """
         actual = metadata.get(key, SENTINEL)
         if actual == value:
@@ -141,14 +155,15 @@ class InMemoryAdapter(Adapter[InMemoryVectorStore]):
         """
         Create a filter function based on a metadata dictionary.
 
-        Args:
-            filter_dict (dict[str, str] | None): Dictionary specifying the filter
-                criteria.
+        Parameters
+        ----------
+        filter_dict : dict[str, str], optional
+            Dictionary specifying the filter criteria.
 
         Returns
         -------
-            Callable[[Document], bool]: A function that determines if a document matches
-            the filter criteria.
+        Callable[[Document], bool]
+            A function that determines if a document matches the filter criteria.
         """
         if filter_dict is None:
             return lambda _doc: True

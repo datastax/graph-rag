@@ -88,3 +88,11 @@ quartodoc:
       - chroma.ChromaAdapter
       - in_memory.InMemoryAdapter
       - open_search.OpenSearchAdapter
+
+filters:
+  - interlinks
+
+interlinks:
+  sources:
+    python:
+      url: https://docs.python.org/3/

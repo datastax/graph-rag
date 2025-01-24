@@ -1,11 +1,58 @@
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, override
 
 from langchain_core.documents import BaseDocumentTransformer, Document
 
 
 class HierarchyLinkExtractor(BaseDocumentTransformer):
-    """Extract links from a document hierarchy."""
+    r"""
+    Extract links from a document hierarchy.
+
+    Example
+    -------
+
+    .. code-block:: python
+
+        # Given three paths (in this case, within the "Root" document):
+        h1 = ["Root", "H1"]
+        h1a = ["Root", "H1", "a"]
+        h1b = ["Root", "H1", "b"]
+
+        # Parent links `h1a` and `h1b` to `h1`.
+        # Child links `h1` to `h1a` and `h1b`.
+        # Sibling links `h1a` and `h1b` together (both directions).
+
+    Example use with documents
+    --------------------------
+    .. code_block: python
+        transformer = LinkExtractorTransformer([
+            HierarchyLinkExtractor().as_document_extractor(
+                # Assumes the "path" to each document is in the metadata.
+                # Could split strings, etc.
+                lambda doc: doc.metadata.get("path", [])
+            )
+        ])
+        linked = transformer.transform_documents(docs)
+
+    Parameters
+    ----------
+    path_metadata_key : str, default "path"
+        Metadata key containing the path.
+        This may correspond to paths in a file system, hierarchy in a document, etc.
+    path_delimiter : str, default "\"
+        Delimiter of items in the path.
+    parent_links : bool, default True
+        Whether to link each document to it's parent.
+        If `True`, `metadata["parent_out"]` will be populated to link to
+        `metadata["parent_in"]`.
+    child_links: bool, default False
+        Whether to link each document from a section to its children.
+        If `True`, `metadata["child_out"]` will be populated to link to
+        `metadata["child_in"]`.
+    sibling_links : bool, default False
+        Whether to link each document to sibling (adjacent) documents.
+        If `True`, `metadata["sibling"]` will be populated.
+    """
 
     def __init__(
         self,
@@ -16,56 +63,16 @@ class HierarchyLinkExtractor(BaseDocumentTransformer):
         child_links: bool = False,
         sibling_links: bool = False,
     ):
-        """Extract links from a document hierarchy.
-
-        Example:
-
-            .. code-block:: python
-
-                # Given three paths (in this case, within the "Root" document):
-                h1 = ["Root", "H1"]
-                h1a = ["Root", "H1", "a"]
-                h1b = ["Root", "H1", "b"]
-
-                # Parent links `h1a` and `h1b` to `h1`.
-                # Child links `h1` to `h1a` and `h1b`.
-                # Sibling links `h1a` and `h1b` together (both directions).
-
-        Example use with documents:
-            .. code_block: python
-                transformer = LinkExtractorTransformer([
-                    HierarchyLinkExtractor().as_document_extractor(
-                        # Assumes the "path" to each document is in the metadata.
-                        # Could split strings, etc.
-                        lambda doc: doc.metadata.get("path", [])
-                    )
-                ])
-                linked = transformer.transform_documents(docs)
-
-        Args:
-            path_metadata_key: Metadata key containing the path.
-            path_delimiter: Delimiter of items in the path.
-            parent_links: Link from a section to its parent.
-            child_links: Link from a section to its children.
-            sibling_links: Link from a section to other sections with the same parent.
-
-        """
         self._path_metadata_key = path_metadata_key
         self._path_delimiter = path_delimiter
         self._parent_links = parent_links
         self._child_links = child_links
         self._sibling_links = sibling_links
 
+    @override
     def transform_documents(
         self, documents: Sequence[Document], **kwargs: Any
     ) -> Sequence[Document]:
-        """Extract hierarchy (parent/child/sibling) links based on a path.
-
-        Args:
-            documents: Documents to transform.
-            kwargs: Unused keyword argumetns.
-
-        """
         for document in documents:
             if self._path_metadata_key not in document.metadata:
                 msg = (

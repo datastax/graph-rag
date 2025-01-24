@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, override
 from urllib.parse import urldefrag, urljoin, urlparse
 
 from langchain_core._api import beta
@@ -14,7 +14,8 @@ if TYPE_CHECKING:
 
 @beta()
 class HtmlHyperlinkExtractor(BaseDocumentTransformer):
-    """Extract hyperlinks from HTML content.
+    """
+    Extract hyperlinks from HTML content.
 
     Expects each document to contain its URL in its metadata.
 
@@ -184,10 +185,15 @@ class HtmlHyperlinkExtractor(BaseDocumentTransformer):
 
         store = CassandraGraphVectorStore.from_documents(documents=documents, embedding=...)
 
-    Args:
-        kind: The kind of edge to extract. Defaults to ``hyperlink``.
-        drop_fragments: Whether fragments in URLs and links should be
-            dropped. Defaults to ``True``.
+    Parameters
+    ----------
+        url_metadata_key : str, default "url"
+            The metadata field containing the URL of the document. Must be set
+            before transforming. Needed to resolve relative paths.
+        metadata_key : str, default "hyperlink"
+            The metadata field to populate with documents linked from this content.
+        drop_fragments : bool, default True
+            Whether fragments in URLs and links should be dropped.
 
     """  # noqa: E501
 
@@ -248,16 +254,10 @@ class HtmlHyperlinkExtractor(BaseDocumentTransformer):
 
         return list(urls)
 
+    @override
     def transform_documents(
         self, documents: Sequence[Document], **kwargs: Any
     ) -> Sequence[Document]:
-        """Extract hyperlinks from html documents using BeautifulSoup4.
-
-        Args:
-            documents: The documents to transform.
-            kwargs: Arguments to pass through to the BeautifulSoup parser.
-
-        """
         for document in documents:
             if self._url_metadata_key not in document.metadata:
                 msg = (

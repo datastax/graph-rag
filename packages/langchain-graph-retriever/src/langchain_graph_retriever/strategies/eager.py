@@ -16,15 +16,29 @@ class Eager(Strategy):
     scenarios where all nodes at the current depth should be explored before proceeding
     to the next depth.
 
+    Parameters
+    ----------
+    k : int, default 5
+        Maximum number of nodes to retrieve during traversal.
+    start_k : int, default 4
+        Number of documents to fetch via similarity for starting the traversal.
+        Added to any initial roots provided to the traversal.
+    adjacent_k : int, default 10
+        Number of documents to fetch for each outgoing edge.
+    max_depth : int, optional
+        Maximum traversal depth. If `None`, there is no limit.
+
     Attributes
     ----------
-        k (int): Number of nodes to retrieve during traversal. Default is 5.
-        start_k (int): Number of initial documents to fetch via similarity, added
-            to any specified starting nodes. Default is 4.
-        adjacent_k (int): Number of adjacent documents to fetch for each outgoing edge.
-            Default is 10.
-        max_depth (int | None): Maximum traversal depth. If None, there is no limit.
-        query_embedding (list[float]): Embedding vector for the query.
+    k : int
+        Maximum number of nodes to retrieve during traversal.
+    start_k : int
+        Number of documents to fetch via similarity for starting the traversal.
+        Added to any initial roots provided to the traversal.
+    adjacent_k : int
+        Number of documents to fetch for each outgoing edge.
+    max_depth : int
+        Maximum traversal depth. If `None`, there is no limit.
     """
 
     _nodes: list[Node] = []

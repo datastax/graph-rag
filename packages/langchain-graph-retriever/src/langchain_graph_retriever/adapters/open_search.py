@@ -20,8 +20,10 @@ class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
     This adapter enables similarity search and document retrieval using an
     OpenSearch vector store. It supports both "lucene" and "faiss" engines.
 
-    Args:
-        vector_store (OpenSearchVectorSearch): The OpenSearch vector store instance.
+    Parameters
+    ----------
+    vector_store  : OpenSearchVectorSearch
+        The OpenSearch vector store instance.
     """
 
     def __init__(self, vector_store: OpenSearchVectorSearch):
@@ -40,12 +42,15 @@ class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
         """
         Build a filter query for OpenSearch based on metadata.
 
-        Args:
-            filter (dict[str, str] | None): Metadata filter to apply.
+        Parameters
+        ----------
+        filter : dict[str, str], optional
+            Metadata filter to apply.
 
         Returns
         -------
-            list[dict[str, Any]] | None: Filter query for OpenSearch.
+        list[dict[str, Any]] | None
+            Filter query for OpenSearch.
         """
         if filter is None:
             return None
