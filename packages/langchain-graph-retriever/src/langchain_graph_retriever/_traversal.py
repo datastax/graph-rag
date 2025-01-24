@@ -1,4 +1,4 @@
-from typing import Any, Sequence
+from typing import Any, Iterable, Sequence
 
 from langchain_core.documents import Document
 
@@ -110,9 +110,7 @@ class Traversal:
         self.strategy.query_embedding = query_embedding
         return docs
 
-    def _fetch_neighborhood_candidates(
-        self
-    ) -> list[Document]:
+    def _fetch_neighborhood_candidates(self) -> Iterable[Document]:
         neighborhood_docs = self.store.get(self.initial_root_ids)
         neighborhood_nodes = self.add_docs(neighborhood_docs)
 
@@ -125,7 +123,7 @@ class Traversal:
 
     async def _afetch_neighborhood_candidates(
         self,
-    ):
+    ) -> Iterable[Document]:
         neighborhood_docs = await self.store.aget(self.initial_root_ids)
         neighborhood_nodes = self.add_docs(neighborhood_docs)
 
@@ -136,7 +134,7 @@ class Traversal:
         # Fetch the candidates.
         return await self._afetch_adjacent(outgoing_edges)
 
-    def _fetch_adjacent(self, outgoing_edges: set[Edge]) -> list[Document]:
+    def _fetch_adjacent(self, outgoing_edges: set[Edge]) -> Iterable[Document]:
         return self.store.get_adjacent(
             outgoing_edges=outgoing_edges,
             strategy=self.strategy,
@@ -144,14 +142,13 @@ class Traversal:
             **self.store_kwargs,
         )
 
-    async def _afetch_adjacent(self, outgoing_edges: set[Edge]) -> list[Document]:
+    async def _afetch_adjacent(self, outgoing_edges: set[Edge]) -> Iterable[Document]:
         return await self.store.aget_adjacent(
             outgoing_edges=outgoing_edges,
             strategy=self.strategy,
             filter=self.metadata_filter,
             **self.store_kwargs,
         )
-
 
     def _doc_to_new_node(
         self, doc: Document, *, depth: int | None = None
@@ -163,9 +160,7 @@ class Traversal:
 
         doc = self._doc_cache.setdefault(doc.id, doc)
         assert doc.id is not None
-        incoming_edges, outgoing_edges = self.edges.get_incoming_outgoing(
-            doc.metadata
-        )
+        incoming_edges, outgoing_edges = self.edges.get_incoming_outgoing(doc.metadata)
         if depth is None:
             depth = min(
                 [
@@ -187,7 +182,8 @@ class Traversal:
 
         return node
 
-    def add_docs(self, docs: list[Document], *, depth: int | None = None
+    def add_docs(
+        self, docs: Iterable[Document], *, depth: int | None = None
     ) -> dict[str, Node]:
         # Record the depth of new nodes.
         nodes = {
@@ -201,7 +197,7 @@ class Traversal:
         self.strategy.discover_nodes(nodes)
         return nodes
 
-    def visit_nodes(self, nodes: list[Node]) -> set[Edge]:
+    def visit_nodes(self, nodes: Iterable[Node]) -> set[Edge]:
         """Record the nodes as visited, returning the new outgoing edges.
 
         After this call, the outgoing edges will be added to the visited
