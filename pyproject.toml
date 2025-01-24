@@ -15,7 +15,7 @@ pythonpath = ["."]
 testpaths = ["tests"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "T201", "D", "W"]
+select = ["E", "F", "I", "T201", "D", "W", "UP"]
 ignore = ["D100", "D104", "D107"]
 
 [tool.ruff.lint.pydocstyle]

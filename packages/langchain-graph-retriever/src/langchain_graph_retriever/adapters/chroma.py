@@ -1,9 +1,6 @@
+from collections.abc import Sequence
 from typing import (
     Any,
-    Dict,
-    List,
-    Optional,
-    Sequence,
     override,
 )
 
@@ -38,11 +35,11 @@ class ChromaAdapter(Adapter[Chroma]):
     @override
     def similarity_search_with_embedding_by_vector(
         self,
-        embedding: List[float],
+        embedding: list[float],
         k: int = 4,
-        filter: Optional[Dict[str, str]] = None,
+        filter: dict[str, str] | None = None,
         **kwargs: Any,
-    ) -> List[Document]:
+    ) -> list[Document]:
         try:
             from chromadb.api.types import IncludeEnum
         except (ImportError, ModuleNotFoundError):

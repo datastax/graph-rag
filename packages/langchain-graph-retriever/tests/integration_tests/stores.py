@@ -1,5 +1,6 @@
 import abc
-from typing import Callable, Generic, TypeVar
+from collections.abc import Callable
+from typing import Generic, TypeVar
 
 import pytest
 from langchain_core.documents import Document
@@ -110,11 +111,9 @@ def _cassandra_store_factory(request: pytest.FixtureRequest):
 
     KEYSPACE = "graph_test_keyspace"
     session.execute(
-        (
-            f"CREATE KEYSPACE IF NOT EXISTS {KEYSPACE}"
-            " WITH replication = "
-            "{'class': 'SimpleStrategy', 'replication_factor': 1}"
-        )
+        f"CREATE KEYSPACE IF NOT EXISTS {KEYSPACE}"
+        " WITH replication = "
+        "{'class': 'SimpleStrategy', 'replication_factor': 1}"
     )
 
     request.addfinalizer(lambda: cluster.shutdown())

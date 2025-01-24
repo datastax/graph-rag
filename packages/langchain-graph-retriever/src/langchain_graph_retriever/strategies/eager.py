@@ -1,6 +1,7 @@
 """Provide eager (breadth-first) traversal strategy."""
 
-from typing import Iterable, override
+from collections.abc import Iterable
+from typing import override
 
 from ..node import Node
 from .base import Strategy

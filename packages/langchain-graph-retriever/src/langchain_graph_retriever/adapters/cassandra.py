@@ -1,7 +1,6 @@
+from collections.abc import Sequence
 from typing import (
     Any,
-    List,
-    Sequence,
     override,
 )
 
@@ -35,18 +34,18 @@ class CassandraAdapter(Adapter[Cassandra]):
     @override
     def similarity_search_with_embedding_by_vector(  # type: ignore
         self,
-        embedding: List[float],
+        embedding: list[float],
         k: int = 4,
         filter: dict[str, str] | None = None,
         **kwargs: Any,
-    ) -> List[Document]:
+    ) -> list[Document]:
         results = self._similarity_search_with_embedding_id_by_vector(
             embedding=embedding,
             k=k,
             filter=filter,
             **kwargs,
         )
-        docs: List[Document] = []
+        docs: list[Document] = []
         for doc, embedding, id in results:
             doc.metadata[METADATA_EMBEDDING_KEY] = embedding
             doc.id = id
@@ -126,7 +125,7 @@ class CassandraAdapter(Adapter[Cassandra]):
                 **kwargs
             )
         )
-        docs: List[Document] = []
+        docs: list[Document] = []
         for doc, embedding, id in results:
             doc.metadata[METADATA_EMBEDDING_KEY] = embedding
             doc.id = id

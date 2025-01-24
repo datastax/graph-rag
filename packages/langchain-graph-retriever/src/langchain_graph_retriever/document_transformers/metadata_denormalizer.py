@@ -1,6 +1,7 @@
 """Denormalizer for sequence-based metadata fields."""
 
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from langchain_core.documents import BaseDocumentTransformer, Document
 
@@ -76,7 +77,7 @@ class MetadataDenormalizer(BaseDocumentTransformer):
             new_doc = Document(id=document.id, page_content=document.page_content)
             for key, value in document.metadata.items():
                 is_normalized = isinstance(value, Sequence) and not isinstance(
-                    value, (str, bytes)
+                    value, str | bytes
                 )
                 should_denormalize = (not self.keys) or (key in self.keys)
                 if is_normalized and should_denormalize:

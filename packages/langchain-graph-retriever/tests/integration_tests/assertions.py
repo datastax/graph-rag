@@ -1,4 +1,4 @@
-from typing import Iterable
+from collections.abc import Iterable
 
 from langchain_core.documents import Document
 

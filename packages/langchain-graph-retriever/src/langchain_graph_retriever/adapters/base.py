@@ -1,14 +1,9 @@
 import abc
 import asyncio
+from collections.abc import Iterable, Sequence
 from typing import (
     Any,
-    Dict,
     Generic,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
     TypeVar,
 )
 
@@ -55,9 +50,9 @@ class Adapter(Generic[StoreT], abc.ABC):
         self,
         query: str,
         k: int = 4,
-        filter: Optional[Dict[str, str]] = None,
+        filter: dict[str, str] | None = None,
         **kwargs: Any,
-    ) -> Tuple[list[float], list[Document]]:
+    ) -> tuple[list[float], list[Document]]:
         """Return docs (with embeddings) most similar to the query.
 
         Also returns the embedded query vector.
@@ -90,9 +85,9 @@ class Adapter(Generic[StoreT], abc.ABC):
         self,
         query: str,
         k: int = 4,
-        filter: Optional[Dict[str, str]] = None,
+        filter: dict[str, str] | None = None,
         **kwargs: Any,
-    ) -> Tuple[List[float], List[Document]]:
+    ) -> tuple[list[float], list[Document]]:
         """Return docs (with embeddings) most similar to the query.
 
         Also returns the embedded query vector.
@@ -119,11 +114,11 @@ class Adapter(Generic[StoreT], abc.ABC):
     @abc.abstractmethod
     def similarity_search_with_embedding_by_vector(
         self,
-        embedding: List[float],
+        embedding: list[float],
         k: int = 4,
-        filter: Optional[Dict[str, str]] = None,
+        filter: dict[str, str] | None = None,
         **kwargs: Any,
-    ) -> List[Document]:
+    ) -> list[Document]:
         """Return docs (with embeddings) most similar to the query vector.
 
         Args:
@@ -142,11 +137,11 @@ class Adapter(Generic[StoreT], abc.ABC):
 
     async def asimilarity_search_with_embedding_by_vector(
         self,
-        embedding: List[float],
+        embedding: list[float],
         k: int = 4,
-        filter: Optional[Dict[str, str]] = None,
+        filter: dict[str, str] | None = None,
         **kwargs: Any,
-    ) -> List[Document]:
+    ) -> list[Document]:
         """Return docs (with embeddings) most similar to the query vector.
 
         Args:

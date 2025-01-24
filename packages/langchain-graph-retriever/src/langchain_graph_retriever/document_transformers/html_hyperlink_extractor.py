@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, List, Optional, Sequence, Set
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urldefrag, urljoin, urlparse
 
 from langchain_core._api import beta
@@ -210,9 +211,7 @@ class HtmlHyperlinkExtractor(BaseDocumentTransformer):
         self._drop_fragments = drop_fragments
 
     @staticmethod
-    def _parse_url(
-        link: Tag, page_url: str, drop_fragments: bool = True
-    ) -> Optional[str]:
+    def _parse_url(link: Tag, page_url: str, drop_fragments: bool = True) -> str | None:
         href = link.get("href")
         if href is None:
             return None
@@ -234,9 +233,9 @@ class HtmlHyperlinkExtractor(BaseDocumentTransformer):
     @staticmethod
     def _parse_urls(
         soup: BeautifulSoup, page_url: str, drop_fragments: bool = True
-    ) -> List[str]:
-        soup_links: List[Tag] = soup.find_all("a")
-        urls: Set[str] = set()
+    ) -> list[str]:
+        soup_links: list[Tag] = soup.find_all("a")
+        urls: set[str] = set()
 
         for link in soup_links:
             parsed_url = HtmlHyperlinkExtractor._parse_url(

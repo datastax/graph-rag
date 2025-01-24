@@ -1,5 +1,4 @@
 import importlib
-from typing import Type
 
 from langchain_core.vectorstores import VectorStore
 
@@ -37,7 +36,7 @@ STOP_NAMES = {
 }
 
 
-def _full_class_name(cls: Type) -> str:
+def _full_class_name(cls: type) -> str:
     return f"{cls.__module__}.{cls.__name__}"
 
 

@@ -1,4 +1,5 @@
-from typing import Any, Iterable, List, Sequence, Tuple
+from collections.abc import Iterable, Sequence
+from typing import Any
 
 import networkx as nx
 from langchain_core.documents import Document
@@ -45,7 +46,7 @@ def _get_md_values(metadata: dict[str, Any], field: str) -> Iterable[Any]:
 def create_graph(
     documents: Sequence[Document],
     *,
-    edges: Iterable[str | Tuple[str, str]],
+    edges: Iterable[str | tuple[str, str]],
 ) -> nx.DiGraph:
     """Create a graph from documents.
 
@@ -99,7 +100,7 @@ def create_graph(
     return graph
 
 
-def group_by_community(graph: nx.DiGraph) -> List[List[Document]]:
+def group_by_community(graph: nx.DiGraph) -> list[list[Document]]:
     """Group documents by community inferred from the edges."""
     # Find communities and output documents grouped by community.
     communities = _best_communities(graph)

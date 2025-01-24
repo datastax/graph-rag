@@ -1,10 +1,6 @@
+from collections.abc import Sequence
 from typing import (
     Any,
-    Dict,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
     override,
 )
 
@@ -25,8 +21,8 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
 
     def _build_docs(
         self, docs_with_embeddings: list[tuple[Document, list[float]]]
-    ) -> List[Document]:
-        docs: List[Document] = []
+    ) -> list[Document]:
+        docs: list[Document] = []
         for doc, embedding in docs_with_embeddings:
             doc.metadata[METADATA_EMBEDDING_KEY] = embedding
             docs.append(doc)
@@ -37,9 +33,9 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         self,
         query: str,
         k: int = 4,
-        filter: Optional[Dict[str, str]] = None,
+        filter: dict[str, str] | None = None,
         **kwargs: Any,
-    ) -> Tuple[List[float], List[Document]]:
+    ) -> tuple[list[float], list[Document]]:
         query_embedding, docs_with_embeddings = (
             self.vector_store.similarity_search_with_embedding(
                 query=query,
@@ -57,9 +53,9 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         self,
         query: str,
         k: int = 4,
-        filter: Optional[Dict[str, str]] = None,
+        filter: dict[str, str] | None = None,
         **kwargs: Any,
-    ) -> Tuple[List[float], List[Document]]:
+    ) -> tuple[list[float], list[Document]]:
         (
             query_embedding,
             docs_with_embeddings,
@@ -76,11 +72,11 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
     @override
     def similarity_search_with_embedding_by_vector(
         self,
-        embedding: List[float],
+        embedding: list[float],
         k: int = 4,
-        filter: Optional[Dict[str, str]] = None,
+        filter: dict[str, str] | None = None,
         **kwargs: Any,
-    ) -> List[Document]:
+    ) -> list[Document]:
         docs_with_embeddings = (
             self.vector_store.similarity_search_with_embedding_by_vector(
                 embedding=embedding,
@@ -94,11 +90,11 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
     @override
     async def asimilarity_search_with_embedding_by_vector(
         self,
-        embedding: List[float],
+        embedding: list[float],
         k: int = 4,
-        filter: Optional[Dict[str, str]] = None,
+        filter: dict[str, str] | None = None,
         **kwargs: Any,
-    ) -> List[Document]:
+    ) -> list[Document]:
         docs_with_embeddings = (
             await self.vector_store.asimilarity_search_with_embedding_by_vector(
                 embedding=embedding,

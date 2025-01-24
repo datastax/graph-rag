@@ -11,7 +11,7 @@ def load_animal_docs() -> list[Document]:
     path = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "../../../data/animals.jsonl")
     )
-    with open(path, "r") as file:
+    with open(path) as file:
         for line in file:
             data = json.loads(line.strip())
             documents.append(

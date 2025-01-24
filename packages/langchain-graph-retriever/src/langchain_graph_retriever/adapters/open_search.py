@@ -1,9 +1,6 @@
+from collections.abc import Sequence
 from typing import (
     Any,
-    Dict,
-    List,
-    Optional,
-    Sequence,
     override,
 )
 
@@ -31,8 +28,8 @@ class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
         super().__init__(vector_store, use_normalized_metadata=True)
 
     def _build_filter(
-        self, filter: Optional[Dict[str, str]] = None
-    ) -> List[Dict[str, Any]] | None:
+        self, filter: dict[str, str] | None = None
+    ) -> list[dict[str, Any]] | None:
         if filter is None:
             return None
         return [
@@ -47,11 +44,11 @@ class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
     @override
     def similarity_search_with_embedding_by_vector(
         self,
-        embedding: List[float],
+        embedding: list[float],
         k: int = 4,
-        filter: Optional[Dict[str, str]] = None,
+        filter: dict[str, str] | None = None,
         **kwargs: Any,
-    ) -> List[Document]:
+    ) -> list[Document]:
         """Return docs (with embeddings) most similar to the query vector."""
         if filter is not None:
             # use an efficient_filter to collect results that

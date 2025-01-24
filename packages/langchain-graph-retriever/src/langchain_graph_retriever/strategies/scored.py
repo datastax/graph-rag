@@ -1,7 +1,8 @@
 """Provide score-based traversal strategy."""
 
 import heapq
-from typing import Callable, Iterable, override
+from collections.abc import Callable, Iterable
+from typing import override
 
 from ..node import Node
 from .base import Strategy

@@ -1,4 +1,5 @@
-from typing import Any, List, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from langchain_core.documents import BaseDocumentTransformer, Document
 
@@ -59,7 +60,7 @@ class GLiNEREntityExtractor(BaseDocumentTransformer):
 
     def __init__(
         self,
-        labels: List[str],
+        labels: list[str],
         *,
         batch_size: int = 8,
         metadata_key_prefix: str = "",

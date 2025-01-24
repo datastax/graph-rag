@@ -1,10 +1,6 @@
+from collections.abc import Callable, Iterable, Sequence
 from typing import (
     Any,
-    Callable,
-    Dict,
-    Iterable,
-    Optional,
-    Sequence,
     override,
 )
 
@@ -68,7 +64,7 @@ class InMemoryAdapter(Adapter[InMemoryVectorStore]):
         self,
         embedding: list[float],
         k: int = 4,
-        filter: Optional[Dict[str, str]] = None,
+        filter: dict[str, str] | None = None,
         **kwargs,
     ):
         results = self.vector_store._similarity_search_with_score_by_vector(
@@ -99,7 +95,7 @@ class InMemoryAdapter(Adapter[InMemoryVectorStore]):
         if (
             self.use_normalized_metadata
             and isinstance(actual, Iterable)
-            and not isinstance(actual, (str, bytes))
+            and not isinstance(actual, str | bytes)
             and value in actual
         ):
             return True
@@ -107,7 +103,7 @@ class InMemoryAdapter(Adapter[InMemoryVectorStore]):
         return False
 
     def _filter_method(
-        self, filter_dict: Optional[Dict[str, str]] = None
+        self, filter_dict: dict[str, str] | None = None
     ) -> Callable[[Document], bool]:
         if filter_dict is None:
             return lambda _doc: True

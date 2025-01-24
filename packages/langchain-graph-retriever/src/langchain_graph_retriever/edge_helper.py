@@ -1,7 +1,8 @@
 """Provide helper for working with edges."""
 
 import warnings
-from typing import Any, Iterable, NamedTuple
+from collections.abc import Iterable
+from typing import Any, NamedTuple
 
 BASIC_TYPES = (str, bool, int, float, complex, bytes)
 

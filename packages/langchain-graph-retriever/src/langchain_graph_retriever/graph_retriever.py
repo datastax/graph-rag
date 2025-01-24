@@ -1,13 +1,10 @@
 """Provide LangChain retriever combining vector search and graph traversal."""
 
+from collections.abc import Iterable, Sequence
 from functools import cached_property
 from typing import (
     Any,
-    List,
     Self,
-    Sequence,
-    Tuple,
-    Union,
 )
 
 from langchain_core.documents import Document
@@ -27,7 +24,7 @@ class GraphRetriever(BaseRetriever):
     """Retriever combining vector-search and graph traversal."""
 
     store: Adapter | VectorStore
-    edges: List[Union[str, Tuple[str, str]]] = []
+    edges: list[str | tuple[str, str]]
     strategy: Strategy = Eager()
 
     @computed_field

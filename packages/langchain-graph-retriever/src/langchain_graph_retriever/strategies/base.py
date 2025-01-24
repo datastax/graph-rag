@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import abc
 import warnings
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 from pydantic import BaseModel
 

@@ -1,13 +1,12 @@
 """Math utils."""
 
 import logging
-from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
 logger = logging.getLogger(__name__)
 
-Matrix = Union[List[List[float]], List[np.ndarray], np.ndarray]
+Matrix = list[list[float]] | list[np.ndarray] | np.ndarray
 
 
 def cosine_similarity(X: Matrix, Y: Matrix) -> np.ndarray:
@@ -46,9 +45,9 @@ def cosine_similarity(X: Matrix, Y: Matrix) -> np.ndarray:
 def cosine_similarity_top_k(
     X: Matrix,
     Y: Matrix,
-    top_k: Optional[int] = 5,
-    score_threshold: Optional[float] = None,
-) -> Tuple[List[Tuple[int, int]], List[float]]:
+    top_k: int | None = 5,
+    score_threshold: float | None = None,
+) -> tuple[list[tuple[int, int]], list[float]]:
     """Row-wise cosine similarity with optional top-k and score threshold filtering.
 
     Args:

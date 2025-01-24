@@ -1,5 +1,3 @@
-from typing import Type
-
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_graph_retriever import GraphRetriever
 from langchain_graph_retriever.adapters.in_memory import InMemoryAdapter
@@ -11,7 +9,7 @@ from tests.embeddings.simple_embeddings import AnimalEmbeddings
 
 class TestGraphTraversalRetriever(RetrieversIntegrationTests):
     @property
-    def retriever_constructor(self) -> Type[GraphRetriever]:
+    def retriever_constructor(self) -> type[GraphRetriever]:
         return GraphRetriever
 
     @property

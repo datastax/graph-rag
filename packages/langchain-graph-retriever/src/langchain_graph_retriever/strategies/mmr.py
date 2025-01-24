@@ -1,8 +1,9 @@
 """Provide MMR (max-marginal-relevance) traversal strategy."""
 
 import dataclasses
+from collections.abc import Iterable
 from functools import cached_property
-from typing import Iterable, override
+from typing import override
 
 import numpy as np
 from numpy.typing import NDArray
