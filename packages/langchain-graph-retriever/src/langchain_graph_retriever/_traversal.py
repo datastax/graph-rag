@@ -1,4 +1,5 @@
-from typing import Any, Iterable, Sequence
+from collections.abc import Iterable, Sequence
+from typing import Any
 
 from langchain_core.documents import Document
 

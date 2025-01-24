@@ -1,6 +1,6 @@
 """Provide LangChain retriever combining vector search and graph traversal."""
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 from functools import cached_property
 from typing import (
     Any,
