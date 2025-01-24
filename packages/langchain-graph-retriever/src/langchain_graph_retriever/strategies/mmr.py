@@ -42,16 +42,27 @@ class _MmrCandidate:
 
 
 class Mmr(Strategy):
-    """Helper for executing an MMR traversal query.
+    """Maximal Marginal Relevance (MMR) traversal strategy.
 
-    Args:
-        query_embedding: The embedding of the query to use for scoring.
-        lambda_mult: Number between 0 and 1 that determines the degree
-            of diversity among the results with 0 corresponding to maximum
-            diversity and 1 to minimum diversity. Defaults to 0.5.
-        score_threshold: Only documents with a score greater than or equal
-            this threshold will be chosen. Defaults to -infinity.
+    This strategy selects nodes by balancing relevance to the query and diversity
+    among the results. It uses a `lambda_mult` parameter to control the trade-off
+    between relevance and redundancy. Nodes are scored based on their similarity
+    to the query and their distance from already selected nodes.
 
+    Attributes
+    ----------
+        k (int): Number of nodes to retrieve during traversal. Default is 5.
+        start_k (int): Number of initial documents to fetch via similarity, added
+            to any specified starting nodes. Default is 4.
+        adjacent_k (int): Number of adjacent documents to fetch for each outgoing edge.
+            Default is 10.
+        max_depth (int | None): Maximum traversal depth. If None, there is no limit.
+        query_embedding (list[float]): Embedding vector for the query.
+        lambda_mult (float): Controls the trade-off between relevance and diversity.
+            A value closer to 1 prioritizes relevance, while a value closer to 0
+            prioritizes diversity. Must be between 0 and 1 (inclusive). Default is 0.5.
+        score_threshold (float): Only nodes with a score greater than or equal to this
+            value will be selected. Default is -infinity.
     """
 
     lambda_mult: float = Field(default=0.5, ge=0.0, le=1.0)
@@ -119,7 +130,6 @@ class Mmr(Strategy):
         Returns
         -------
             The document, similarity score, and embedding of the candidate.
-
         """
         # Get the embedding for the id.
         index = self._candidate_id_to_index.pop(candidate_id)
@@ -160,7 +170,6 @@ class Mmr(Strategy):
         Returns
         -------
             A tuple containing the ID of the best item.
-
         """
         if limit == 0:
             return []

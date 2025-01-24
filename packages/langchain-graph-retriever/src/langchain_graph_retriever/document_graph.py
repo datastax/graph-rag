@@ -1,3 +1,5 @@
+"""Utilities for creating and analyzing a graph of documents."""
+
 from collections.abc import Iterable, Sequence
 from typing import Any
 
@@ -6,13 +8,18 @@ from langchain_core.documents import Document
 
 
 def _best_communities(graph: nx.DiGraph) -> list[list[str]]:
-    """Compute the best communities.
+    """Compute the best communities in a directed graph.
 
-    Iteratively applies Girvan-Newman algorithm as long as the modularity improves.
+    This function iteratively applies the Girvan-Newman algorithm to partition the
+    graph into communities. It continues until the modularity no longer improves.
+
+    Args:
+        graph (nx.DiGraph): The directed graph to analyze.
 
     Returns
     -------
-        The communities from the last iteration of the Girvan-Newman algorithm.
+        list[list[str]]: A list of communities, where each community is a list of
+        node IDs.
     """
     # TODO: Also continue running until the size of communities is below
     # a specified threshold?
@@ -30,6 +37,20 @@ def _best_communities(graph: nx.DiGraph) -> list[list[str]]:
 
 
 def _get_md_values(metadata: dict[str, Any], field: str) -> Iterable[Any]:
+    """Retrieve metadata values for a specific field.
+
+    This function extracts values from the metadata dictionary for the given field,
+    handling cases where the value is a single string, a list, or another iterable.
+
+    Args:
+        metadata (dict[str, Any]): The metadata dictionary.
+        field (str): The field to extract values from.
+
+    Returns
+    -------
+        Iterable[Any]: A list of values for the specified field. If no values are
+        found, an empty list is returned.
+    """
     value = metadata.get(field, None)
     if value is None:
         return []
@@ -48,14 +69,24 @@ def create_graph(
     *,
     edges: Iterable[str | tuple[str, str]],
 ) -> nx.DiGraph:
-    """Create a graph from documents.
+    """Create a directed graph from a sequence of documents.
+
+    This function constructs a directed graph where each document is a node, and
+    edges are defined based on relationships in the document metadata.
 
     Args:
-        edges: Definition of edges to use for creating the graph.
+        documents (Sequence[Document]): A sequence of documents to add as nodes.
+        edges (Iterable[str | tuple[str, str]]): Definitions of edges to use for
+            creating the graph. Each edge can be:
+            - A string representing a single metadata field (interpreted as both
+              `from` and `to`).
+            - A tuple of two strings (`from_field`, `to_field`) specifying the
+              relationship.
 
     Returns
     -------
-        The created graph.
+        nx.DiGraph: The created directed graph with documents as nodes and metadata
+        relationships as edges.
     """
     graph = nx.DiGraph()
 
@@ -101,7 +132,19 @@ def create_graph(
 
 
 def group_by_community(graph: nx.DiGraph) -> list[list[Document]]:
-    """Group documents by community inferred from the edges."""
+    """Group documents by community inferred from the graph's structure.
+
+    This function partitions the graph into communities using the Girvan-Newman
+    algorithm and groups documents based on their community memberships.
+
+    Args:
+        graph (nx.DiGraph): The directed graph of documents.
+
+    Returns
+    -------
+        list[list[Document]]: A list of communities, where each community is a list
+        of documents.
+    """
     # Find communities and output documents grouped by community.
     communities = _best_communities(graph)
     return [[graph.nodes[n]["doc"] for n in community] for community in communities]

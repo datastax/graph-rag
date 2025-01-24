@@ -73,7 +73,7 @@ DEPTRY = "deptry@0.22.0"
 
 [tool.poe.tasks.install]
 help = "Install dependencies from all packages and all extras"
-cmd = "uv sync --all-packages --all-extras"
+cmd = "uv sync --all-packages --all-extras --group docs"
 
 [tool.poe.tasks.lock-check]
 help = "Runs `uv lock --locked` to check uv.lock file consistency (fix with `lock-fix`)"

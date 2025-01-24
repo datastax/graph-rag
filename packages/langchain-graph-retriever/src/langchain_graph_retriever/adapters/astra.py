@@ -1,3 +1,5 @@
+"""Provides an adapter for AstraDB vector store integration."""
+
 from collections.abc import Sequence
 from typing import (
     Any,
@@ -14,7 +16,15 @@ from .base import METADATA_EMBEDDING_KEY, Adapter
 
 
 class AstraAdapter(Adapter[AstraDBVectorStore]):
-    """Adapter for AstraDBVectorSTore."""
+    """
+    Adapter for AstraDBVectorStore.
+
+    This adapter integrates the AstraDB vector store with the graph retriever system,
+    enabling similarity search and document retrieval.
+
+    Args:
+        vector_store (AstraDBVectorStore): The AstraDB vector store instance.
+    """
 
     def __init__(self, vector_store: AstraDBVectorStore):
         super().__init__(vector_store, use_normalized_metadata=True)
@@ -115,6 +125,17 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         return docs
 
     def _get_by_id_with_embedding(self, document_id: str) -> Document | None:
+        """
+        Retrieve a document by its ID, including its embedding.
+
+        Args:
+            document_id (str): The document ID.
+
+        Returns
+        -------
+            Document | None: The retrieved document with embedding, or None if not
+                found.
+        """
         self.vector_store.astra_env.ensure_db_setup()
 
         hit = self.vector_store.astra_env.collection.find_one(
@@ -142,6 +163,17 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         return docs
 
     async def _aget_by_id_with_embedding(self, document_id: str) -> Document | None:
+        """
+        Asynchronously retrieve a document by its ID, including its embedding.
+
+        Args:
+            document_id (str): The document ID.
+
+        Returns
+        -------
+            Document | None: The retrieved document with embedding, or None if
+                not found.
+        """
         await self.vector_store.astra_env.aensure_db_setup()
 
         hit = await self.vector_store.astra_env.async_collection.find_one(

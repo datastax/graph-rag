@@ -1,3 +1,5 @@
+"""Implements the traversal logic for graph-based document retrieval."""
+
 from collections.abc import Iterable, Sequence
 from typing import Any
 
@@ -10,9 +12,28 @@ from .strategies import Strategy
 
 
 class Traversal:
-    """Performs a single traversal.
+    """Handles a single traversal operation for a graph-based retrieval system.
 
-    This should *not* be reused between traversals.
+    The `Traversal` class manages the process of discovering, visiting, and selecting
+    nodes within a graph, based on a query and a traversal strategy. It supports
+    synchronous and asynchronous traversal, enabling retrieval of documents in a
+    controlled, iterative manner.
+
+    This class should not be reused between traversals.
+
+    Attributes
+    ----------
+        query (str): The query string for the traversal.
+        edges (EdgeHelper): A helper object for managing graph edges.
+        strategy (Strategy): The traversal strategy that defines how nodes are
+            discovered, selected, and finalized.
+        store (Adapter): The vector store adapter used for similarity searches and
+            document retrieval.
+        metadata_filter (dict[str, Any] | None): Optional filter for metadata during
+            traversal.
+        initial_root_ids (Sequence[str]): IDs of the initial root nodes for the
+            traversal.
+        store_kwargs (dict[str, Any]): Additional arguments passed to the store adapter.
     """
 
     def __init__(
@@ -46,6 +67,15 @@ class Traversal:
         self._used = True
 
     def traverse(self) -> list[Document]:
+        """Execute the traversal synchronously.
+
+        This method retrieves initial candidates, discovers and visits nodes,
+        and explores edges iteratively until the traversal is complete.
+
+        Returns
+        -------
+            list[Document]: The final set of documents resulting from the traversal.
+        """
         self._check_first_use()
 
         # Retrieve initial candidates.
@@ -69,6 +99,15 @@ class Traversal:
         return self.finish()
 
     async def atraverse(self) -> list[Document]:
+        """Execute the traversal asynchronously.
+
+        This method retrieves initial candidates, discovers and visits nodes,
+        and explores edges iteratively until the traversal is complete.
+
+        Returns
+        -------
+            list[Document]: The final set of documents resulting from the traversal.
+        """
         self._check_first_use()
 
         # Retrieve initial candidates.
@@ -92,6 +131,13 @@ class Traversal:
         return self.finish()
 
     def _fetch_initial_candidates(self) -> list[Document]:
+        """Retrieve initial candidates based on the query and strategy.
+
+        Returns
+        -------
+            list[Document]: The initial set of documents retrieved via similarity
+            search.
+        """
         query_embedding, docs = self.store.similarity_search_with_embedding(
             query=self.query,
             k=self.strategy.start_k,
@@ -112,6 +158,16 @@ class Traversal:
         return docs
 
     def _fetch_neighborhood_candidates(self) -> Iterable[Document]:
+        """Retrieve neighborhood candidates for traversal.
+
+        This method fetches initial root documents, converts them to nodes, and records
+        their outgoing edges as visited. It then fetches additional candidates adjacent
+        to these nodes.
+
+        Returns
+        -------
+            Iterable[Document]: The set of documents adjacent to the initial root nodes.
+        """
         neighborhood_docs = self.store.get(self.initial_root_ids)
         neighborhood_nodes = self.add_docs(neighborhood_docs)
 
@@ -125,6 +181,16 @@ class Traversal:
     async def _afetch_neighborhood_candidates(
         self,
     ) -> Iterable[Document]:
+        """Asynchronously retrieve neighborhood candidates for traversal.
+
+        This method fetches initial root documents, converts them to nodes, and records
+        their outgoing edges as visited. It then fetches additional candidates adjacent
+        to these nodes.
+
+        Returns
+        -------
+            Iterable[Document]: The set of documents adjacent to the initial root nodes.
+        """
         neighborhood_docs = await self.store.aget(self.initial_root_ids)
         neighborhood_nodes = self.add_docs(neighborhood_docs)
 
@@ -136,6 +202,19 @@ class Traversal:
         return await self._afetch_adjacent(outgoing_edges)
 
     def _fetch_adjacent(self, outgoing_edges: set[Edge]) -> Iterable[Document]:
+        """Retrieve documents adjacent to the specified outgoing edges.
+
+        This method uses the vector store adapter to fetch documents connected to
+        the provided edges.
+
+        Args:
+            outgoing_edges (set[Edge]): The edges whose adjacent documents need to
+                be fetched.
+
+        Returns
+        -------
+            Iterable[Document]: The set of documents adjacent to the specified edges.
+        """
         return self.store.get_adjacent(
             outgoing_edges=outgoing_edges,
             strategy=self.strategy,
@@ -144,6 +223,19 @@ class Traversal:
         )
 
     async def _afetch_adjacent(self, outgoing_edges: set[Edge]) -> Iterable[Document]:
+        """Asynchronously retrieve documents adjacent to the specified outgoing edges.
+
+        This method uses the vector store adapter to fetch documents connected to
+        the provided edges.
+
+        Args:
+            outgoing_edges (set[Edge]): The edges whose adjacent documents need to
+                be fetched.
+
+        Returns
+        -------
+            Iterable[Document]: The set of documents adjacent to the specified edges.
+        """
         return await self.store.aget_adjacent(
             outgoing_edges=outgoing_edges,
             strategy=self.strategy,
@@ -154,6 +246,26 @@ class Traversal:
     def _doc_to_new_node(
         self, doc: Document, *, depth: int | None = None
     ) -> Node | None:
+        """Convert a document into a new node for the traversal.
+
+        This method checks whether the document has already been processed. If not,
+        it creates a new `Node` instance, associates it with the document's metadata,
+        and calculates its depth based on the incoming edges.
+
+        Args:
+            doc (Document): The document to convert into a node.
+            depth (int | None, optional): The depth of the node. If None, the depth
+                is calculated based on the incoming edges.
+
+        Returns
+        -------
+            Node | None: The newly created node, or None if the document has already
+            been processed.
+
+        Raises
+        ------
+            ValueError: If the document does not have an ID.
+        """
         if doc.id is None:
             raise ValueError("All documents should have ids")
         if doc.id in self._node_cache:
@@ -186,6 +298,20 @@ class Traversal:
     def add_docs(
         self, docs: Iterable[Document], *, depth: int | None = None
     ) -> dict[str, Node]:
+        """Add a batch of documents to the traversal and convert them into nodes.
+
+        This method records the depth of new nodes, filters them based on the
+        strategy's maximum depth, and updates the strategy with the discovered nodes.
+
+        Args:
+            docs (Iterable[Document]): The documents to add.
+            depth (int | None): The depth to assign to the nodes. If None, the depth
+                is inferred based on the incoming edges.
+
+        Returns
+        -------
+            dict[str, Node]: A dictionary of node IDs to the newly created nodes.
+        """
         # Record the depth of new nodes.
         nodes = {
             node.id: node
@@ -199,10 +325,28 @@ class Traversal:
         return nodes
 
     def visit_nodes(self, nodes: Iterable[Node]) -> set[Edge]:
-        """Record the nodes as visited, returning the new outgoing edges.
+        """Mark nodes as visited and return their new outgoing edges.
 
-        After this call, the outgoing edges will be added to the visited
-        set, and not revisited during the traversal.
+        This method updates the traversal state by marking the provided nodes as visited
+        and recording their outgoing edges. Outgoing edges that have not been visited
+        before are identified and added to the set of edges to explore in subsequent
+        traversal steps.
+
+        Args:
+            nodes (Iterable[Node]): The nodes to mark as visited.
+
+        Returns
+        -------
+            set[Edge]: The set of new outgoing edges that need to be explored.
+
+        Notes
+        -----
+            - The `new_outgoing_edges` dictionary tracks the depth of each outgoing
+            edge.
+            - If a node's outgoing edge leads to a lower depth, the edge's depth is
+            updated to reflect the shortest path.
+            - The `_visited_edges` set is updated to include all outgoing edges
+            from the provided nodes.
         """
         new_outgoing_edges: dict[Edge, int] = {}
         for node in nodes:
@@ -219,12 +363,15 @@ class Traversal:
         return new_outgoing_edge_set
 
     def select_next_edges(self) -> set[Edge] | None:
-        """Select the next round of nodes.
+        """Select the next set of edges to explore.
+
+        This method uses the traversal strategy to select the next batch of nodes
+        and identifies new outgoing edges for exploration.
 
         Returns
         -------
-        The set of new edges that need to be explored.
-
+            set[Edge] | None: The set of new edges to explore, or None if the traversal
+            is complete.
         """
         remaining = self.strategy.k - len(self._selected_nodes)
 
@@ -244,6 +391,15 @@ class Traversal:
         return new_outgoing_edges
 
     def finish(self) -> list[Document]:
+        """Finalize the traversal and return the final set of documents.
+
+        This method finalizes the selected nodes using the traversal strategy,
+        processes their metadata, and assembles the final list of documents.
+
+        Returns
+        -------
+            list[Document]: The final set of documents resulting from the traversal.
+        """
         final_nodes = self.strategy.finalize_nodes(self._selected_nodes.values())
         docs = []
         for node in final_nodes:

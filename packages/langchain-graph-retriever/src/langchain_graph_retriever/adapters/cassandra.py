@@ -1,8 +1,7 @@
+"""Provides an adapter for Cassandra vector store integration."""
+
 from collections.abc import Sequence
-from typing import (
-    Any,
-    override,
-)
+from typing import Any, override
 
 try:
     from langchain_community.vectorstores import Cassandra
@@ -15,7 +14,17 @@ from .base import METADATA_EMBEDDING_KEY, Adapter
 
 
 class CassandraAdapter(Adapter[Cassandra]):
-    """Adapter for Cassandra vector store."""
+    """
+    Adapter for Cassandra vector store.
+
+    This class integrates the Cassandra vector store with the graph retriever system,
+    providing functionality for similarity search and document retrieval.
+
+    Args:
+        vector_store (Cassandra): The Cassandra vector store instance.
+        denormalized_path_delimiter (str): Delimiter for denormalized metadata keys.
+        denormalized_static_value (str): Value to use for denormalized metadata entries.
+    """
 
     def __init__(
         self,
@@ -59,19 +68,20 @@ class CassandraAdapter(Adapter[Cassandra]):
         filter: dict[str, str] | None = None,
         body_search: str | list[str] | None = None,
     ) -> list[tuple[Document, list[float], str]]:
-        """Return docs most similar to embedding vector.
+        """
+        Return documents most similar to the embedding vector, including their IDs.
 
         Args:
-            embedding: Embedding to look up documents similar to.
-            k: Number of Documents to return. Defaults to 4.
-            filter: Filter on the metadata to apply.
-            body_search: Document textual search terms to apply.
-                Only supported by Astra DB at the moment.
+            embedding (list[float]): The query embedding vector.
+            k (int): Number of top documents to retrieve. Defaults to 4.
+            filter (dict[str, str] | None): Metadata filter to apply.
+            body_search (str | list[str] | None): Textual search terms. Supported only
+                by Astra DB.
 
         Returns
         -------
-            List of (Document, embedding, id), the most similar to the query vector.
-
+            list[tuple[Document, list[float], str]]: List of tuples containing
+                documents, embeddings, and IDs.
         """
         kwargs: dict[str, Any] = {}
         if filter is not None:
@@ -134,7 +144,6 @@ class CassandraAdapter(Adapter[Cassandra]):
 
     @override
     def get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
-        """Get documents by id."""
         docs: list[Document] = []
         for id in ids:
             doc = self._get_by_document_id(id)
@@ -143,6 +152,16 @@ class CassandraAdapter(Adapter[Cassandra]):
         return docs
 
     def _get_by_document_id(self, id: str) -> Document | None:
+        """
+        Retrieve a document by its ID.
+
+        Args:
+            id (str): The document ID.
+
+        Returns
+        -------
+            Document | None: The retrieved document, or None if not found.
+        """
         row = self.vector_store.table.get(row_id=id)
         if row is None:
             return None
@@ -157,7 +176,6 @@ class CassandraAdapter(Adapter[Cassandra]):
 
     @override
     async def aget(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
-        """Get documents by id."""
         docs: list[Document] = []
         for id in ids:
             doc = await self._aget_by_document_id(id, **kwargs)
@@ -166,6 +184,16 @@ class CassandraAdapter(Adapter[Cassandra]):
         return docs
 
     async def _aget_by_document_id(self, id: str) -> Document | None:
+        """
+        Asynchronously retrieve a document by its ID.
+
+        Args:
+            id (str): The document ID.
+
+        Returns
+        -------
+            Document | None: The retrieved document, or None if not found.
+        """
         row = await self.vector_store.table.aget(row_id=id)
         if row is None:
             return None

@@ -1,8 +1,7 @@
+"""Provides an adapter for OpenSearch vector store integration."""
+
 from collections.abc import Sequence
-from typing import (
-    Any,
-    override,
-)
+from typing import Any, override
 
 try:
     from langchain_community.vectorstores import OpenSearchVectorSearch
@@ -15,7 +14,15 @@ from .base import METADATA_EMBEDDING_KEY, Adapter
 
 
 class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
-    """Adapter to traverse OpenSearch vector stores."""
+    """
+    Adapter to traverse OpenSearch vector stores.
+
+    This adapter enables similarity search and document retrieval using an
+    OpenSearch vector store. It supports both "lucene" and "faiss" engines.
+
+    Args:
+        vector_store (OpenSearchVectorSearch): The OpenSearch vector store instance.
+    """
 
     def __init__(self, vector_store: OpenSearchVectorSearch):
         if vector_store.engine not in ["lucene", "faiss"]:
@@ -30,6 +37,16 @@ class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
     def _build_filter(
         self, filter: dict[str, str] | None = None
     ) -> list[dict[str, Any]] | None:
+        """
+        Build a filter query for OpenSearch based on metadata.
+
+        Args:
+            filter (dict[str, str] | None): Metadata filter to apply.
+
+        Returns
+        -------
+            list[dict[str, Any]] | None: Filter query for OpenSearch.
+        """
         if filter is None:
             return None
         return [
@@ -49,7 +66,6 @@ class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
         filter: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> list[Document]:
-        """Return docs (with embeddings) most similar to the query vector."""
         if filter is not None:
             # use an efficient_filter to collect results that
             # are near the embedding vector until up to 'k'
@@ -88,7 +104,6 @@ class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
 
     @override
     def get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
-        """Get documents by id."""
         try:
             from opensearchpy.exceptions import NotFoundError
         except (ImportError, ModuleNotFoundError):

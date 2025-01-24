@@ -1,4 +1,4 @@
-"""Math utils."""
+"""Math utility functions for vector operations."""
 
 import logging
 
@@ -10,7 +10,30 @@ Matrix = list[list[float]] | list[np.ndarray] | np.ndarray
 
 
 def cosine_similarity(X: Matrix, Y: Matrix) -> np.ndarray:
-    """Row-wise cosine similarity between two equal-width matrices."""
+    """Compute row-wise cosine similarity between two equal-width matrices.
+
+    Args:
+        X (Matrix): A matrix of shape (m, n), where `m` is the number of rows and
+            `n` is the number of columns (features).
+        Y (Matrix): A matrix of shape (p, n), where `p` is the number of rows and
+            `n` is the number of columns (features).
+
+    Returns
+    -------
+        np.ndarray: A matrix of shape (m, p) containing the cosine similarity scores
+        between each row of `X` and each row of `Y`.
+
+    Raises
+    ------
+        ValueError: If the number of columns in `X` and `Y` are not equal.
+
+    Notes
+    -----
+        - If the `simsimd` library is available, it will be used for performance
+          optimization. Otherwise, the function falls back to a NumPy implementation.
+        - Divide-by-zero and invalid values in similarity calculations are replaced
+          with 0.0 in the output.
+    """
     if len(X) == 0 or len(Y) == 0:
         return np.array([])
 
@@ -48,19 +71,34 @@ def cosine_similarity_top_k(
     top_k: int | None = 5,
     score_threshold: float | None = None,
 ) -> tuple[list[tuple[int, int]], list[float]]:
-    """Row-wise cosine similarity with optional top-k and score threshold filtering.
+    """Compute cosine similarity with filtering for top-k results and a score threshold.
+
+    This function calculates the row-wise cosine similarity between two matrices and
+    returns the indices and scores of the top results based on the provided
+    parameters.
 
     Args:
-        X: Matrix.
-        Y: Matrix, same width as X.
-        top_k: Max number of results to return.
-        score_threshold: Minimum cosine similarity of results.
+        X (Matrix): A matrix of shape (m, n), where `m` is the number of rows and
+            `n` is the number of columns (features).
+        Y (Matrix): A matrix of shape (p, n), where `p` is the number of rows and
+            `n` is the number of columns (features).
+        top_k (int | None, optional): The maximum number of results to return.
+            Defaults to 5. If None, returns all results above the score threshold.
+        score_threshold (float | None, optional): Minimum cosine similarity score
+            for results to be included. Defaults to -1.0.
 
     Returns
     -------
-        Tuple of two lists. First contains two-tuples of indices (X_idx, Y_idx),
-            second contains corresponding cosine similarities.
+        tuple[list[tuple[int, int]], list[float]]:
+            - A list of index pairs (X_idx, Y_idx) corresponding to the highest
+              similarity scores.
+            - A list of the corresponding similarity scores.
 
+    Notes
+    -----
+        - If `top_k` is None or greater than the number of valid scores, all scores
+          above the threshold will be returned.
+        - The results are sorted in descending order of similarity scores.
     """
     if len(X) == 0 or len(Y) == 0:
         return [], []

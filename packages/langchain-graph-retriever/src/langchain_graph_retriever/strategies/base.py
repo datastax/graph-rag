@@ -13,7 +13,23 @@ from ..node import Node
 
 
 class Strategy(BaseModel, abc.ABC):
-    """Interface for configuring node selection during the traversal."""
+    """
+    Interface for configuring node selection and traversal strategies.
+
+    This base class defines how nodes are selected, traversed, and finalized during
+    a graph traversal. Implementations can customize behaviors like limiting the depth
+    of traversal, scoring nodes, or selecting the next set of nodes for exploration.
+
+    Attributes
+    ----------
+        k (int): Number of nodes to retrieve during traversal. Default is 5.
+        start_k (int): Number of initial documents to fetch via similarity, added
+            to any specified starting nodes. Default is 4.
+        adjacent_k (int): Number of adjacent documents to fetch for each outgoing edge.
+            Default is 10.
+        max_depth (int | None): Maximum traversal depth. If None, there is no limit.
+        query_embedding (list[float]): Embedding vector for the query.
+    """
 
     k: int = 5
     """Number of nodes to retrieve during the traversal. Default 5."""
@@ -38,9 +54,11 @@ class Strategy(BaseModel, abc.ABC):
     def discover_nodes(self, nodes: dict[str, Node]) -> None:
         """Add discovered nodes to the strategy.
 
-        Args:
-            nodes: The nodes being discovered. Keyed by node ID.
+        This method updates the strategy's state with nodes discovered during
+        the traversal process.
 
+        Args:
+            nodes (dict[str, Node]): Discovered nodes keyed by their IDs.
         """
         ...
 
@@ -48,25 +66,31 @@ class Strategy(BaseModel, abc.ABC):
     def select_nodes(self, *, limit: int) -> Iterable[Node]:
         """Select discovered nodes to visit in the next iteration.
 
-        Traversal ends if this returns an empty list, even if `k` nodes haven't
-        been selected in total yet.
-
-        Any nodes reachable via new edges will be discovered before the next
-        call to `select_nodes`.
+        This method determines which nodes will be traversed next. If it returns
+        an empty list, traversal ends even if fewer than `k` nodes have been selected.
 
         Args:
-            limit: The maximum number of nodes to select.
+            limit (int): Maximum number of nodes to select.
 
         Returns
         -------
-        The nodes selected for the next iteration.
-        Traversal ends if this returns empty list.
-
+            Iterable[Node]: Selected nodes for the next iteration. Traversal
+            ends if this is empty.
         """
         ...
 
     def finalize_nodes(self, nodes: Iterable[Node]) -> Iterable[Node]:
-        """Finalize the selected nodes."""
+        """Finalize the selected nodes.
+
+        This method is called before returning the final set of nodes.
+
+        Args:
+            nodes (Iterable[Node]): Nodes selected for finalization.
+
+        Returns
+        -------
+            Iterable[Node]: Finalized nodes.
+        """
         return nodes
 
     @staticmethod
@@ -74,10 +98,22 @@ class Strategy(BaseModel, abc.ABC):
         base_strategy: Strategy,
         **kwargs: Any,
     ) -> Strategy:
-        """Build a strategy for an retrieval.
+        """Build a strategy for a retrieval operation.
 
-        Build a strategy for an retrieval from the base strategy, any strategy passed in
-        the invocation, and any related key word arguments.
+        Combines a base strategy with any provided keyword arguments to
+        create a customized traversal strategy.
+
+        Args:
+            base_strategy (Strategy): The base strategy to start with.
+            **kwargs: Additional configuration options for the strategy.
+
+        Returns
+        -------
+            Strategy: A configured strategy instance.
+
+        Raises
+        ------
+            ValueError: If 'strategy' is set incorrectly or extra arguments are invalid.
         """
         # Check if there is a new strategy to use. Otherwise, use the base.
         strategy: Strategy
@@ -114,6 +150,17 @@ class Strategy(BaseModel, abc.ABC):
 
 
 def _invalid_keys(model: BaseModel, dict: dict[str, Any]) -> str | None:
+    """Identify invalid keys in the given dictionary for a Pydantic model.
+
+    Args:
+        model (BaseModel): The Pydantic model to validate against.
+        dict (dict[str, Any]): The dictionary to check.
+
+    Returns
+    -------
+        str | None: A comma-separated string of invalid keys, or None if all keys
+        are valid.
+    """
     invalid_keys = set(dict.keys()) - set(model.model_fields.keys())
     if invalid_keys:
         return ", ".join([f"'{k}'" for k in invalid_keys])

@@ -1,8 +1,7 @@
+"""Provides an adapter for Chroma vector store integration."""
+
 from collections.abc import Sequence
-from typing import (
-    Any,
-    override,
-)
+from typing import Any, override
 
 from langchain_core.documents import Document
 
@@ -16,7 +15,17 @@ except (ImportError, ModuleNotFoundError):
 
 
 class ChromaAdapter(Adapter[Chroma]):
-    """Adapter Chroma vector store."""
+    """
+    Adapter for Chroma vector store.
+
+    This adapter integrates the Chroma vector store with the graph retriever system,
+    allowing for similarity search and document retrieval.
+
+    Args:
+        vector_store (Chroma): The Chroma vector store instance.
+        denormalized_path_delimiter (str): Delimiter for denormalized metadata keys.
+        denormalized_static_value (str): Value to use for denormalized metadata entries.
+    """
 
     def __init__(
         self,

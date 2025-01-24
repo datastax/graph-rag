@@ -1,3 +1,5 @@
+"""Infers the appropriate adapter for a given vector store."""
+
 import importlib
 
 from langchain_core.vectorstores import VectorStore
@@ -41,7 +43,24 @@ def _full_class_name(cls: type) -> str:
 
 
 def infer_adapter(store: Adapter | VectorStore) -> Adapter:
-    """Infer the adapter to use for the given store."""
+    """
+    Dynamically infer the adapter for a given vector store.
+
+    This function identifies the correct adapter based on the vector store type
+    and instantiates it with the provided arguments.
+
+    Args:
+        vector_store (VectorStore): The vector store instance.
+        **kwargs: Additional keyword arguments for the adapter initialization.
+
+    Returns
+    -------
+        Any: The initialized adapter for the given vector store.
+
+    Raises
+    ------
+        ValueError: If the vector store type is not recognized.
+    """
     if isinstance(store, Adapter):
         return store
 
