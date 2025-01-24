@@ -52,11 +52,6 @@ class GraphRetriever(BaseRetriever):
     edges: list[str | tuple[str, str]]
     strategy: Strategy = Eager()
 
-    @computed_field
-    def k(self) -> int:
-        """Return the (maximum) number of documents which will be fetched."""
-        return self.strategy.k
-
     # Capture the extra fields in `self.model_extra` rather than ignoring.
     model_config = ConfigDict(extra="allow")
 
