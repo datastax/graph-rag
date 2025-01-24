@@ -32,18 +32,18 @@ jobs:
         # Runs this as long as setup succeeds.
         if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
 
-      - name: Run `check`
-        run: uv run poe check
+      - name: Run `lint-check`
+        run: uv run poe lint-check
         # Runs this as long as setup succeeds.
         if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
 
-      - name: Run `check-lock`
-        run: uv run poe check-lock
+      - name: Run `lock-check`
+        run: uv run poe lock-check
         # Runs this as long as setup succeeds.
         if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
 
-      - name: Run `deptry`
-        run: uv run poe deptry
+      - name: Run `dep-check`
+        run: uv run poe dep-check
         # Runs this as long as setup succeeds.
         if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
 
@@ -69,8 +69,7 @@ jobs:
         if: ${{ success() && matrix.python-version == '3.12' }}
         id: test
         run:
-            cd packages/langchain-graph-retriever && uv run pytest -vs .
-                --stores=all
+            uv run poe test-all
                 --junitxml=junit/test-results-${{ matrix.python-version }}.xml
         env:
           ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -91,11 +90,11 @@ jobs:
       - name: Test In-Memory Stores (non-3.12)
         if: ${{ success() && matrix.python-version != '3.12' }}
         run:
-            cd packages/langchain-graph-retriever && uv run pytest -vs .
+            uv run poe test
                 --junitxml=junit/test-results-${{ matrix.python-version }}.xml
 
-      - name: Run `mypy`
-        run: uv run poe mypy
+      - name: Run `type-check`
+        run: uv run poe type-check
 
       - name: Upload test results
         if: ${{ always() }}

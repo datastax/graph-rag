@@ -4,8 +4,7 @@ version = "0.1.0"
 description = "uv workspace for Graph RAG projects"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = [
-]
+dependencies = []
 
 classifiers = ["Private :: Do Not Upload"]
 
@@ -72,146 +71,101 @@ verbosity = -1
 RUFF = "ruff@0.8.6"
 DEPTRY = "deptry@0.22.0"
 
-[tool.poe.tasks.check]
-help = "Run `ruff check` to fail if lint errors (fix with `uv run poe fix`)"
-sequence = [
-    {cmd = "echo '🚀 Linting code: Running ruff check'"},
-    {cmd = "uvx ${RUFF} check ."},
-]
+[tool.poe.tasks.install]
+help = "Install dependencies from all packages and all extras"
+cmd = "uv sync --all-packages --all-extras"
 
-[tool.poe.tasks.fix]
-help = "Run `ruff check --fix` to fix lint errors"
-sequence = [
-    {cmd = "echo '🚀 Linting code: Running ruff check --fix'"},
-    {cmd = "uvx ${RUFF} check --fix ."},
-]
+[tool.poe.tasks.lock-check]
+help = "Runs `uv lock --locked` to check uv.lock file consistency (fix with `lock-fix`)"
+cmd = "uv lock --locked"
+
+[tool.poe.tasks.lock-fix]
+help = "Runs `uv lock` to fix uv.lock file consistency"
+cmd = "uv lock"
 
 [tool.poe.tasks.fmt-check]
-help = "Run `ruff format --check` to fail if formatting errors (fix with `uv run poe fmt`)"
-sequence = [
-    {cmd = "echo '🚀 Formatting code: Running ruff format --check'"},
-    {cmd = "uvx ${RUFF} format --check ."},
-]
+help = "Runs `ruff format --check` to check for formatting issues (fix with `fmt-fix`)"
+cmd = "uvx ${RUFF} format --check ."
 
-[tool.poe.tasks.fmt]
-help = "Run `ruff format` to fix formatting errors"
-sequence = [
-    {cmd = "echo '🚀 Formatting code: Running ruff format'"},
-    {cmd = "uvx ${RUFF} format ."},
-]
+[tool.poe.tasks.fmt-fix]
+help = "Runs `ruff format` to fix formatting issues"
+cmd = "uvx ${RUFF} format ."
 
-[tool.poe.tasks.check-lock]
-help = "Run `uv lock --locked` to check consistency (fix with `uv run poe lock`)"
-sequence = [
-    {cmd = "echo '🚀 Checking lock file consistency with `pyproject.toml`'"},
-    {cmd = "uv lock --locked"},
-]
+[tool.poe.tasks.lint-check]
+help = "Runs `ruff check` to check for lint issues (fix with `lint-fix`)"
+cmd = "uvx ${RUFF} check ."
 
-[tool.poe.tasks.lock]
-help = "Run `uv lock` to fix consistency"
-sequence = [
-    {cmd = "echo '🚀 Updating lock files'"},
-    {cmd = "uv lock"},
-]
+[tool.poe.tasks.lint-fix]
+help = "Runs `ruff check --fix` to fix lint issues"
+cmd = "uvx ${RUFF} check --fix ."
 
-[tool.poe.tasks._deptry-gr]
-cwd = "packages/graph-retriever"
-sequence = [
-    {cmd = "echo '🚀 Checking for obsolete dependencies: Running deptry on graph-retriever'"},
-    {cmd = "uvx ${DEPTRY} src tests"},
-]
-
-[tool.poe.tasks._deptry-lgr]
+[tool.poe.tasks.type-check]
+help = "Runs `mypy` to check for static type issues"
 cwd = "packages/langchain-graph-retriever"
 sequence = [
-    {cmd = "echo '🚀 Checking for obsolete dependencies: Running deptry on langchain-graph-retriever'"},
-    {cmd = "uvx ${DEPTRY} src tests"},
+    {cmd = "uv run mypy .", cwd = "packages/graph-retriever"},
+    {cmd = "uv run mypy .", cwd = "packages/langchain-graph-retriever"},
 ]
 
-[tool.poe.tasks.deptry]
-help = "Run `deptry` to check for dependency issues"
-sequence = ["_deptry-gr", "_deptry-lgr"]
+[tool.poe.tasks.dep-check]
+help = "Runs `deptry` to check for dependency issues"
+sequence = [
+    {cmd = "uvx ${DEPTRY} src tests", cwd = "packages/graph-retriever"},
+    {cmd = "uvx ${DEPTRY} src tests", cwd = "packages/langchain-graph-retriever"},
+]
 
-[tool.poe.tasks.sync-gr]
-help = "Run `uv sync` on graph-retriever package"
-cmd = "uv sync --package graph-retriever"
-
-[tool.poe.tasks.sync-lgr]
-help = "Run `uv sync` on langchain-graph-retriever package"
-cmd = "uv sync --package langchain-graph-retriever"
+[tool.poe.tasks.lint]
+help = "Runs all formatting, lints, and checks (fixing where possible)"
+sequence = [ "lock-fix", "fmt-fix", "lint-fix", "type-check", "dep-check"]
 
 [tool.poe.tasks.integration]
-help = "Run integration tests (in-memory only)"
+help = "Runs integration tests (against in-memory stores)"
 cwd = "packages/langchain-graph-retriever"
 args = [{ name = "path", positional = true, default = "tests/integration_tests"}]
 cmd = "uv run pytest -vs $path"
 
 [tool.poe.tasks.unit]
-help = "Run unit tests"
+help = "Runs unit tests"
 cwd = "packages/langchain-graph-retriever"
 args = [{ name = "path", positional = true, default = "tests/unit_tests"}]
 cmd = "uv run pytest -vs $path"
 
 [tool.poe.tasks.test]
-help = "Run all tests (against all stores)"
+help = "Runs all tests (against in-memory stores)"
 cwd = "packages/langchain-graph-retriever"
-sequence = [
-    "sync-lgr",
-    {cmd = "echo '🚀 Testing code: Running pytest'"},
-    {cmd = "uv run pytest -vs . --stores=all"}
-]
+cmd = "uv run pytest -vs ."
 
-[tool.poe.tasks.mypy]
-help = "Check for mypy errors"
+[tool.poe.tasks.test-all]
+help = "Runs all tests (against all stores)"
 cwd = "packages/langchain-graph-retriever"
-sequence = [
-    {cmd = "echo '🚀 Static type checking: Running mypy'"},
-    {cmd = "uv run mypy ."}
-]
+cmd = "uv run pytest -vs . --stores=all"
 
-[tool.poe.tasks.lint]
-help = "Run all lints (fixing where possible)"
-sequence = [ "fmt", "fix", "mypy"]
-
-[tool.poe.tasks.build-gr]
-help = "Build graph-retriever"
+[tool.poe.tasks.build]
+help = "Builds all the packages"
 sequence = [
-    "sync-gr",
-    {cmd = "echo '🚀 Building graph-retriever package'"},
+    "install",
     {cmd = "uv build --package graph-retriever"},
-]
-
-[tool.poe.tasks.build-lgr]
-help = "Build langchain-graph-retriever"
-sequence = [
-    "sync-lgr",
-    {cmd = "echo '🚀 Building langchain-graph-retriever package'"},
     {cmd = "uv build --package langchain-graph-retriever"},
 ]
 
-[tool.poe.tasks.build]
-help = "Build both packages"
-sequence = [ "build-gr", "build-lgr"]
-
-[tool.poe.tasks.docs]
-help = "Update package installation and generate docs"
+[tool.poe.tasks.docs-api]
+help = "Updates the package installation and generates the API docs"
 sequence = [
-    {cmd = "echo '🚀 Updating package installation and generating docs'"},
     {cmd = "uv pip install packages/* --force-reinstall"},
     {cmd = "uv run quartodoc build", cwd="docs"},
 ]
 
 [tool.poe.tasks.docs-preview]
-help = "Live docs"
+help = "Starts a live preview of the docs site"
 sequence = [
-    "docs",
+    "docs-api",
     {cmd = "uv run quarto preview", cwd="docs"},
 ]
 
 [tool.poe.tasks.docs-build]
-help = "Generate docs site in `_site`"
+help = "Builds the docs site in `_site`"
 sequence = [
-    "docs",
+    "docs-api",
     {cmd = "uv run quarto render", cwd="docs"},
 ]
 
