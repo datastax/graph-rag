@@ -5,8 +5,15 @@ description = "uv workspace for Graph RAG projects"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 
 classifiers = ["Private :: Do Not Upload"]
+
+[project.urls]
+"Homepage" = "https://github.com/datastax/graph-rag"
+"Bug Reports" = "https://github.com/datastax/graph-rag/issues"
+"Documentation" = "https://datastax.github.com/graph-rag"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

@@ -4,7 +4,46 @@ version = "0.1.0"
 description = "Retriever combining unstructured similarity and structured document traversal."
 readme = "README.md"
 requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+
+keywords = [
+    "graph RAG",
+    "RAG",
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+
+    # Supported Python Versions
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+
+    # Topic
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+
+    # Intended Audience(s)
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+
+    # License
+    "License :: OSI Approved :: Apache Software License",
+
+    # Other Details
+    "Operating System :: OS Independent",
+]
+
 dependencies = []
+
+[project.urls]
+"Homepage" = "https://github.com/datastax/graph-rag"
+"Bug Reports" = "https://github.com/datastax/graph-rag/issues"
+"Documentation" = "https://datastax.github.com/graph-rag"
 
 [project.optional-dependencies]
 
