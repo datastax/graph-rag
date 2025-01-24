@@ -12,11 +12,12 @@ from langchain_core.retrievers import BaseRetriever
 from langchain_core.vectorstores import VectorStore
 from pydantic import ConfigDict, computed_field, model_validator
 
-from ._traversal import Traversal
-from .adapters.base import Adapter
-from .adapters.inference import infer_adapter
-from .edge_helper import EdgeHelper
-from .strategies import Eager, Strategy
+from langchain_graph_retriever._traversal import Traversal
+from langchain_graph_retriever.adapters.base import Adapter
+from langchain_graph_retriever.adapters.inference import infer_adapter
+from langchain_graph_retriever.edges.metadata import MetadataEdgeFunction
+from langchain_graph_retriever.strategies import Eager, Strategy
+from langchain_graph_retriever.types import EdgeFunction
 
 
 # this class uses pydantic, so store must be provided at init time.
@@ -79,9 +80,9 @@ class GraphRetriever(BaseRetriever):
             self.model_extra.clear()
         return self
 
-    def _edge_helper(
+    def _edge_function(
         self, edges: list[str | tuple[str, str]] | None = None
-    ) -> EdgeHelper:
+    ) -> EdgeFunction:
         """
         Create an `EdgeHelper` instance for managing edges during traversal.
 
@@ -95,7 +96,7 @@ class GraphRetriever(BaseRetriever):
         EdgeHelper
             An instance of `EdgeHelper` configured with the specified edges.
         """
-        return EdgeHelper(
+        return MetadataEdgeFunction(
             edges=self.edges if edges is None else edges,
             denormalized_path_delimiter=self.adapter.denormalized_path_delimiter,
             denormalized_static_value=self.adapter.denormalized_static_value,
@@ -147,7 +148,7 @@ class GraphRetriever(BaseRetriever):
         """
         traversal = Traversal(
             query=query,
-            edges=self._edge_helper(edges),
+            edge_function=self._edge_function(edges),
             strategy=Strategy.build(base_strategy=self.strategy, **kwargs),
             store=self.adapter,
             metadata_filter=filter,
@@ -196,7 +197,7 @@ class GraphRetriever(BaseRetriever):
         """
         traversal = Traversal(
             query=query,
-            edges=self._edge_helper(edges),
+            edge_function=self._edge_function(edges),
             strategy=Strategy.build(base_strategy=self.strategy, **kwargs),
             store=self.adapter,
             metadata_filter=filter,

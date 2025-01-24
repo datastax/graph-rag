@@ -14,8 +14,8 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.runnables import run_in_executor
 from langchain_core.vectorstores import VectorStore
 
-from langchain_graph_retriever.edge_helper import Edge
 from langchain_graph_retriever.strategies import Strategy
+from langchain_graph_retriever.types import Edge, MetadataEdge
 
 StoreT = TypeVar("StoreT", bound=VectorStore)
 
@@ -438,12 +438,13 @@ class Adapter(Generic[StoreT], abc.ABC):
             The metadata dictionary to use for the given filter.
         """
         metadata_filter = {**(base_filter or {})}
+        assert isinstance(edge, MetadataEdge)
         if edge is None:
             metadata_filter
         elif denormalize_edge:
             metadata_filter[
-                f"{edge.key}{self.denormalized_path_delimiter}{edge.value}"
+                f"{edge.incoming_field}{self.denormalized_path_delimiter}{edge.value}"
             ] = self.denormalized_static_value
         else:
-            metadata_filter[edge.key] = edge.value
+            metadata_filter[edge.incoming_field] = edge.value
         return metadata_filter

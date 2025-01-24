@@ -4,8 +4,8 @@ import heapq
 from collections.abc import Callable, Iterable
 from typing import override
 
-from ..node import Node
-from .base import Strategy
+from langchain_graph_retriever.strategies.base import Strategy
+from langchain_graph_retriever.types import Node
 
 
 class Scored(Strategy):

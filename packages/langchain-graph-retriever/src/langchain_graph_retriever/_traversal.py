@@ -5,10 +5,9 @@ from typing import Any
 
 from langchain_core.documents import Document
 
-from .adapters.base import METADATA_EMBEDDING_KEY, Adapter
-from .edge_helper import Edge, EdgeHelper
-from .node import Node
-from .strategies import Strategy
+from langchain_graph_retriever.adapters.base import METADATA_EMBEDDING_KEY, Adapter
+from langchain_graph_retriever.strategies import Strategy
+from langchain_graph_retriever.types import Edge, EdgeFunction, Node
 
 
 class Traversal:
@@ -26,7 +25,7 @@ class Traversal:
     ----------
     query : str
         The query string for the traversal.
-    edges : EdgeHelper
+    edge_function : EdgeFunction
         A helper object for managing graph edges.
     strategy : Strategy
         The traversal strategy that defines how nodes are discovered, selected,
@@ -46,7 +45,7 @@ class Traversal:
         self,
         query: str,
         *,
-        edges: EdgeHelper,
+        edge_function: EdgeFunction,
         strategy: Strategy,
         store: Adapter,
         metadata_filter: dict[str, Any] | None = None,
@@ -54,7 +53,7 @@ class Traversal:
         store_kwargs: dict[str, Any] = {},
     ) -> None:
         self.query = query
-        self.edges = edges
+        self.edge_function = edge_function
         self.strategy = strategy
         self.store = store
         self.metadata_filter = metadata_filter
@@ -300,24 +299,36 @@ class Traversal:
 
         doc = self._doc_cache.setdefault(doc.id, doc)
         assert doc.id is not None
-        incoming_edges, outgoing_edges = self.edges.get_incoming_outgoing(doc.metadata)
+
+        # This is a bit weird. To focus on nodes we want to create it
+        # before calling the `edge_function`. But that means we don't
+        # know the depth
+        node = Node(
+            id=doc.id,
+            depth=0,
+            embedding=doc.metadata[METADATA_EMBEDDING_KEY],
+            metadata=doc.metadata,
+        )
+
+        # Determine incoming/outgoing edges.
+        edges = self.edge_function(node)
+
+        # Compute the depth
         if depth is None:
             depth = min(
                 [
                     d
-                    for e in incoming_edges
+                    for e in edges.incoming
                     if (d := self._edge_depths.get(e, None)) is not None
                 ],
                 default=0,
             )
-        node = Node(
-            id=doc.id,
-            depth=depth,
-            embedding=doc.metadata[METADATA_EMBEDDING_KEY],
-            metadata=doc.metadata,
-            incoming_edges=incoming_edges,
-            outgoing_edges=outgoing_edges,
-        )
+
+        # Now, set the `incoming_edges`, `outgoing_edges` and `depth`.
+        node.incoming_edges = edges.incoming
+        node.outgoing_edges = edges.outgoing
+        node.depth = depth
+
         self._node_cache[doc.id] = node
 
         return node

@@ -2,10 +2,11 @@
 
 import warnings
 from collections.abc import Iterable
-from typing import Any, NamedTuple
+from typing import Any
+
+from langchain_graph_retriever.types import Edge, Edges, MetadataEdge, Node
 
 BASIC_TYPES = (str, bool, int, float, complex, bytes)
-
 
 # Sentinel object used with `dict.get(..., SENTINEL)` calls to distinguish
 # between present but `None` (returns `None`) and absent (returns `SENTINEL`)
@@ -13,23 +14,7 @@ BASIC_TYPES = (str, bool, int, float, complex, bytes)
 SENTINEL = object()
 
 
-class Edge(NamedTuple):
-    """
-    Represents an edge to all nodes with the given key/value pair.
-
-    Attributes
-    ----------
-        key : str
-            The metadata key associated with the edge.
-        value : Any
-            The value associated with the key for this edge.
-    """
-
-    key: str
-    value: Any
-
-
-class EdgeHelper:
+class MetadataEdgeFunction:
     """
     Helper for extracting and encoding edges in metadata.
 
@@ -128,14 +113,14 @@ class EdgeHelper:
         - Handles both simple (key-value) and iterable metadata fields.
         - Issues warnings for unsupported or unexpected values.
         """
-        edges = set()
+        edges: set[Edge] = set()
         for source_key, target_key in self.edges:
             if incoming:
                 source_key = target_key
 
             value = metadata.get(source_key, SENTINEL)
             if isinstance(value, BASIC_TYPES):
-                edges.add(Edge(target_key, value))
+                edges.add(MetadataEdge(incoming_field=target_key, value=value))
             elif isinstance(value, Iterable):
                 # Note: `str` and `bytes` are in `BASIC_TYPES` so no need to
                 # guard against.
@@ -144,7 +129,9 @@ class EdgeHelper:
                 else:
                     for item in value:
                         if isinstance(item, BASIC_TYPES):
-                            edges.add(Edge(target_key, item))
+                            edges.add(
+                                MetadataEdge(incoming_field=target_key, value=item)
+                            )
                         else:
                             warnings.warn(
                                 f"Unsupported item value {item} in '{source_key}'"
@@ -188,9 +175,7 @@ class EdgeHelper:
                 normalized.setdefault(split[0], set()).add(split[1])
         return normalized
 
-    def get_incoming_outgoing(
-        self, metadata: dict[str, Any]
-    ) -> tuple[set[Edge], set[Edge]]:
+    def __call__(self, node: Node) -> Edges:
         """
         Extract incoming and outgoing edges from metadata.
 
@@ -205,23 +190,21 @@ class EdgeHelper:
 
         Returns
         -------
-        incoming : set[Edge]
-            Incoming edges as a set of `Edge` objects.
-        outgoing : set[Edge]
-            Outgoing edges as a set of `Edge` objects.
+        Edges
+            specyfing the incoming and outgoing edges of the node
         """
         warn_normalized = not self.use_normalized_metadata
         outgoing_edges = self._edges_from_dict(
-            metadata, warn_normalized=warn_normalized
+            node.metadata, warn_normalized=warn_normalized
         )
         incoming_edges = self._edges_from_dict(
-            metadata, incoming=True, warn_normalized=warn_normalized
+            node.metadata, incoming=True, warn_normalized=warn_normalized
         )
 
         if not self.use_normalized_metadata:
-            normalized = self._normalize_metadata(metadata)
+            normalized = self._normalize_metadata(node.metadata)
 
             outgoing_edges.update(self._edges_from_dict(normalized))
             incoming_edges.update(self._edges_from_dict(normalized, incoming=True))
 
-        return (incoming_edges, outgoing_edges)
+        return Edges(incoming=incoming_edges, outgoing=outgoing_edges)

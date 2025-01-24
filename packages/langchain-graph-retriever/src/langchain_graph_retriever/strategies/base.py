@@ -9,7 +9,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from ..node import Node
+from langchain_graph_retriever.types import Node
 
 
 class Strategy(BaseModel, abc.ABC):
