@@ -57,7 +57,7 @@ class Adapter(Generic[StoreT], abc.ABC):
         k: int = 4,
         filter: Optional[Dict[str, str]] = None,
         **kwargs: Any,
-    ) -> Tuple[List[float], List[Document]]:
+    ) -> Tuple[list[float], list[Document]]:
         """Return docs (with embeddings) most similar to the query.
 
         Also returns the embedded query vector.
