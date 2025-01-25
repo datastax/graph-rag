@@ -9,6 +9,9 @@ from tests.integration_tests.stores import ALL_STORES, TESTCONTAINER_STORES
 _ = (animal_docs,)
 
 
+# may need to do some trickery if/when this is going to be used in end-user tests.
+pytest.register_assert_rewrite("test.integration_tests.adapters.test_adapters")
+
 @pytest.fixture(scope="session")
 def event_loop():
     try:
