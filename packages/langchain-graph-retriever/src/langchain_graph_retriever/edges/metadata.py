@@ -24,12 +24,6 @@ class MetadataEdgeFunction:
 
     Parameters
     ----------
-        use_normalized_metadata : bool
-            Indicates whether normalized metadata is used.
-        denormalized_path_delimiter : str
-            Delimiter for splitting keys in denormalized metadata.
-        denormalized_static_value : Any
-            Value used to mark static entries in denormalized metadata.
         edges : list[tuple[str, str]]
             Definitions of edges for traversal, represented
             as pairs of incoming and outgoing keys.
@@ -39,12 +33,6 @@ class MetadataEdgeFunction:
 
     Attributes
     ----------
-        use_normalized_metadata : bool
-            Indicates whether normalized metadata is used.
-        denormalized_path_delimiter : str
-            Delimiter for splitting keys in denormalized metadata.
-        denormalized_static_value : Any
-            Value used to mark static entries in denormalized metadata.
         edges : list[tuple[str, str]]
             Definitions of edges for traversal, represented
             as pairs of incoming and outgoing keys.
@@ -60,15 +48,7 @@ class MetadataEdgeFunction:
     def __init__(
         self,
         edges: list[str | tuple[str, str]],
-        *,
-        use_normalized_metadata: bool = False,
-        denormalized_path_delimiter: str = ".",
-        denormalized_static_value: Any = "$",
     ) -> None:
-        self.use_normalized_metadata = use_normalized_metadata
-        self.denormalized_path_delimiter = denormalized_path_delimiter
-        self.denormalized_static_value = denormalized_static_value
-
         self.edges = []
         for edge in edges:
             if isinstance(edge, str):
@@ -88,7 +68,6 @@ class MetadataEdgeFunction:
         self,
         metadata: dict[str, Any],
         *,
-        warn_normalized: bool = False,
         incoming: bool = False,
     ) -> set[Edge]:
         """
@@ -98,8 +77,6 @@ class MetadataEdgeFunction:
         ----------
         metadata :dict[str, Any]
             The metadata dictionary to process.
-        warn_normalized : bool, default False
-            If True, warnings are issued for normalized metadata.
         incoming : bool, default False
             If True, extracts edges for incoming relationships.
 
@@ -111,7 +88,6 @@ class MetadataEdgeFunction:
         Notes
         -----
         - Handles both simple (key-value) and iterable metadata fields.
-        - Issues warnings for unsupported or unexpected values.
         """
         edges: set[Edge] = set()
         for source_key, target_key in self.edges:
@@ -122,66 +98,20 @@ class MetadataEdgeFunction:
             if isinstance(value, BASIC_TYPES):
                 edges.add(MetadataEdge(incoming_field=target_key, value=value))
             elif isinstance(value, Iterable):
-                # Note: `str` and `bytes` are in `BASIC_TYPES` so no need to
-                # guard against.
-                if warn_normalized:
-                    warnings.warn(f"Normalized value {value} in '{source_key}'")
-                else:
-                    for item in value:
-                        if isinstance(item, BASIC_TYPES):
-                            edges.add(
-                                MetadataEdge(incoming_field=target_key, value=item)
-                            )
-                        else:
-                            warnings.warn(
-                                f"Unsupported item value {item} in '{source_key}'"
-                            )
+                for item in value:
+                    if isinstance(item, BASIC_TYPES):
+                        edges.add(MetadataEdge(incoming_field=target_key, value=item))
+                    else:
+                        warnings.warn(
+                            f"Unsupported item value {item} in '{source_key}'"
+                        )
             elif value is not SENTINEL:
                 warnings.warn(f"Unsupported value {value} in '{source_key}'")
         return edges
 
-    def _normalize_metadata(
-        self, denormalized_metadata: dict[str, Any]
-    ) -> dict[str, Any]:
-        """
-        Normalize metadata by extracting key-value pairs based on the delimiter.
-
-        Parameters
-        ----------
-        denormalized_metadata : dict[str, Any]
-            The denormalized metadata dictionary.
-
-        Returns
-        -------
-        dict[str, Any]
-            A dictionary containing normalized key-value pairs.
-
-        Notes
-        -----
-        - Only processes keys with the `denormalized_static_value`.
-        - Skips items that cannot be compared or are invalid.
-        """
-        normalized: dict[str, Any] = {}
-        for key, value in denormalized_metadata.items():
-            try:
-                if value != self.denormalized_static_value:
-                    continue
-            except (TypeError, ValueError):
-                # Skip items that can't be compared
-                continue
-
-            split = key.split(self.denormalized_path_delimiter, 2)
-            if len(split) == 2 and len(split[1]) > 0:
-                normalized.setdefault(split[0], set()).add(split[1])
-        return normalized
-
     def __call__(self, node: Node) -> Edges:
         """
         Extract incoming and outgoing edges from metadata.
-
-        This method retrieves edges based on the declared edge definitions, taking
-        into account whether normalized metadata is used. It combines normalized
-        and denormalized edge data as needed.
 
         Parameters
         ----------
@@ -193,18 +123,7 @@ class MetadataEdgeFunction:
         Edges
             specyfing the incoming and outgoing edges of the node
         """
-        warn_normalized = not self.use_normalized_metadata
-        outgoing_edges = self._edges_from_dict(
-            node.metadata, warn_normalized=warn_normalized
-        )
-        incoming_edges = self._edges_from_dict(
-            node.metadata, incoming=True, warn_normalized=warn_normalized
-        )
-
-        if not self.use_normalized_metadata:
-            normalized = self._normalize_metadata(node.metadata)
-
-            outgoing_edges.update(self._edges_from_dict(normalized))
-            incoming_edges.update(self._edges_from_dict(normalized, incoming=True))
+        outgoing_edges = self._edges_from_dict(node.metadata)
+        incoming_edges = self._edges_from_dict(node.metadata, incoming=True)
 
         return Edges(incoming=incoming_edges, outgoing=outgoing_edges)

@@ -11,8 +11,8 @@ from tests.animal_docs import (
     ANIMALS_DEPTH_0_EXPECTED,
     ANIMALS_QUERY,
 )
+from tests.assertions import assert_document_format, sorted_doc_ids
 from tests.embeddings.simple_embeddings import EarthEmbeddings, ParserEmbeddings
-from tests.integration_tests.assertions import assert_document_format, sorted_doc_ids
 from tests.integration_tests.stores import Adapter, StoreFactory
 
 

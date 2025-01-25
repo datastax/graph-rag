@@ -31,9 +31,6 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         The AstraDB vector store instance.
     """
 
-    def __init__(self, vector_store: AstraDBVectorStore):
-        super().__init__(vector_store, use_normalized_metadata=True)
-
     def _build_docs(
         self, docs_with_embeddings: list[tuple[Document, list[float]]]
     ) -> list[Document]:

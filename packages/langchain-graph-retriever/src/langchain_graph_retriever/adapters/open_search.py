@@ -34,7 +34,7 @@ class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
                 " either the 'lucene' or 'faiss' engine"
             )
             raise ValueError(msg)
-        super().__init__(vector_store, use_normalized_metadata=True)
+        super().__init__(vector_store)
 
     def _build_filter(
         self, filter: dict[str, str] | None = None

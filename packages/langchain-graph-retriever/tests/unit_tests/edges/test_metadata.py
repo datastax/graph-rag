@@ -19,10 +19,8 @@ def test_initialization():
     assert edge_function.edges == [("a", "a"), ("b", "c"), ("b", "b")]
 
 
-def test_normalized():
-    edge_function = MetadataEdgeFunction(
-        [("href", "url")], use_normalized_metadata=True
-    )
+def test_edge_function():
+    edge_function = MetadataEdgeFunction([("href", "url")])
     assert edge_function(mk_node({"href": "a", "url": "b"})) == Edges(
         {MetadataEdge("url", "b")},
         {MetadataEdge("url", "a")},
@@ -39,43 +37,8 @@ def test_normalized():
     )
 
 
-def test_denormalized():
-    edge_function = MetadataEdgeFunction(
-        [("href", "url")],
-        use_normalized_metadata=False,
-        # Use non-default values so we can verify the fields are used.
-        denormalized_path_delimiter=":",
-        denormalized_static_value=57,
-    )
-    assert edge_function(mk_node({"href": "a", "url": "b"})) == Edges(
-        {MetadataEdge("url", "b")},
-        {MetadataEdge("url", "a")},
-    )
-
-    assert edge_function(mk_node({"href:a": 57, "href:c": 57, "url": "b"})) == Edges(
-        {MetadataEdge("url", "b")}, {MetadataEdge("url", "a"), MetadataEdge("url", "c")}
-    )
-
-    assert edge_function(
-        mk_node(
-            {
-                "href:a": 57,
-                "href:c": 57,
-                "url:b": 57,
-                "url:d": 57,
-            }
-        )
-    ) == Edges(
-        {MetadataEdge("url", "b"), MetadataEdge("url", "d")},
-        {MetadataEdge("url", "a"), MetadataEdge("url", "c")},
-    )
-
-
 def test_unsupported_values():
-    edge_function = MetadataEdgeFunction(
-        [("href", "url")],
-        use_normalized_metadata=True,
-    )
+    edge_function = MetadataEdgeFunction([("href", "url")])
 
     # Unsupported value
     with pytest.warns(UserWarning, match=r"Unsupported value .* in 'href'"):
@@ -84,25 +47,3 @@ def test_unsupported_values():
     # Unsupported item value
     with pytest.warns(UserWarning, match=r"Unsupported item value .* in 'href'"):
         edge_function(mk_node({"href": [None]}))
-
-    edge_function = MetadataEdgeFunction(
-        [("href", "url")],
-        use_normalized_metadata=False,
-        # Use non-default values so we can verify the fields are used.
-        denormalized_path_delimiter=":",
-        denormalized_static_value=57,
-    )
-    # Unsupported value
-    with pytest.warns(UserWarning, match=r"Unsupported value .* in 'href'"):
-        edge_function(mk_node({"href": None}))
-
-    # It is OK for the list to exist in the metadata, although we do issue a warning
-    # for that case.
-    with pytest.warns(UserWarning, match="Normalized value [[]'a', 'c'] in 'href'"):
-        assert edge_function(
-            mk_node(
-                {
-                    "href": ["a", "c"],
-                }
-            )
-        ) == Edges(set(), set())

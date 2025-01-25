@@ -7,6 +7,7 @@ from typing import (
     Any,
     Generic,
     TypeVar,
+    override,
 )
 
 from langchain_core.documents import Document
@@ -14,6 +15,9 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.runnables import run_in_executor
 from langchain_core.vectorstores import VectorStore
 
+from langchain_graph_retriever.document_transformers.metadata_denormalizer import (
+    MetadataDenormalizer,
+)
 from langchain_graph_retriever.strategies import Strategy
 from langchain_graph_retriever.types import Edge, MetadataEdge
 
@@ -33,21 +37,11 @@ class Adapter(Generic[StoreT], abc.ABC):
     ----------
     vector_store : T
         The vector store instance.
-    use_normalized_metadata : bool
-        Indicates whether normalized metadata is used.
-    denormalized_path_delimiter : str
-        Delimiter for denormalized metadata keys.
-    denormalized_static_value : str
-        Value to use for denormalized metadata entries.
     """
 
     def __init__(
         self,
         vector_store: StoreT,
-        *,
-        use_normalized_metadata: bool,
-        denormalized_path_delimiter: str = ".",
-        denormalized_static_value: str = "$",
     ):
         """
         Initialize the base adapter.
@@ -56,17 +50,8 @@ class Adapter(Generic[StoreT], abc.ABC):
         ----------
         vector_store : T
             The vector store instance.
-        use_normalized_metadata : bool
-            Indicates whether normalized metadata is used.
-        denormalized_path_delimiter : str
-            Delimiter for denormalized metadata keys.
-        denormalized_static_value : str
-            Value to use for denormalized metadata entries.
         """
         self.vector_store = vector_store
-        self.use_normalized_metadata = use_normalized_metadata
-        self.denormalized_path_delimiter = denormalized_path_delimiter
-        self.denormalized_static_value = denormalized_static_value
 
     @property
     def _safe_embedding(self) -> Embeddings:
@@ -329,21 +314,6 @@ class Adapter(Generic[StoreT], abc.ABC):
                 **kwargs,
             )
             results.extend(docs)
-            if not self.use_normalized_metadata:
-                # If we denormalized the metadata, we actually do two queries.
-                # One, for normalized values (above) and one for denormalized.
-                # This ensures that cases where the key had a single value are
-                # caught as well. This could *maybe* be handled differently if
-                # we know keys that were always denormalized.
-                docs = self.similarity_search_with_embedding_by_vector(
-                    embedding=strategy._query_embedding,
-                    k=strategy.adjacent_k,
-                    filter=self._get_metadata_filter(
-                        base_filter=filter, edge=outgoing_edge, denormalize_edge=True
-                    ),
-                    **kwargs,
-                )
-                results.extend(docs)
         return results
 
     async def aget_adjacent(
@@ -383,27 +353,6 @@ class Adapter(Generic[StoreT], abc.ABC):
             )
             for outgoing_edge in outgoing_edges
         ]
-        if not self.use_normalized_metadata:
-            # If we denormalized the metadata, we actually do two queries.
-            # One, for normalized values (above) and one for denormalized.
-            # This ensures that cases where the key had a single value are
-            # caught as well. This could *maybe* be handled differently if
-            # we know keys that were always denormalized.
-            tasks.extend(
-                [
-                    self.asimilarity_search_with_embedding_by_vector(
-                        embedding=strategy._query_embedding,
-                        k=strategy.adjacent_k,
-                        filter=self._get_metadata_filter(
-                            base_filter=filter,
-                            edge=outgoing_edge,
-                            denormalize_edge=True,
-                        ),
-                        **kwargs,
-                    )
-                    for outgoing_edge in outgoing_edges
-                ]
-            )
 
         results: list[Document] = []
         for completed_task in asyncio.as_completed(tasks):
@@ -415,7 +364,6 @@ class Adapter(Generic[StoreT], abc.ABC):
         self,
         base_filter: dict[str, Any] | None = None,
         edge: Edge | None = None,
-        denormalize_edge: bool = False,
     ) -> dict[str, Any]:
         """
         Return a filter for the `base_filter` and incoming edges from `edge`.
@@ -429,8 +377,6 @@ class Adapter(Generic[StoreT], abc.ABC):
             nodes with an *incoming* edge matching `edge`.
         edge : Edge, optional
             An optional edge which should be added to the filter.
-        denormalize_edge : bool, default False
-            Whether edges should be denormalized.
 
         Returns
         -------
@@ -441,10 +387,94 @@ class Adapter(Generic[StoreT], abc.ABC):
         assert isinstance(edge, MetadataEdge)
         if edge is None:
             metadata_filter
-        elif denormalize_edge:
-            metadata_filter[
-                f"{edge.incoming_field}{self.denormalized_path_delimiter}{edge.value}"
-            ] = self.denormalized_static_value
         else:
             metadata_filter[edge.incoming_field] = edge.value
         return metadata_filter
+
+
+class DenormalizedAdapter(Adapter[StoreT]):
+    """
+    Base adapter for integrating vector stores with the graph retriever system.
+
+    This class provides a foundation for custom adapters, enabling consistent
+    interaction with various vector store implementations that do not support
+    searching on list-based metadata values.
+
+    Parameters
+    ----------
+    vector_store : T
+        The vector store instance.
+    metadata_denormalizer: MetadataDenormalizer | None
+        (Optional) An instance of the MetadataDenormalizer used for doc insertion.
+        If not passed then a default instance of MetadataDenormalizer is used.
+    """
+
+    def __init__(
+        self,
+        vector_store: StoreT,
+        metadata_denormalizer: MetadataDenormalizer | None = None,
+    ):
+        """
+        Initialize the base adapter.
+
+        Parameters
+        ----------
+        vector_store : T
+            The vector store instance.
+        metadata_denormalizer: MetadataDenormalizer | None
+            (Optional) An instance of the MetadataDenormalizer used for doc insertion.
+            If not passed then a default instance of MetadataDenormalizer is used.
+        """
+        super().__init__(vector_store=vector_store)
+        self.metadata_denormalizer = (
+            MetadataDenormalizer()
+            if metadata_denormalizer is None
+            else metadata_denormalizer
+        )
+
+    def _denormalized_search(self, outgoing_edges: set[Edge]) -> set[Edge]:
+        search_edges = set()
+        for edge in outgoing_edges:
+            search_edges.add(edge)
+            if isinstance(edge, MetadataEdge):
+                search_edges.add(
+                    MetadataEdge(
+                        incoming_field=self.metadata_denormalizer.denormalized_key(
+                            edge.incoming_field, edge.value
+                        ),
+                        value=self.metadata_denormalizer.denormalized_value(),
+                    )
+                )
+        return search_edges
+
+    @override
+    def get_adjacent(
+        self,
+        outgoing_edges: set[Edge],
+        strategy: Strategy,
+        filter: dict[str, Any] | None,
+        **kwargs: Any,
+    ) -> Iterable[Document]:
+        denormalized_search = self._denormalized_search(outgoing_edges=outgoing_edges)
+        return super().get_adjacent(
+            outgoing_edges=denormalized_search,
+            strategy=strategy,
+            filter=filter,
+            **kwargs,
+        )
+
+    @override
+    async def aget_adjacent(
+        self,
+        outgoing_edges: set[Edge],
+        strategy: Strategy,
+        filter: dict[str, Any] | None,
+        **kwargs: Any,
+    ) -> Iterable[Document]:
+        denormalized_search = self._denormalized_search(outgoing_edges=outgoing_edges)
+        return await super().aget_adjacent(
+            outgoing_edges=denormalized_search,
+            strategy=strategy,
+            filter=filter,
+            **kwargs,
+        )

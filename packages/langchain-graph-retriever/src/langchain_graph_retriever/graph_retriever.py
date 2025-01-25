@@ -98,9 +98,6 @@ class GraphRetriever(BaseRetriever):
         """
         return MetadataEdgeFunction(
             edges=self.edges if edges is None else edges,
-            denormalized_path_delimiter=self.adapter.denormalized_path_delimiter,
-            denormalized_static_value=self.adapter.denormalized_static_value,
-            use_normalized_metadata=self.adapter.use_normalized_metadata,
         )
 
     @computed_field  # type: ignore

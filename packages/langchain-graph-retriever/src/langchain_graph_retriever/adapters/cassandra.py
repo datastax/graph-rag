@@ -10,10 +10,10 @@ except (ImportError, ModuleNotFoundError):
 
 from langchain_core.documents import Document
 
-from .base import METADATA_EMBEDDING_KEY, Adapter
+from .base import METADATA_EMBEDDING_KEY, DenormalizedAdapter
 
 
-class CassandraAdapter(Adapter[Cassandra]):
+class CassandraAdapter(DenormalizedAdapter[Cassandra]):
     """
     Adapter for Cassandra vector store.
 
@@ -24,25 +24,10 @@ class CassandraAdapter(Adapter[Cassandra]):
     ----------
     vector_store : Cassandra
         The Cassandra vector store instance.
-    denormalized_path_delimiter : str, default "."
-        Delimiter for denormalized metadata keys.
-    denormalized_static_value : str, default "$"
-        Value to use for denormalized metadata entries.
+    metadata_denormalizer: MetadataDenormalizer | None
+        (Optional) An instance of the MetadataDenormalizer used for doc insertion.
+        If not passed then a default instance of MetadataDenormalizer is used.
     """
-
-    def __init__(
-        self,
-        vector_store: Cassandra,
-        *,
-        denormalized_path_delimiter: str = ".",
-        denormalized_static_value: str = "$",
-    ):
-        super().__init__(
-            vector_store,
-            use_normalized_metadata=False,
-            denormalized_path_delimiter=denormalized_path_delimiter,
-            denormalized_static_value=denormalized_static_value,
-        )
 
     @override
     def similarity_search_with_embedding_by_vector(  # type: ignore
@@ -63,7 +48,7 @@ class CassandraAdapter(Adapter[Cassandra]):
             doc.metadata[METADATA_EMBEDDING_KEY] = embedding
             doc.id = id
             docs.append(doc)
-        return docs
+        return list(self.metadata_denormalizer.revert_documents(docs))
 
     def _similarity_search_with_embedding_id_by_vector(
         self,
@@ -129,7 +114,7 @@ class CassandraAdapter(Adapter[Cassandra]):
             doc.metadata[METADATA_EMBEDDING_KEY] = embedding
             doc.id = id
             docs.append(doc)
-        return docs
+        return list(self.metadata_denormalizer.revert_documents(docs))
 
     @override
     def get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
@@ -138,7 +123,7 @@ class CassandraAdapter(Adapter[Cassandra]):
             doc = self._get_by_document_id(id)
             if doc is not None:
                 docs.append(doc)
-        return docs
+        return list(self.metadata_denormalizer.revert_documents(docs))
 
     def _get_by_document_id(self, id: str) -> Document | None:
         row = self.vector_store.table.get(row_id=id)
@@ -160,7 +145,7 @@ class CassandraAdapter(Adapter[Cassandra]):
             doc = await self._aget_by_document_id(id, **kwargs)
             if doc is not None:
                 docs.append(doc)
-        return docs
+        return list(self.metadata_denormalizer.revert_documents(docs))
 
     async def _aget_by_document_id(self, id: str) -> Document | None:
         row = await self.vector_store.table.aget(row_id=id)

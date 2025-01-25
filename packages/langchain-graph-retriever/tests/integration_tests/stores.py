@@ -118,6 +118,8 @@ def _cassandra_store_factory(request: pytest.FixtureRequest):
 
     request.addfinalizer(lambda: cluster.shutdown())
 
+    metadata_denormalizer = MetadataDenormalizer()
+
     def create_cassandra(
         name: str, docs: list[Document], embedding: Embeddings
     ) -> Cassandra:
@@ -130,7 +132,7 @@ def _cassandra_store_factory(request: pytest.FixtureRequest):
             keyspace=KEYSPACE,
             table_name=name,
         )
-        docs = list(MetadataDenormalizer().transform_documents(docs))
+        docs = list(metadata_denormalizer.transform_documents(docs))
         store.add_documents(docs)
         return store
 
@@ -140,7 +142,9 @@ def _cassandra_store_factory(request: pytest.FixtureRequest):
 
     return StoreFactory[Cassandra](
         create_store=create_cassandra,
-        create_adapter=CassandraAdapter,
+        create_adapter=lambda store: CassandraAdapter(
+            store, metadata_denormalizer=metadata_denormalizer
+        ),
         teardown=teardown_cassandra,
     )
 
@@ -247,26 +251,42 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     )
 
 
-def _in_memory_store_factory(
-    _request: pytest.FixtureRequest, use_normalized_metadata: bool
-) -> StoreFactory:
-    from langchain_core.vectorstores import InMemoryVectorStore
+def _in_memory_flat_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     from langchain_graph_retriever.adapters.in_memory import (
-        InMemoryAdapter,
+        InMemoryFlatAdapter,
+    )
+    from langchain_graph_retriever.vector_stores.in_memory import InMemoryFlat
+
+    metadata_denormalizer = MetadataDenormalizer()
+
+    def create_in_memory_flat(
+        _name: str, docs: list[Document], emb: Embeddings
+    ) -> InMemoryFlat:
+        docs = list(metadata_denormalizer.transform_documents(docs))
+        return InMemoryFlat.from_documents(docs, emb)
+
+    return StoreFactory[InMemoryFlat](
+        create_store=create_in_memory_flat,
+        create_adapter=lambda store: InMemoryFlatAdapter(
+            store, metadata_denormalizer=metadata_denormalizer
+        ),
     )
 
-    def create_in_memory(
-        _name: str, docs: list[Document], emb: Embeddings
-    ) -> InMemoryVectorStore:
-        if not use_normalized_metadata:
-            docs = list(MetadataDenormalizer().transform_documents(docs))
-        return InMemoryVectorStore.from_documents(docs, emb)
 
-    return StoreFactory[InMemoryVectorStore](
-        create_store=create_in_memory,
-        create_adapter=lambda store: InMemoryAdapter(
-            store, use_normalized_metadata=use_normalized_metadata
-        ),
+def _in_memory_list_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
+    from langchain_graph_retriever.adapters.in_memory import (
+        InMemoryListAdapter,
+    )
+    from langchain_graph_retriever.vector_stores.in_memory import InMemoryList
+
+    def create_in_memory_list(
+        _name: str, docs: list[Document], emb: Embeddings
+    ) -> InMemoryList:
+        return InMemoryList.from_documents(docs, emb)
+
+    return StoreFactory[InMemoryList](
+        create_store=create_in_memory_list,
+        create_adapter=InMemoryListAdapter,
     )
 
 
@@ -276,13 +296,17 @@ def _chroma_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
         ChromaAdapter,
     )
 
+    metadata_denormalizer = MetadataDenormalizer()
+
     def create_chroma(name: str, docs: list[Document], emb: Embeddings) -> Chroma:
-        docs = list(MetadataDenormalizer().transform_documents(docs))
+        docs = list(metadata_denormalizer.transform_documents(docs))
         return Chroma.from_documents(docs, emb, collection_name=name)
 
     return StoreFactory[Chroma](
         create_store=create_chroma,
-        create_adapter=ChromaAdapter,
+        create_adapter=lambda store: ChromaAdapter(
+            store, metadata_denormalizer=metadata_denormalizer
+        ),
         teardown=lambda store: store.delete_collection(),
     )
 
@@ -290,9 +314,9 @@ def _chroma_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
 @pytest.fixture(scope="session")
 def store_factory(store_param: str, request: pytest.FixtureRequest) -> StoreFactory:
     if store_param == "mem_norm":
-        return _in_memory_store_factory(request, use_normalized_metadata=True)
+        return _in_memory_list_store_factory(request)
     elif store_param == "mem":
-        return _in_memory_store_factory(request, use_normalized_metadata=False)
+        return _in_memory_flat_store_factory(request)
     elif store_param == "chroma":
         return _chroma_store_factory(request)
     elif store_param == "astra":

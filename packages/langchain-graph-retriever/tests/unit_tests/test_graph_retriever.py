@@ -1,8 +1,8 @@
 from langchain_core.embeddings import FakeEmbeddings
-from langchain_core.vectorstores.in_memory import InMemoryVectorStore
 from langchain_graph_retriever import GraphRetriever
-from langchain_graph_retriever.adapters.in_memory import InMemoryAdapter
+from langchain_graph_retriever.adapters.in_memory import InMemoryListAdapter
 from langchain_graph_retriever.strategies import Mmr
+from langchain_graph_retriever.vector_stores.in_memory import InMemoryList
 
 
 def test_mmr_parameters() -> None:
@@ -16,6 +16,6 @@ def test_mmr_parameters() -> None:
 
 
 def test_init_parameters_override_strategy() -> None:
-    store = InMemoryAdapter(vector_store=InMemoryVectorStore(FakeEmbeddings(size=8)))
+    store = InMemoryListAdapter(vector_store=InMemoryList(FakeEmbeddings(size=8)))
     retriever = GraphRetriever(store=store, edges=[], k=87)  # type: ignore[call-arg]
     assert retriever.strategy.k == 87

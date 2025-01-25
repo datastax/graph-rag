@@ -5,7 +5,7 @@ from typing import Any, override
 
 from langchain_core.documents import Document
 
-from .base import METADATA_EMBEDDING_KEY, Adapter
+from .base import METADATA_EMBEDDING_KEY, DenormalizedAdapter
 
 try:
     from langchain_chroma import Chroma
@@ -14,7 +14,7 @@ except (ImportError, ModuleNotFoundError):
     raise ImportError(msg)
 
 
-class ChromaAdapter(Adapter[Chroma]):
+class ChromaAdapter(DenormalizedAdapter[Chroma]):
     """
     Adapter for Chroma vector store.
 
@@ -25,25 +25,10 @@ class ChromaAdapter(Adapter[Chroma]):
     ----------
     vector_store : Chroma
         The Chroma vector store instance.
-    denormalized_path_delimiter : str, default "."
-        Delimiter for denormalized metadata keys.
-    denormalized_static_value : str, default "$"
-        Value to use for denormalized metadata entries.
+    metadata_denormalizer: MetadataDenormalizer | None
+        (Optional) An instance of the MetadataDenormalizer used for doc insertion.
+        If not passed then a default instance of MetadataDenormalizer is used.
     """
-
-    def __init__(
-        self,
-        vector_store: Chroma,
-        *,
-        denormalized_path_delimiter: str = ".",
-        denormalized_static_value: str = "$",
-    ):
-        super().__init__(
-            vector_store,
-            use_normalized_metadata=False,
-            denormalized_path_delimiter=denormalized_path_delimiter,
-            denormalized_static_value=denormalized_static_value,
-        )
 
     @override
     def similarity_search_with_embedding_by_vector(
@@ -93,14 +78,14 @@ class ChromaAdapter(Adapter[Chroma]):
                     },
                 )
             )
-        return docs
+        return list(self.metadata_denormalizer.revert_documents(docs))
 
     @override
     def get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
         results = self.vector_store.get(
             ids=list(ids), include=["embeddings", "metadatas", "documents"], **kwargs
         )
-        return [
+        docs = [
             Document(
                 id=id,
                 page_content=content,
@@ -113,3 +98,4 @@ class ChromaAdapter(Adapter[Chroma]):
                 results["embeddings"],
             )
         ]
+        return list(self.metadata_denormalizer.revert_documents(docs))

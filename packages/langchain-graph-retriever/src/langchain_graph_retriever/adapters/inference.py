@@ -17,9 +17,13 @@ _KNOWN_STORES = {
         "CassandraAdapter",
     ),
     "langchain_chroma.vectorstores.Chroma": (f"{ADAPTERS_PKG}.chroma", "ChromaAdapter"),
-    "langchain_core.vectorstores.in_memory.InMemoryVectorStore": (
+    "langchain_graph_retriever.vector_stores.in_memory.InMemoryFlat": (
         f"{ADAPTERS_PKG}.in_memory",
-        "InMemoryAdapter",
+        "InMemoryFlatAdapter",
+    ),
+    "langchain_graph_retriever.vector_stores.in_memory.InMemoryList": (
+        f"{ADAPTERS_PKG}.in_memory",
+        "InMemoryListAdapter",
     ),
     (
         "langchain_community.vectorstores."
