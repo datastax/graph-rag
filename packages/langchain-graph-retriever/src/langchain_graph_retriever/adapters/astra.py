@@ -82,7 +82,7 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         )
 
     @override
-    def similarity_search_with_embedding_by_vector(
+    def _similarity_search_with_embedding_by_vector(
         self,
         embedding: list[float],
         k: int = 4,
@@ -100,7 +100,7 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         return self._build_docs(docs_with_embeddings=docs_with_embeddings)
 
     @override
-    async def asimilarity_search_with_embedding_by_vector(
+    async def _asimilarity_search_with_embedding_by_vector(
         self,
         embedding: list[float],
         k: int = 4,
@@ -118,7 +118,7 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         return self._build_docs(docs_with_embeddings=docs_with_embeddings)
 
     @override
-    def get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
+    def _get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
         docs: list[Document] = []
         for id in ids:
             doc = self._get_by_id_with_embedding(id)
@@ -157,7 +157,7 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         return document
 
     @override
-    async def aget(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
+    async def _aget(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
         docs: list[Document] = []
         # TODO: Do this asynchronously?
         for id in ids:

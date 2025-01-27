@@ -53,7 +53,7 @@ class StoreFactory(abc.ABC, Generic[T]):
     def __init__(
         self,
         create_store: Callable[[str, list[Document], Embeddings], T],
-        create_adapter: Callable[[T], Adapter],
+        create_adapter: Callable[[T, set[str]], Adapter],
         teardown: Callable[[T], None] | None = None,
     ):
         self._create_store = create_store
@@ -66,6 +66,7 @@ class StoreFactory(abc.ABC, Generic[T]):
         request: pytest.FixtureRequest,
         embedding: Embeddings,
         docs: list[Document],
+        nested_metadata_fields: set[str] = set(),
     ) -> Adapter:
         name = f"test_{self._index}"
         self._index += 1
@@ -78,7 +79,7 @@ class StoreFactory(abc.ABC, Generic[T]):
             teardown = self._teardown
             request.addfinalizer(lambda: teardown(store))
 
-        return self._create_adapter(store)
+        return self._create_adapter(store, nested_metadata_fields)
 
 
 def _cassandra_store_factory(request: pytest.FixtureRequest):
@@ -93,7 +94,7 @@ def _cassandra_store_factory(request: pytest.FixtureRequest):
     if use_testcontainer(request, "cassandra"):
         from testcontainers.cassandra import CassandraContainer  # type: ignore
 
-        container = CassandraContainer()
+        container = CassandraContainer(image="cassandra:5.0.2")
         container.start()
         request.addfinalizer(lambda: container.stop())
         contact_points = container.get_contact_points()
@@ -142,8 +143,10 @@ def _cassandra_store_factory(request: pytest.FixtureRequest):
 
     return StoreFactory[Cassandra](
         create_store=create_cassandra,
-        create_adapter=lambda store: CassandraAdapter(
-            store, metadata_denormalizer=metadata_denormalizer
+        create_adapter=lambda store, nested_metadata_fields: CassandraAdapter(
+            store,
+            metadata_denormalizer=metadata_denormalizer,
+            nested_metadata_fields=nested_metadata_fields,
         ),
         teardown=teardown_cassandra,
     )
@@ -193,7 +196,7 @@ def _opensearch_store_factory(request: pytest.FixtureRequest):
 
     return StoreFactory[OpenSearchVectorSearch](
         create_store=create_open_search,
-        create_adapter=OpenSearchAdapter,
+        create_adapter=lambda store, _nested_metadata_fields: OpenSearchAdapter(store),
         teardown=teardown_open_search,
     )
 
@@ -246,7 +249,7 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
 
     return StoreFactory[AstraDBVectorStore](
         create_store=create_astra,
-        create_adapter=AstraAdapter,
+        create_adapter=lambda store, _nested_metadata_fields: AstraAdapter(store),
         teardown=teardown_astra,
     )
 
@@ -263,7 +266,7 @@ def _in_memory_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
 
     return StoreFactory[InMemoryVectorStore](
         create_store=create_in_memory,
-        create_adapter=InMemoryAdapter,
+        create_adapter=lambda store, _nested_metadata_fields: InMemoryAdapter(store),
     )
 
 
@@ -281,8 +284,10 @@ def _chroma_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
 
     return StoreFactory[Chroma](
         create_store=create_chroma,
-        create_adapter=lambda store: ChromaAdapter(
-            store, metadata_denormalizer=metadata_denormalizer
+        create_adapter=lambda store, nested_metadata_fields: ChromaAdapter(
+            store,
+            metadata_denormalizer=metadata_denormalizer,
+            nested_metadata_fields=nested_metadata_fields,
         ),
         teardown=lambda store: store.delete_collection(),
     )

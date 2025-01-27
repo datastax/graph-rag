@@ -64,7 +64,7 @@ class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
         ]
 
     @override
-    def similarity_search_with_embedding_by_vector(
+    def _similarity_search_with_embedding_by_vector(
         self,
         embedding: list[float],
         k: int = 4,
@@ -108,7 +108,7 @@ class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
         ]
 
     @override
-    def get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
+    def _get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
         try:
             from opensearchpy.exceptions import NotFoundError
         except (ImportError, ModuleNotFoundError):

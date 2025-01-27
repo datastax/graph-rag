@@ -31,7 +31,7 @@ class ChromaAdapter(DenormalizedAdapter[Chroma]):
     """
 
     @override
-    def similarity_search_with_embedding_by_vector(
+    def _similarity_search_with_embedding_by_vector(
         self,
         embedding: list[float],
         k: int = 4,
@@ -62,6 +62,7 @@ class ChromaAdapter(DenormalizedAdapter[Chroma]):
         )
 
         docs: list[Document] = []
+        # type-hint: (str, Dict[str, Any], str, ndarray)
         for content, metadata, id, emb in zip(
             results["documents"][0],  # type: ignore
             results["metadatas"][0],  # type: ignore
@@ -73,23 +74,25 @@ class ChromaAdapter(DenormalizedAdapter[Chroma]):
                     id=id,
                     page_content=content,
                     metadata={
-                        METADATA_EMBEDDING_KEY: emb,
+                        METADATA_EMBEDDING_KEY: emb.tolist(),
                         **metadata,
                     },
                 )
             )
-        return list(self.metadata_denormalizer.revert_documents(docs))
+        return docs
 
     @override
-    def get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
+    def _get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
         results = self.vector_store.get(
-            ids=list(ids), include=["embeddings", "metadatas", "documents"], **kwargs
+            ids=list(ids),
+            include=["embeddings", "metadatas", "documents"],
+            **kwargs,
         )
         docs = [
             Document(
                 id=id,
                 page_content=content,
-                metadata={METADATA_EMBEDDING_KEY: emb, **metadata},
+                metadata={METADATA_EMBEDDING_KEY: emb.tolist(), **metadata},
             )
             for (content, metadata, id, emb) in zip(
                 results["documents"],
@@ -97,5 +100,7 @@ class ChromaAdapter(DenormalizedAdapter[Chroma]):
                 results["ids"],
                 results["embeddings"],
             )
+            # type-hint: (str, Dict[str, Any], str, ndarray)
         ]
-        return list(self.metadata_denormalizer.revert_documents(docs))
+
+        return docs

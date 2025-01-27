@@ -30,7 +30,7 @@ class CassandraAdapter(DenormalizedAdapter[Cassandra]):
     """
 
     @override
-    def similarity_search_with_embedding_by_vector(  # type: ignore
+    def _similarity_search_with_embedding_by_vector(  # type: ignore
         self,
         embedding: list[float],
         k: int = 4,
@@ -48,7 +48,7 @@ class CassandraAdapter(DenormalizedAdapter[Cassandra]):
             doc.metadata[METADATA_EMBEDDING_KEY] = embedding
             doc.id = id
             docs.append(doc)
-        return list(self.metadata_denormalizer.revert_documents(docs))
+        return docs
 
     def _similarity_search_with_embedding_id_by_vector(
         self,
@@ -101,7 +101,7 @@ class CassandraAdapter(DenormalizedAdapter[Cassandra]):
         return query_embedding, docs
 
     @override
-    async def asimilarity_search_with_embedding_by_vector(  # type: ignore
+    async def _asimilarity_search_with_embedding_by_vector(  # type: ignore
         self, **kwargs: Any
     ) -> list[Document]:
         results = (
@@ -114,43 +114,27 @@ class CassandraAdapter(DenormalizedAdapter[Cassandra]):
             doc.metadata[METADATA_EMBEDDING_KEY] = embedding
             doc.id = id
             docs.append(doc)
-        return list(self.metadata_denormalizer.revert_documents(docs))
+        return docs
 
     @override
-    def get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
+    def _get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
         docs: list[Document] = []
         for id in ids:
-            doc = self._get_by_document_id(id)
-            if doc is not None:
-                docs.append(doc)
-        return list(self.metadata_denormalizer.revert_documents(docs))
-
-    def _get_by_document_id(self, id: str) -> Document | None:
-        row = self.vector_store.table.get(row_id=id)
-        if row is None:
-            return None
-        return Document(
-            id=row["row_id"],
-            page_content=row["body_blob"],
-            metadata={
-                METADATA_EMBEDDING_KEY: row["vector"],
-                **row["metadata"],
-            },
-        )
+            row = self.vector_store.table.get(row_id=id)
+            if row is not None:
+                docs.append(self._row_to_doc(row))
+        return docs
 
     @override
-    async def aget(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
+    async def _aget(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
         docs: list[Document] = []
         for id in ids:
-            doc = await self._aget_by_document_id(id, **kwargs)
-            if doc is not None:
-                docs.append(doc)
-        return list(self.metadata_denormalizer.revert_documents(docs))
+            row = await self.vector_store.table.aget(row_id=id)
+            if row is not None:
+                docs.append(self._row_to_doc(row))
+        return docs
 
-    async def _aget_by_document_id(self, id: str) -> Document | None:
-        row = await self.vector_store.table.aget(row_id=id)
-        if row is None:
-            return None
+    def _row_to_doc(self, row: Any) -> Document:
         return Document(
             id=row["row_id"],
             page_content=row["body_blob"],

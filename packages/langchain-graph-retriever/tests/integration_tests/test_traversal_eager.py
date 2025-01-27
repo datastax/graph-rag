@@ -288,7 +288,12 @@ async def test_earth(
     )
 
     retriever = GraphRetriever(
-        store=store_factory.create(request, EarthEmbeddings(), [greetings, doc1, doc2]),
+        store=store_factory.create(
+            request,
+            EarthEmbeddings(),
+            [greetings, doc1, doc2],
+            nested_metadata_fields={"keywords"},
+        ),
         edges=[("outgoing", "incoming"), "keywords"],
         strategy=Eager(k=10, start_k=2, max_depth=0),
     )

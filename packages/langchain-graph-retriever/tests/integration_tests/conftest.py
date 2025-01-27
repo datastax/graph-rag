@@ -29,4 +29,6 @@ def animal_store(
     store_factory: StoreFactory,
     animal_docs: list[Document],
 ) -> Adapter:
-    return store_factory.create(request, AnimalEmbeddings(), animal_docs)
+    return store_factory.create(
+        request, AnimalEmbeddings(), animal_docs, nested_metadata_fields={"keywords"}
+    )

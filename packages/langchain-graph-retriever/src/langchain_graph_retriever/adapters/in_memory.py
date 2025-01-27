@@ -25,7 +25,7 @@ class InMemoryAdapter(Adapter[InMemoryVectorStore]):
     """
 
     @override
-    def get(self, ids: Sequence[str], /, **kwargs) -> list[Document]:
+    def _get(self, ids: Sequence[str], /, **kwargs) -> list[Document]:
         docs: list[Document] = []
 
         for doc_id in ids:
@@ -43,7 +43,7 @@ class InMemoryAdapter(Adapter[InMemoryVectorStore]):
         return docs
 
     @override
-    def similarity_search_with_embedding_by_vector(
+    def _similarity_search_with_embedding_by_vector(
         self,
         embedding: list[float],
         k: int = 4,
