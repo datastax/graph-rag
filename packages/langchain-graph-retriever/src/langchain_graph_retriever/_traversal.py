@@ -234,7 +234,8 @@ class Traversal:
         """
         return self.store.get_adjacent(
             outgoing_edges=outgoing_edges,
-            strategy=self.strategy,
+            query_embedding=self.strategy._query_embedding,
+            adjacent_k=self.strategy.adjacent_k,
             filter=self.metadata_filter,
             **self.store_kwargs,
         )
@@ -258,7 +259,8 @@ class Traversal:
         """
         return await self.store.aget_adjacent(
             outgoing_edges=outgoing_edges,
-            strategy=self.strategy,
+            query_embedding=self.strategy._query_embedding,
+            adjacent_k=self.strategy.adjacent_k,
             filter=self.metadata_filter,
             **self.store_kwargs,
         )

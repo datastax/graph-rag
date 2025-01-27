@@ -18,7 +18,6 @@ from langchain_core.vectorstores import VectorStore
 from langchain_graph_retriever.document_transformers.metadata_denormalizer import (
     MetadataDenormalizer,
 )
-from langchain_graph_retriever.strategies import Strategy
 from langchain_graph_retriever.types import Edge, MetadataEdge
 
 StoreT = TypeVar("StoreT", bound=VectorStore)
@@ -469,7 +468,8 @@ class Adapter(Generic[StoreT], abc.ABC):
     def get_adjacent(
         self,
         outgoing_edges: set[Edge],
-        strategy: Strategy,
+        query_embedding: list[float],
+        adjacent_k: int,
         filter: dict[str, Any] | None,
         **kwargs: Any,
     ) -> Iterable[Document]:
@@ -480,6 +480,10 @@ class Adapter(Generic[StoreT], abc.ABC):
         ----------
         outgoing_edges : set[Edge]
             The edges to look for.
+        query_embedding : list[float]
+            The query embedding used for selecting the most relevant nodes.
+        adjacent_k : int
+            The numebr of relevant nodes to select for the edges.
         strategy : Strategy
             The traversal strategy being used.
         filter : dict[str, Any], optional
@@ -495,8 +499,8 @@ class Adapter(Generic[StoreT], abc.ABC):
         results: list[Document] = []
         for outgoing_edge in outgoing_edges:
             docs = self.similarity_search_with_embedding_by_vector(
-                embedding=strategy._query_embedding,
-                k=strategy.adjacent_k,
+                embedding=query_embedding,
+                k=adjacent_k,
                 filter=self._get_metadata_filter(
                     base_filter=filter, edge=outgoing_edge
                 ),
@@ -508,7 +512,8 @@ class Adapter(Generic[StoreT], abc.ABC):
     async def aget_adjacent(
         self,
         outgoing_edges: set[Edge],
-        strategy: Strategy,
+        query_embedding: list[float],
+        adjacent_k: int,
         filter: dict[str, Any] | None,
         **kwargs: Any,
     ) -> Iterable[Document]:
@@ -519,8 +524,10 @@ class Adapter(Generic[StoreT], abc.ABC):
         ----------
         outgoing_edges : set[Edge]
             The edges to look for.
-        strategy : Strategy
-            The traversal strategy being used.
+        query_embedding : list[float]
+            The query embedding used for selecting the most relevant nodes.
+        adjacent_k : int
+            The numebr of relevant nodes to select for the edges.
         filter : dict[str, Any], optional
             Optional metadata to filter the results.
         **kwargs : Any
@@ -533,8 +540,8 @@ class Adapter(Generic[StoreT], abc.ABC):
         """
         tasks = [
             self.asimilarity_search_with_embedding_by_vector(
-                embedding=strategy._query_embedding,
-                k=strategy.adjacent_k,
+                embedding=query_embedding,
+                k=adjacent_k,
                 filter=self._get_metadata_filter(
                     base_filter=filter, edge=outgoing_edge
                 ),
