@@ -77,7 +77,6 @@ quartodoc:
       - Strategy
       - Eager
       - Mmr
-      - Scored
     - title: Adapters
       desc: Adapters for LangChain `VectorStore`s supporting Graph traversal.
       package: langchain_graph_retriever.adapters
