@@ -11,7 +11,7 @@ from langchain_graph_retriever.adapters.base import METADATA_EMBEDDING_KEY, Adap
 from langchain_graph_retriever.document_transformers.metadata_denormalizer import (
     DENORMALIZED_KEYS_KEY,
 )
-from langchain_graph_retriever.types import Edge, MetadataEdge
+from langchain_graph_retriever.types import Edge, IdEdge, MetadataEdge
 
 from tests.animal_docs import load_animal_docs
 from tests.embeddings.simple_embeddings import AnimalEmbeddings
@@ -170,6 +170,20 @@ GET_ADJACENT_CASES: dict[str, GetAdjacentCase] = {
             "lobster",
         ],
     ),
+    "ids": GetAdjacentCase(
+        "domesticated hunters",
+        outgoing_edges={
+            IdEdge("cat"),
+            IdEdge("dog"),
+            IdEdge("unicorn"),
+            IdEdge("crab"),
+        },
+        expected=[
+            "cat",
+            "dog",
+            "crab",
+        ]
+    )
 }
 
 

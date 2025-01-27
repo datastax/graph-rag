@@ -18,7 +18,7 @@ from langchain_core.vectorstores import VectorStore
 from langchain_graph_retriever.document_transformers.metadata_denormalizer import (
     MetadataDenormalizer,
 )
-from langchain_graph_retriever.types import Edge, MetadataEdge
+from langchain_graph_retriever.types import Edge, IdEdge, MetadataEdge
 
 StoreT = TypeVar("StoreT", bound=VectorStore)
 
@@ -497,16 +497,26 @@ class Adapter(Generic[StoreT], abc.ABC):
             Iterable of adjacent nodes.
         """
         results: list[Document] = []
+
+        ids = []
         for outgoing_edge in outgoing_edges:
-            docs = self.similarity_search_with_embedding_by_vector(
-                embedding=query_embedding,
-                k=adjacent_k,
-                filter=self._get_metadata_filter(
-                    base_filter=filter, edge=outgoing_edge
-                ),
-                **kwargs,
-            )
-            results.extend(docs)
+            if isinstance(outgoing_edge, MetadataEdge):
+                docs = self.similarity_search_with_embedding_by_vector(
+                    embedding=query_embedding,
+                    k=adjacent_k,
+                    filter=self._get_metadata_filter(
+                        base_filter=filter, edge=outgoing_edge
+                    ),
+                    **kwargs,
+                )
+                results.extend(docs)
+            elif isinstance(outgoing_edge, IdEdge):
+                ids.append(outgoing_edge.id)
+            else:
+                raise ValueError(f"Unsupported edge: {outgoing_edge}")
+
+        if ids:
+            results.extend(self.get(ids))
         return results
 
     async def aget_adjacent(
@@ -538,17 +548,25 @@ class Adapter(Generic[StoreT], abc.ABC):
         Iterable[Document]
             Iterable of adjacent nodes.
         """
-        tasks = [
-            self.asimilarity_search_with_embedding_by_vector(
-                embedding=query_embedding,
-                k=adjacent_k,
-                filter=self._get_metadata_filter(
-                    base_filter=filter, edge=outgoing_edge
-                ),
-                **kwargs,
-            )
-            for outgoing_edge in outgoing_edges
-        ]
+        tasks = []
+        ids = []
+        for outgoing_edge in outgoing_edges:
+            if isinstance(outgoing_edge, MetadataEdge):
+                tasks.append(self.asimilarity_search_with_embedding_by_vector(
+                    embedding=query_embedding,
+                    k=adjacent_k,
+                    filter=self._get_metadata_filter(
+                        base_filter=filter, edge=outgoing_edge
+                    ),
+                    **kwargs,
+                ))
+            elif isinstance(outgoing_edge, IdEdge):
+                ids.append(outgoing_edge.id)
+            else:
+                raise ValueError(f"Unsupported edge: {outgoing_edge}")
+
+        if ids:
+            tasks.append(self.aget(ids))
 
         results: list[Document] = []
         for completed_task in asyncio.as_completed(tasks):
