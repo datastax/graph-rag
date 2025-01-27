@@ -1,0 +1,69 @@
+[project]
+name = "graph-rag-example-helpers"
+version = "0.1.0"
+description = "Helpers for Graph RAG / Graph Retriever examples."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+
+keywords = [
+    "graph RAG",
+    "RAG",
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+
+    # Supported Python Versions
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+
+    # Topic
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+
+    # Intended Audience(s)
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+
+    # License
+    "License :: OSI Approved :: Apache Software License",
+
+    # Other Details
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "langchain-astradb>=0.5.2",
+    "langchain-astradb>=0.5.2",
+    "langchain-community>=0.3.14",
+    "langchain-core>=0.3.29",
+    "networkx>=3.4.2",
+    "numpy>=1.26.4",
+    "pydantic>=2.10.4",
+    "simsimd>=6.2.1",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/datastax/graph-rag"
+"Bug Reports" = "https://github.com/datastax/graph-rag/issues"
+"Documentation" = "https://datastax.github.com/graph-rag"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.14.1",
+    "networkx-stubs>=0.0.1",
+    "pytest>=8.3.4",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.25.2",
+]
+
