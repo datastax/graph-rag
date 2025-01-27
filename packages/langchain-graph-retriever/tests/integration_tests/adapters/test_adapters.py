@@ -11,7 +11,7 @@ from langchain_graph_retriever.document_transformers.metadata_denormalizer impor
 
 from tests.animal_docs import load_animal_docs
 from tests.embeddings.simple_embeddings import AnimalEmbeddings
-from tests.integration_tests.stores import StoreFactory
+from tests.integration_tests.stores import AdapterFactory
 
 
 def assert_valid_result(doc: Document):
@@ -119,9 +119,9 @@ class AdapterComplianceSuite:
 class TestBuiltinAdapters(AdapterComplianceSuite):
     @pytest.fixture(scope="class")
     def adapter(
-        self, store_factory: StoreFactory, request: pytest.FixtureRequest
+        self, adapter_factory: AdapterFactory, request: pytest.FixtureRequest
     ) -> Adapter:
-        return store_factory.create(
+        return adapter_factory.create(
             request,
             embedding=AnimalEmbeddings(),
             docs=load_animal_docs(),

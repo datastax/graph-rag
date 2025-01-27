@@ -49,7 +49,7 @@ def store_param(request: pytest.FixtureRequest, enabled_stores: set[str]) -> str
 T = TypeVar("T", bound=VectorStore)
 
 
-class StoreFactory(abc.ABC, Generic[T]):
+class AdapterFactory(abc.ABC, Generic[T]):
     def __init__(
         self,
         create_store: Callable[[str, list[Document], Embeddings], T],
@@ -141,7 +141,7 @@ def _cassandra_store_factory(request: pytest.FixtureRequest):
         assert cassandra.session is not None
         cassandra.session.shutdown()
 
-    return StoreFactory[Cassandra](
+    return AdapterFactory[Cassandra](
         create_store=create_cassandra,
         create_adapter=lambda store, nested_metadata_fields: CassandraAdapter(
             store,
@@ -194,14 +194,14 @@ def _opensearch_store_factory(request: pytest.FixtureRequest):
         if store.index_exists():
             store.delete_index()
 
-    return StoreFactory[OpenSearchVectorSearch](
+    return AdapterFactory[OpenSearchVectorSearch](
         create_store=create_open_search,
         create_adapter=lambda store, _nested_metadata_fields: OpenSearchAdapter(store),
         teardown=teardown_open_search,
     )
 
 
-def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
+def _astra_store_factory(_request: pytest.FixtureRequest) -> AdapterFactory:
     import os
 
     from astrapy import AstraDBDatabaseAdmin
@@ -247,14 +247,14 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     def teardown_astra(store: AstraDBVectorStore):
         store.delete_collection()
 
-    return StoreFactory[AstraDBVectorStore](
+    return AdapterFactory[AstraDBVectorStore](
         create_store=create_astra,
         create_adapter=lambda store, _nested_metadata_fields: AstraAdapter(store),
         teardown=teardown_astra,
     )
 
 
-def _in_memory_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
+def _in_memory_store_factory(_request: pytest.FixtureRequest) -> AdapterFactory:
     from langchain_graph_retriever.adapters.in_memory import (
         InMemoryAdapter,
     )
@@ -264,13 +264,13 @@ def _in_memory_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     ) -> InMemoryVectorStore:
         return InMemoryVectorStore.from_documents(docs, emb)
 
-    return StoreFactory[InMemoryVectorStore](
+    return AdapterFactory[InMemoryVectorStore](
         create_store=create_in_memory,
         create_adapter=lambda store, _nested_metadata_fields: InMemoryAdapter(store),
     )
 
 
-def _chroma_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
+def _chroma_store_factory(_request: pytest.FixtureRequest) -> AdapterFactory:
     from langchain_chroma.vectorstores import Chroma
     from langchain_graph_retriever.adapters.chroma import (
         ChromaAdapter,
@@ -282,7 +282,7 @@ def _chroma_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
         docs = list(metadata_denormalizer.transform_documents(docs))
         return Chroma.from_documents(docs, emb, collection_name=name)
 
-    return StoreFactory[Chroma](
+    return AdapterFactory[Chroma](
         create_store=create_chroma,
         create_adapter=lambda store, nested_metadata_fields: ChromaAdapter(
             store,
@@ -294,7 +294,7 @@ def _chroma_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
 
 
 @pytest.fixture(scope="session")
-def store_factory(store_param: str, request: pytest.FixtureRequest) -> StoreFactory:
+def adapter_factory(store_param: str, request: pytest.FixtureRequest) -> AdapterFactory:
     if store_param == "mem":
         return _in_memory_store_factory(request)
     elif store_param == "chroma":

@@ -8,22 +8,22 @@ from langchain_core.embeddings import Embeddings, FakeEmbeddings
 from langchain_core.vectorstores import VectorStore
 from langchain_graph_retriever.adapters import Adapter, infer_adapter
 
-from tests.integration_tests.stores import StoreFactory
+from tests.integration_tests.stores import AdapterFactory
 
 
-def test_infer_store(store_factory: StoreFactory) -> None:
+def test_infer_store(adapter_factory: AdapterFactory) -> None:
     # Some vector stores require at least one document to be created.
     doc = Document(
         id="doc",
         page_content="lorem ipsum and whatnot",
     )
-    store = store_factory._create_store("foo", [doc], FakeEmbeddings(size=8))
+    store = adapter_factory._create_store("foo", [doc], FakeEmbeddings(size=8))
 
     adapter = infer_adapter(store)
 
     assert isinstance(adapter, Adapter)
-    if store_factory._teardown:
-        store_factory._teardown(store)
+    if adapter_factory._teardown:
+        adapter_factory._teardown(store)
 
 
 class UnsupportedVectorStore(VectorStore):
