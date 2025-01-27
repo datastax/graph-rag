@@ -86,8 +86,7 @@ quartodoc:
       - astra.AstraAdapter
       - cassandra.CassandraAdapter
       - chroma.ChromaAdapter
-      - in_memory.InMemoryFlatAdapter
-      - in_memory.InMemoryListAdapter
+      - in_memory.InMemoryAdapter
       - open_search.OpenSearchAdapter
 
 filters:

@@ -25,7 +25,7 @@ def pytest_addoption(parser: Parser):
         action="append",
         metavar="STORE",
         choices=ALL_STORES + ["all"],
-        help="run tests for the given store (default: 'mem' and 'mem_norm')",
+        help="run tests for the given store (default: 'mem')",
     )
     parser.addoption(
         "--testcontainer",

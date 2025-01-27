@@ -88,6 +88,7 @@ class MetadataEdgeFunction:
         Notes
         -----
         - Handles both simple (key-value) and iterable metadata fields.
+        - Issues warnings for unsupported or unexpected values.
         """
         edges: set[Edge] = set()
         for source_key, target_key in self.edges:
@@ -112,6 +113,9 @@ class MetadataEdgeFunction:
     def __call__(self, node: Node) -> Edges:
         """
         Extract incoming and outgoing edges from metadata.
+
+        This method retrieves edges based on the declared edge definitions, taking
+        into account whether nested metadata is used.
 
         Parameters
         ----------

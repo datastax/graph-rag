@@ -1,19 +1,19 @@
 from langchain_core.documents import Document
+from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_graph_retriever import GraphRetriever
 from langchain_graph_retriever.adapters.in_memory import (
-    InMemoryListAdapter,
+    InMemoryAdapter,
 )
 from langchain_graph_retriever.strategies import (
     Mmr,
 )
-from langchain_graph_retriever.vector_stores.in_memory import InMemoryList
 
 from tests.animal_docs import (
     ANIMALS_DEPTH_0_EXPECTED,
     ANIMALS_QUERY,
 )
-from tests.assertions import sorted_doc_ids
 from tests.embeddings.simple_embeddings import Angular2DEmbeddings
+from tests.integration_tests.assertions import sorted_doc_ids
 from tests.integration_tests.stores import Adapter
 
 
@@ -133,12 +133,12 @@ async def test_traversal_mem(invoker) -> None:
     v2.metadata["incoming"] = "link"
     v3.metadata["incoming"] = "link"
 
-    store = InMemoryList(embedding=Angular2DEmbeddings())
+    store = InMemoryVectorStore(embedding=Angular2DEmbeddings())
     store.add_documents([v0, v1, v2, v3])
 
     strategy = Mmr(k=2, start_k=2, max_depth=2)
     retriever = GraphRetriever(
-        store=InMemoryListAdapter(vector_store=store),
+        store=InMemoryAdapter(vector_store=store),
         edges=[("outgoing", "incoming")],
         strategy=strategy,
     )

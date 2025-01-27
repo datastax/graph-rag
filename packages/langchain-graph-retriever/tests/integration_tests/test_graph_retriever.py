@@ -1,8 +1,8 @@
 from langchain_core.documents import Document
 from langchain_core.embeddings import FakeEmbeddings
+from langchain_core.vectorstores.in_memory import InMemoryVectorStore
 from langchain_graph_retriever import GraphRetriever
-from langchain_graph_retriever.adapters.in_memory import InMemoryListAdapter
-from langchain_graph_retriever.vector_stores.in_memory import InMemoryList
+from langchain_graph_retriever.adapters.in_memory import InMemoryAdapter
 
 
 def test_infers_adapter() -> None:
@@ -11,11 +11,11 @@ def test_infers_adapter() -> None:
         id="doc",
         page_content="lorem ipsum and whatnot",
     )
-    store = InMemoryList.from_documents([doc], FakeEmbeddings(size=8))
+    store = InMemoryVectorStore.from_documents([doc], FakeEmbeddings(size=8))
 
     retriever = GraphRetriever(
         store=store,
         edges=[],
     )
 
-    assert isinstance(retriever.adapter, InMemoryListAdapter)
+    assert isinstance(retriever.adapter, InMemoryAdapter)

@@ -112,13 +112,14 @@ class MetadataDenormalizer(BaseDocumentTransformer):
 
         Returns
         -------
-        A sequence of transformed Documents.
+        Sequence[Document]
+            A sequence of transformed Documents.
         """
         reverted_docs = []
         for document in documents:
             new_doc = Document(id=document.id, page_content=document.page_content)
-            denormalized_keys = json.loads(
-                document.metadata.pop(DENORMALIZED_KEYS_KEY, "[]")
+            denormalized_keys = set(
+                json.loads(document.metadata.pop(DENORMALIZED_KEYS_KEY, "[]"))
             )
 
             for key, value in document.metadata.items():
@@ -141,26 +142,31 @@ class MetadataDenormalizer(BaseDocumentTransformer):
 
         return reverted_docs
 
-    def denormalized_key(self, key: str, value: Any):
+    def denormalized_key(self, key: str, value: Any) -> str:
         """
         Get the denormalized key for a key/value pair.
 
-        Args:
-            key : str
-            value : Any
+        Parameters
+        ----------
+        key : str
+            The metadata key to denormalize
+        value : Any
+            The metadata value to denormalize
 
         Returns
         -------
-        the denormalized key
+        str
+            the denormalized key
         """
         return f"{key}{self.path_delimiter}{value}"
 
-    def denormalized_value(self):
+    def denormalized_value(self) -> str:
         """
         Get the denormalized value for a key/value pair.
 
         Returns
         -------
-        the denormalized value
+        str
+            the denormalized value
         """
         return self.static_value

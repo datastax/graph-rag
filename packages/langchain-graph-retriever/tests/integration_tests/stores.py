@@ -5,13 +5,13 @@ from typing import Generic, TypeVar
 import pytest
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
-from langchain_core.vectorstores import VectorStore
+from langchain_core.vectorstores import InMemoryVectorStore, VectorStore
 from langchain_graph_retriever.adapters import Adapter
 from langchain_graph_retriever.document_transformers.metadata_denormalizer import (
     MetadataDenormalizer,
 )
 
-ALL_STORES = ["mem_norm", "mem", "astra", "cassandra", "chroma", "opensearch"]
+ALL_STORES = ["mem", "astra", "cassandra", "chroma", "opensearch"]
 TESTCONTAINER_STORES = ["cassandra", "opensearch"]
 
 
@@ -25,7 +25,7 @@ def enabled_stores(request: pytest.FixtureRequest) -> set[str]:
     elif stores:
         return set(stores)
     else:
-        return {"mem_norm", "mem"}
+        return {"mem"}
 
 
 def use_testcontainer(request: pytest.FixtureRequest, store: str) -> bool:
@@ -251,42 +251,19 @@ def _astra_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     )
 
 
-def _in_memory_flat_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
+def _in_memory_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
     from langchain_graph_retriever.adapters.in_memory import (
-        InMemoryFlatAdapter,
+        InMemoryAdapter,
     )
-    from langchain_graph_retriever.vector_stores.in_memory import InMemoryFlat
 
-    metadata_denormalizer = MetadataDenormalizer()
-
-    def create_in_memory_flat(
+    def create_in_memory(
         _name: str, docs: list[Document], emb: Embeddings
-    ) -> InMemoryFlat:
-        docs = list(metadata_denormalizer.transform_documents(docs))
-        return InMemoryFlat.from_documents(docs, emb)
+    ) -> InMemoryVectorStore:
+        return InMemoryVectorStore.from_documents(docs, emb)
 
-    return StoreFactory[InMemoryFlat](
-        create_store=create_in_memory_flat,
-        create_adapter=lambda store: InMemoryFlatAdapter(
-            store, metadata_denormalizer=metadata_denormalizer
-        ),
-    )
-
-
-def _in_memory_list_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
-    from langchain_graph_retriever.adapters.in_memory import (
-        InMemoryListAdapter,
-    )
-    from langchain_graph_retriever.vector_stores.in_memory import InMemoryList
-
-    def create_in_memory_list(
-        _name: str, docs: list[Document], emb: Embeddings
-    ) -> InMemoryList:
-        return InMemoryList.from_documents(docs, emb)
-
-    return StoreFactory[InMemoryList](
-        create_store=create_in_memory_list,
-        create_adapter=InMemoryListAdapter,
+    return StoreFactory[InMemoryVectorStore](
+        create_store=create_in_memory,
+        create_adapter=InMemoryAdapter,
     )
 
 
@@ -313,10 +290,8 @@ def _chroma_store_factory(_request: pytest.FixtureRequest) -> StoreFactory:
 
 @pytest.fixture(scope="session")
 def store_factory(store_param: str, request: pytest.FixtureRequest) -> StoreFactory:
-    if store_param == "mem_norm":
-        return _in_memory_list_store_factory(request)
-    elif store_param == "mem":
-        return _in_memory_flat_store_factory(request)
+    if store_param == "mem":
+        return _in_memory_store_factory(request)
     elif store_param == "chroma":
         return _chroma_store_factory(request)
     elif store_param == "astra":

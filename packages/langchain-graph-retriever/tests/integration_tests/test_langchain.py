@@ -1,5 +1,5 @@
+from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_graph_retriever import GraphRetriever
-from langchain_graph_retriever.vector_stores.in_memory import InMemoryList
 from langchain_tests.integration_tests import RetrieversIntegrationTests
 
 from tests.animal_docs import load_animal_docs
@@ -13,7 +13,7 @@ class TestGraphTraversalRetriever(RetrieversIntegrationTests):
 
     @property
     def retriever_constructor_params(self) -> dict:
-        store = InMemoryList(embedding=AnimalEmbeddings())
+        store = InMemoryVectorStore(embedding=AnimalEmbeddings())
         store.add_documents(load_animal_docs())
         return {
             "store": store,

@@ -1,85 +1,27 @@
 """Provides an adapter for the InMemoryVectorStore integration."""
 
-from collections.abc import Sequence
-from typing import override
+from collections.abc import Callable, Iterable, Sequence
+from typing import Any, override
 
 from langchain_core.documents import Document
+from langchain_core.vectorstores import InMemoryVectorStore
 
-from ..vector_stores.in_memory import InMemoryFlat, InMemoryList
-from .base import METADATA_EMBEDDING_KEY, Adapter, DenormalizedAdapter
+from .base import METADATA_EMBEDDING_KEY, Adapter
 
 SENTINEL = object()
 
 
-class InMemoryFlatAdapter(DenormalizedAdapter[InMemoryFlat]):
+class InMemoryAdapter(Adapter[InMemoryVectorStore]):
     """
-    Adapter for InMemoryFlat vector store.
+    Adapter for InMemoryVectorStore vector store.
 
-    This adapter integrates the in-memory-flat vector store with the graph
+    This adapter integrates the in-memory vector store with the graph
     retriever system, enabling similarity search and document retrieval.
 
     Parameters
     ----------
-    vector_store : InMemoryFlat
-        The in-memory-flat vector store instance.
-    metadata_denormalizer: MetadataDenormalizer | None
-        (Optional) An instance of the MetadataDenormalizer used for doc insertion.
-        If not passed then a default instance of MetadataDenormalizer is used.
-    """
-
-    @override
-    def get(self, ids: Sequence[str], /, **kwargs) -> list[Document]:
-        docs: list[Document] = []
-
-        for doc_id in ids:
-            doc = self.vector_store.store.get(doc_id)
-            if doc:
-                metadata = doc["metadata"]
-                metadata[METADATA_EMBEDDING_KEY] = doc["vector"]
-                docs.append(
-                    Document(
-                        id=doc["id"],
-                        page_content=doc["text"],
-                        metadata=metadata,
-                    )
-                )
-        return list(self.metadata_denormalizer.revert_documents(docs))
-
-    @override
-    def similarity_search_with_embedding_by_vector(
-        self,
-        embedding: list[float],
-        k: int = 4,
-        filter: dict[str, str] | None = None,
-        **kwargs,
-    ):
-        results = self.vector_store._similarity_search_with_score_by_vector(
-            embedding=embedding,
-            k=k,
-            filter=filter,
-        )
-        docs = [
-            Document(
-                id=doc.id,
-                page_content=doc.page_content,
-                metadata={METADATA_EMBEDDING_KEY: doc_embedding, **doc.metadata},
-            )
-            for doc, _score, doc_embedding in results
-        ]
-        return list(self.metadata_denormalizer.revert_documents(docs))
-
-
-class InMemoryListAdapter(Adapter[InMemoryList]):
-    """
-    Adapter for InMemoryList vector store.
-
-    This adapter integrates the in-memory-list vector store with the graph
-    retriever system, enabling similarity search and document retrieval.
-
-    Parameters
-    ----------
-    vector_store : InMemoryList
-        The in-memory-list vector store instance.
+    vector_store : InMemoryVectorStore
+        The in-memory vector store instance.
     """
 
     @override
@@ -111,7 +53,7 @@ class InMemoryListAdapter(Adapter[InMemoryList]):
         results = self.vector_store._similarity_search_with_score_by_vector(
             embedding=embedding,
             k=k,
-            filter=filter,
+            filter=self._filter_method(filter_dict=filter),
             **kwargs,
         )
         docs = [
@@ -123,3 +65,67 @@ class InMemoryListAdapter(Adapter[InMemoryList]):
             for doc, _score, doc_embedding in results
         ]
         return docs
+
+    def _equals_or_contains(
+        self,
+        key: str,
+        value: Any,
+        metadata: dict[str, Any],
+    ) -> bool:
+        """
+        Check if a key-value pair exists or if the value is contained in the metadata.
+
+        Parameters
+        ----------
+        key : str
+            Metadata key to look for.
+        value : Any
+            Value to check for equality or containment.
+        metadata : dict[str, Any]
+            Metadata dictionary to inspect.
+
+        Returns
+        -------
+        bool
+            True if and only if `metadata[key] == value` or `metadata[key]` is a
+            list containing `value`.
+        """
+        actual = metadata.get(key, SENTINEL)
+        if actual == value:
+            return True
+
+        if (
+            isinstance(actual, Iterable)
+            and not isinstance(actual, str | bytes)
+            and value in actual
+        ):
+            return True
+
+        return False
+
+    def _filter_method(
+        self, filter_dict: dict[str, str] | None = None
+    ) -> Callable[[Document], bool]:
+        """
+        Create a filter function based on a metadata dictionary.
+
+        Parameters
+        ----------
+        filter_dict : dict[str, str], optional
+            Dictionary specifying the filter criteria.
+
+        Returns
+        -------
+        Callable[[Document], bool]
+            A function that determines if a document matches the filter criteria.
+        """
+        if filter_dict is None:
+            return lambda _doc: True
+
+        def filter(doc: Document) -> bool:
+            for key, value in filter_dict.items():
+                if not self._equals_or_contains(key, value, doc.metadata):
+                    return False
+            return True
+
+        return filter
