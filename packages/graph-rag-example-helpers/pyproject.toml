@@ -39,13 +39,21 @@ classifiers = [
 ]
 
 dependencies = [
-    "langchain-community>=0.3.14",
+    "astrapy>=1.5.2",
+    "backoff>=2.2.1",
+    "httpx>=0.28.1",
     "langchain-core>=0.3.29",
-    "networkx>=3.4.2",
-    "numpy>=1.26.4",
-    "pydantic>=2.10.4",
+    "python-dotenv>=1.0.1",
     "simsimd>=6.2.1",
+    "tqdm>=4.67.1",
 ]
+
+[tool.deptry.package_module_name_map]
+python-dotenv = "dotenv"
+
+[tool.deptry.per_rule_ignores]
+DEP001 = ["google"]
+DEP002 = ["simsimd"]
 
 [project.urls]
 "Homepage" = "https://github.com/datastax/graph-rag"

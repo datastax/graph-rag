@@ -29,7 +29,8 @@ ignore = ["D100", "D104", "D107"]
 convention = "numpy"
 
 [tool.ruff.lint.per-file-ignores]
-"**/{tests,docs,tools,scripts}/*" = ["D"]
+"**/{tests,tools,scripts}/*" = ["D", "DOC"]
+"*.ipynb" = ["D", "DOC"]
 
 [tool.ruff.format]
 docstring-code-format = true

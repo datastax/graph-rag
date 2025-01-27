@@ -1,5 +1,6 @@
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Generic, Iterator, Tuple, TypeVar
+from typing import Generic, TypeVar
 
 T = TypeVar("T")
 
@@ -7,38 +8,55 @@ T = TypeVar("T")
 @dataclass(frozen=True)
 class Offset:
     """Class for tracking a position in the iteraiton."""
+
     index: int
 
+
 class PersistentIteration(Generic[T]):
-    def __init__(self,
-                 journal_name: str,
-                 iterator: Iterator[T]) -> None:
-        """Create a persistent iteration.
+    """
+    Create a persistent iteration.
 
-        This creates a journal file with the name `journal_name` containing the indices
-        of completed items. When resuming iteration, the already processed indices will
-        be skipped.
+    This creates a journal file with the name `journal_name` containing the indices
+    of completed items. When resuming iteration, the already processed indices will
+    be skipped.
 
-        Args:
-            journal_name: Name of the journal file to use. If it doesn't exist it will
-                be created. The indices of completed items will be written to the journal.
-            iterator: The iterator to process persistently. It must be deterministic --
-                elements should always be returned in the same order on restarts.
-        """
+    Parameters
+    ----------
+    journal_name : str
+        Name of the journal file to use. If it doesn't exist it will be
+        created. The indices of completed items will be written to the
+        journal.
+    iterator : Iterator[T]
+        The iterator to process persistently. It must be deterministic --
+        elements should always be returned in the same order on restarts.
+    """
+
+    def __init__(self, journal_name: str, iterator: Iterator[T]) -> None:
         self.iterator = enumerate(iterator)
-        self.pending = {}
+        self.pending: dict[Offset, T] = {}
 
         self._completed = set()
         try:
             read_journal = open(journal_name)
             for line in read_journal:
-                self._completed.add(Offset(index = int(line)))
+                self._completed.add(Offset(index=int(line)))
         except FileNotFoundError:
             pass
 
         self._write_journal = open(journal_name, "a")
 
-    def __next__(self) -> Tuple[Offset, T]:
+    def __next__(self) -> tuple[Offset, T]:
+        """
+        Return the next offset and item.
+
+        Returns
+        -------
+        offset : Offset
+            The offset of the next item. Should be acknowledge after the item
+            is finished processing.
+        item : T
+            The next item.
+        """
         index, item = next(self.iterator)
         offset = Offset(index)
 
@@ -49,10 +67,33 @@ class PersistentIteration(Generic[T]):
         self.pending[offset] = item
         return (offset, item)
 
-    def __iter__(self) -> Iterator[Tuple[Offset, T]]:
+    def __iter__(self) -> Iterator[tuple[Offset, T]]:
+        """
+        Iterate over pairs of offsets and elements.
+
+        Returns
+        -------
+        Iterator[T]
+        """
         return self
 
     def ack(self, offset: Offset) -> int:
+        """
+        Acknowledge the given offset.
+
+        This should only be called after the elements in that offset have been
+        persisted.
+
+        Parameters
+        ----------
+        offset : int
+            The offset to acknowledge.
+
+        Returns
+        -------
+        int
+            The numebr of pending elements.
+        """
         self._write_journal.write(f"{offset.index}\n")
         self._write_journal.flush()
         self._completed.add(offset)
@@ -61,7 +102,23 @@ class PersistentIteration(Generic[T]):
         return len(self.pending)
 
     def pending_count(self) -> int:
+        """
+        Return the number of pending (not processed) elements.
+
+        Returns
+        -------
+        int
+            The number of pending elements.
+        """
         return len(self.pending)
 
     def completed_count(self) -> int:
+        """
+        Return the numebr of completed elements.
+
+        Returns
+        -------
+        int
+            The number of completed elements.
+        """
         return len(self._completed)

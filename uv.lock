@@ -8,6 +8,7 @@ resolution-markers = [
 
 [manifest]
 members = [
+    "graph-rag-example-helpers",
     "graph-retriever",
     "graph-retriever-workspace",
     "langchain-graph-retriever",
@@ -1191,6 +1192,49 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/ff/a7/8e9cccdb1c49870de6faea2a2764fa23f627dd290633103540209f03524c/googleapis_common_protos-1.66.0.tar.gz", hash = "sha256:c3e7b33d15fdca5374cc0a7346dd92ffa847425cc4ea941d970f13680052ec8c", size = 114376 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a0/0f/c0713fb2b3d28af4b2fded3291df1c4d4f79a00d15c2374a9e010870016c/googleapis_common_protos-1.66.0-py2.py3-none-any.whl", hash = "sha256:d7abcd75fabb2e0ec9f74466401f6c119a0b498e27370e9be4c94cb7e382b8ed", size = 221682 },
+]
+
+[[package]]
+name = "graph-rag-example-helpers"
+version = "0.1.0"
+source = { editable = "packages/graph-rag-example-helpers" }
+dependencies = [
+    { name = "astrapy" },
+    { name = "backoff" },
+    { name = "httpx" },
+    { name = "langchain-core" },
+    { name = "python-dotenv" },
+    { name = "simsimd" },
+    { name = "tqdm" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "mypy" },
+    { name = "networkx-stubs" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "astrapy", specifier = ">=1.5.2" },
+    { name = "backoff", specifier = ">=2.2.1" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "langchain-core", specifier = ">=0.3.29" },
+    { name = "python-dotenv", specifier = ">=1.0.1" },
+    { name = "simsimd", specifier = ">=6.2.1" },
+    { name = "tqdm", specifier = ">=4.67.1" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mypy", specifier = ">=1.14.1" },
+    { name = "networkx-stubs", specifier = ">=0.0.1" },
+    { name = "pytest", specifier = ">=8.3.4" },
+    { name = "pytest-asyncio", specifier = ">=0.25.2" },
+    { name = "pytest-cov", specifier = ">=4.0.0" },
 ]
 
 [[package]]
