@@ -157,7 +157,10 @@ GET_ADJACENT_CASES: dict[str, GetAdjacentCase] = {
     # similarity internally to better reflect this.
     "two_edges_same_field": GetAdjacentCase(
         "domesticated hunters",
-        outgoing_edges={MetadataEdge("type", "mammal"), MetadataEdge("type", "crustacean")},
+        outgoing_edges={
+            MetadataEdge("type", "mammal"),
+            MetadataEdge("type", "crustacean"),
+        },
         expected=[
             "cat",
             "crab",
@@ -171,7 +174,7 @@ GET_ADJACENT_CASES: dict[str, GetAdjacentCase] = {
 
 
 @pytest.fixture(params=GET_ADJACENT_CASES.keys())
-def get_adjacent_case(request) -> GetCase:
+def get_adjacent_case(request) -> GetAdjacentCase:
     return GET_ADJACENT_CASES[request.param]
 
 
@@ -239,9 +242,7 @@ class AdapterComplianceSuite:
     async def test_aget_adjacent(
         self, adapter: Adapter, get_adjacent_case: GetAdjacentCase
     ) -> None:
-        embedding = adapter._safe_embedding.embed_query(
-            text=get_adjacent_case.query
-        )
+        embedding = adapter._safe_embedding.embed_query(text=get_adjacent_case.query)
         results = await adapter.aget_adjacent(
             outgoing_edges=get_adjacent_case.outgoing_edges,
             query_embedding=embedding,
