@@ -48,10 +48,7 @@ jobs:
           name: pyproject-toml
 
       - name: Build packages
-        run: |
-            for E in $(ls packages); do
-              uv build --package $E
-            done
+        run: uv run poe build
 
       - name: List packages
         run: ls -R dist

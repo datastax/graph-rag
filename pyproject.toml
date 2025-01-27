@@ -113,6 +113,7 @@ cwd = "packages/langchain-graph-retriever"
 sequence = [
     {cmd = "uv run mypy .", cwd = "packages/graph-retriever"},
     {cmd = "uv run mypy .", cwd = "packages/langchain-graph-retriever"},
+    {cmd = "uv run mypy .", cwd = "packages/graph-rag-example-helpers"},
 ]
 
 [tool.poe.tasks.dep-check]
@@ -120,6 +121,7 @@ help = "Runs `deptry` to check for dependency issues"
 sequence = [
     {cmd = "uvx ${DEPTRY} src tests", cwd = "packages/graph-retriever"},
     {cmd = "uvx ${DEPTRY} src tests", cwd = "packages/langchain-graph-retriever"},
+    {cmd = "uvx ${DEPTRY} src tests", cwd = "packages/graph-rag-example-helpers"},
 ]
 
 [tool.poe.tasks.lint]
@@ -152,8 +154,7 @@ cmd = "uv run pytest -vs . --stores=all"
 help = "Builds all the packages"
 sequence = [
     "install",
-    {cmd = "uv build --package graph-retriever"},
-    {cmd = "uv build --package langchain-graph-retriever"},
+    {cmd = "uv build --all-packages"},
 ]
 
 [tool.poe.tasks.docs-api]
