@@ -14,6 +14,12 @@ BASIC_TYPES = (str, bool, int, float, complex, bytes)
 SENTINEL = object()
 
 
+class Id:
+    """Place-holder type indicating that the ID should be used."""
+
+    pass
+
+
 class MetadataEdgeFunction:
     """
     Helper for extracting and encoding edges in metadata.
@@ -24,18 +30,18 @@ class MetadataEdgeFunction:
 
     Parameters
     ----------
-        edges : list[tuple[str, str]]
+        edges : list[tuple[str, str | Id]]
             Definitions of edges for traversal, represented
             as pairs of source and target keys.
             - If a string, the same key is used for both source and target.
             - If a tuple, the first element is the source key, and the second is
                 the target key.
-            - Using `'$id'` as the target creates a link from a metadata field
+            - Using `Id()` as the target creates a link from a metadata field
               to the node id (not metadata).
 
     Attributes
     ----------
-        edges : list[tuple[str, str]]
+        edges : list[tuple[str, str | Id]]
             Definitions of edges for traversal, represented
             as pairs of incoming and outgoing keys.
             - If a string, the same key is used for both incoming and outgoing.
@@ -44,21 +50,23 @@ class MetadataEdgeFunction:
 
     Raises
     ------
-        ValueError: If an invalid edge definition is provided.
+    ValueError
+        If an invalid edge definition is provided.
     """
 
     def __init__(
         self,
-        edges: list[str | tuple[str, str]],
+        edges: list[str | tuple[str, str | Id]],
     ) -> None:
-        self.edges = []
+        self.edges: list[tuple[str, str | Id]] = []
         for edge in edges:
             if isinstance(edge, str):
                 self.edges.append((edge, edge))
             elif (
                 isinstance(edge, tuple)
                 and len(edge) == 2
-                and all(isinstance(item, str) for item in edge)
+                and isinstance(edge[0], str)
+                and isinstance(edge[1], str | Id)
             ):
                 self.edges.append((edge[0], edge[1]))
             else:
@@ -96,16 +104,20 @@ class MetadataEdgeFunction:
         edges: set[Edge] = set()
         for source_key, target_key in self.edges:
             if incoming:
-                source_key = target_key
+                if isinstance(target_key, Id):
+                    edges.add(IdEdge(id=id))
+                    continue
+                else:
+                    source_key = target_key
 
-            if source_key == '$id':
-                edges.add(IdEdge(id = id))
-                continue
+            if isinstance(target_key, Id):
 
-            if target_key == '$id':
-                mk_edge = lambda v: IdEdge(id = str(v))
+                def mk_edge(v) -> Edge:
+                    return IdEdge(id=str(v))
             else:
-                mk_edge = lambda v: MetadataEdge(incoming_field=target_key, value=v)
+
+                def mk_edge(v) -> Edge:
+                    return MetadataEdge(incoming_field=target_key, value=v)
 
             value = metadata.get(source_key, SENTINEL)
             if isinstance(value, BASIC_TYPES):

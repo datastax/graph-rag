@@ -15,7 +15,7 @@ from pydantic import ConfigDict, computed_field, model_validator
 from langchain_graph_retriever._traversal import Traversal
 from langchain_graph_retriever.adapters.base import Adapter
 from langchain_graph_retriever.adapters.inference import infer_adapter
-from langchain_graph_retriever.edges.metadata import MetadataEdgeFunction
+from langchain_graph_retriever.edges.metadata import Id, MetadataEdgeFunction
 from langchain_graph_retriever.strategies import Eager, Strategy
 from langchain_graph_retriever.types import EdgeFunction
 
@@ -45,14 +45,14 @@ class GraphRetriever(BaseRetriever):
     ----------
     store : Adapter | VectorStore
         The vector store or adapter used for document retrieval.
-    edges : list[str | tuple[str, str]]
+    edges : list[str | tuple[str, str | Id]]
         Definitions of edges used for graph traversal.
     strategy : Strategy
         The traversal strategy to use.
     """
 
     store: Adapter | VectorStore
-    edges: list[str | tuple[str, str]]
+    edges: list[str | tuple[str, str | Id]]
     strategy: Strategy = Eager()
 
     # Capture the extra fields in `self.model_extra` rather than ignoring.
@@ -81,7 +81,7 @@ class GraphRetriever(BaseRetriever):
         return self
 
     def _edge_function(
-        self, edges: list[str | tuple[str, str]] | None = None
+        self, edges: list[str | tuple[str, str | Id]] | None = None
     ) -> EdgeFunction:
         """
         Create an `EdgeHelper` instance for managing edges during traversal.
@@ -110,7 +110,7 @@ class GraphRetriever(BaseRetriever):
         self,
         query: str,
         *,
-        edges: list[str | tuple[str, str]] | None = None,
+        edges: list[str | tuple[str, str | Id]] | None = None,
         initial_roots: Sequence[str] = (),
         filter: dict[str, Any] | None = None,
         store_kwargs: dict[str, Any] = {},
@@ -159,7 +159,7 @@ class GraphRetriever(BaseRetriever):
         self,
         query: str,
         *,
-        edges: list[str | tuple[str, str]] | None = None,
+        edges: list[str | tuple[str, str | Id]] | None = None,
         initial_roots: Sequence[str] = (),
         filter: dict[str, Any] | None = None,
         store_kwargs: dict[str, Any] = {},

@@ -495,6 +495,11 @@ class Adapter(Generic[StoreT], abc.ABC):
         -------
         Iterable[Document]
             Iterable of adjacent nodes.
+
+        Raises
+        ------
+        ValueError
+            If unsupported edge types are encountered.
         """
         results: list[Document] = []
 
@@ -547,19 +552,26 @@ class Adapter(Generic[StoreT], abc.ABC):
         -------
         Iterable[Document]
             Iterable of adjacent nodes.
+
+        Raises
+        ------
+        ValueError
+            If unsupported edge types are encountered.
         """
         tasks = []
         ids = []
         for outgoing_edge in outgoing_edges:
             if isinstance(outgoing_edge, MetadataEdge):
-                tasks.append(self.asimilarity_search_with_embedding_by_vector(
-                    embedding=query_embedding,
-                    k=adjacent_k,
-                    filter=self._get_metadata_filter(
-                        base_filter=filter, edge=outgoing_edge
-                    ),
-                    **kwargs,
-                ))
+                tasks.append(
+                    self.asimilarity_search_with_embedding_by_vector(
+                        embedding=query_embedding,
+                        k=adjacent_k,
+                        filter=self._get_metadata_filter(
+                            base_filter=filter, edge=outgoing_edge
+                        ),
+                        **kwargs,
+                    )
+                )
             elif isinstance(outgoing_edge, IdEdge):
                 ids.append(outgoing_edge.id)
             else:

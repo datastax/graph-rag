@@ -182,8 +182,8 @@ GET_ADJACENT_CASES: dict[str, GetAdjacentCase] = {
             "cat",
             "dog",
             "crab",
-        ]
-    )
+        ],
+    ),
 }
 
 

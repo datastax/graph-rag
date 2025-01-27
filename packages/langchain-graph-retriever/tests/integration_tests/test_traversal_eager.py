@@ -1,9 +1,11 @@
-from langchain_graph_retriever.adapters.in_memory import InMemoryAdapter
 import pytest
 from langchain_core.documents import Document
+from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_graph_retriever import (
     GraphRetriever,
 )
+from langchain_graph_retriever.adapters.in_memory import InMemoryAdapter
+from langchain_graph_retriever.edges.metadata import Id
 from langchain_graph_retriever.strategies import (
     Eager,
 )
@@ -12,8 +14,11 @@ from tests.animal_docs import (
     ANIMALS_DEPTH_0_EXPECTED,
     ANIMALS_QUERY,
 )
-from langchain_core.vectorstores import InMemoryVectorStore
-from tests.embeddings.simple_embeddings import Angular2DEmbeddings, EarthEmbeddings, ParserEmbeddings
+from tests.embeddings.simple_embeddings import (
+    Angular2DEmbeddings,
+    EarthEmbeddings,
+    ParserEmbeddings,
+)
 from tests.integration_tests.assertions import assert_document_format, sorted_doc_ids
 from tests.integration_tests.stores import Adapter, AdapterFactory
 
@@ -315,6 +320,7 @@ async def test_earth(
     )
     assert sorted_doc_ids(docs) == ["doc1", "doc2", "greetings"]
 
+
 async def test_ids(invoker) -> None:
     v0 = Document(id="v0", page_content="-0.124")
     v1 = Document(id="v1", page_content="+0.127", metadata={"mentions": ["v0"]})
@@ -326,14 +332,14 @@ async def test_ids(invoker) -> None:
 
     retriever = GraphRetriever(
         store=InMemoryAdapter(vector_store=store),
-        edges=[("mentions", "$id")],
+        edges=[("mentions", Id())],
     )
 
     docs: list[Document] = await invoker(retriever, "+0.249", start_k=1, max_depth=0)
     assert sorted_doc_ids(docs) == ["v2"]
 
-    docs: list[Document] = await invoker(retriever, "+0.249", start_k=1, max_depth=1)
+    docs = await invoker(retriever, "+0.249", start_k=1, max_depth=1)
     assert sorted_doc_ids(docs) == ["v1", "v2", "v3"]
 
-    docs: list[Document] = await invoker(retriever, "+0.249", start_k=1, max_depth=3)
+    docs = await invoker(retriever, "+0.249", start_k=1, max_depth=3)
     assert sorted_doc_ids(docs) == ["v0", "v1", "v2", "v3"]

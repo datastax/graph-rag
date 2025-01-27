@@ -1,7 +1,7 @@
 from typing import Any
 
 import pytest
-from langchain_graph_retriever.edges.metadata import MetadataEdgeFunction
+from langchain_graph_retriever.edges.metadata import Id, MetadataEdgeFunction
 from langchain_graph_retriever.types import Edges, IdEdge, MetadataEdge, Node
 
 
@@ -36,8 +36,9 @@ def test_edge_function():
         {MetadataEdge("url", "a"), MetadataEdge("url", "c")},
     )
 
+
 def test_link_to_id():
-    edge_function = MetadataEdgeFunction([("mentions", "$id")])
+    edge_function = MetadataEdgeFunction([("mentions", Id())])
     assert edge_function(mk_node({"mentions": ["a", "c"]})) == Edges(
         {IdEdge("id")},
         {IdEdge("a"), IdEdge("c")},
