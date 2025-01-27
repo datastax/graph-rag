@@ -2,7 +2,7 @@ from typing import Any
 
 import pytest
 from langchain_graph_retriever.edges.metadata import MetadataEdgeFunction
-from langchain_graph_retriever.types import Edges, MetadataEdge, Node
+from langchain_graph_retriever.types import Edges, IdEdge, MetadataEdge, Node
 
 
 def mk_node(metadata: dict[str, Any]) -> Node:
@@ -34,6 +34,13 @@ def test_edge_function():
     assert edge_function(mk_node({"href": ["a", "c"], "url": ["b", "d"]})) == Edges(
         {MetadataEdge("url", "b"), MetadataEdge("url", "d")},
         {MetadataEdge("url", "a"), MetadataEdge("url", "c")},
+    )
+
+def test_link_to_id():
+    edge_function = MetadataEdgeFunction([("mentions", "$id")])
+    assert edge_function(mk_node({"mentions": ["a", "c"]})) == Edges(
+        {IdEdge("id")},
+        {IdEdge("a"), IdEdge("c")},
     )
 
 

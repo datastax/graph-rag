@@ -1,3 +1,4 @@
+from langchain_graph_retriever.adapters.in_memory import InMemoryAdapter
 import pytest
 from langchain_core.documents import Document
 from langchain_graph_retriever import (
@@ -11,7 +12,8 @@ from tests.animal_docs import (
     ANIMALS_DEPTH_0_EXPECTED,
     ANIMALS_QUERY,
 )
-from tests.embeddings.simple_embeddings import EarthEmbeddings, ParserEmbeddings
+from langchain_core.vectorstores import InMemoryVectorStore
+from tests.embeddings.simple_embeddings import Angular2DEmbeddings, EarthEmbeddings, ParserEmbeddings
 from tests.integration_tests.assertions import assert_document_format, sorted_doc_ids
 from tests.integration_tests.stores import Adapter, AdapterFactory
 
@@ -312,3 +314,26 @@ async def test_earth(
         retriever, "Earth", strategy=Eager(k=10, start_k=1, max_depth=1)
     )
     assert sorted_doc_ids(docs) == ["doc1", "doc2", "greetings"]
+
+async def test_ids(invoker) -> None:
+    v0 = Document(id="v0", page_content="-0.124")
+    v1 = Document(id="v1", page_content="+0.127", metadata={"mentions": ["v0"]})
+    v2 = Document(id="v2", page_content="+0.250", metadata={"mentions": ["v1", "v3"]})
+    v3 = Document(id="v3", page_content="+1.000")
+
+    store = InMemoryVectorStore(embedding=Angular2DEmbeddings())
+    store.add_documents([v0, v1, v2, v3])
+
+    retriever = GraphRetriever(
+        store=InMemoryAdapter(vector_store=store),
+        edges=[("mentions", "$id")],
+    )
+
+    docs: list[Document] = await invoker(retriever, "+0.249", start_k=1, max_depth=0)
+    assert sorted_doc_ids(docs) == ["v2"]
+
+    docs: list[Document] = await invoker(retriever, "+0.249", start_k=1, max_depth=1)
+    assert sorted_doc_ids(docs) == ["v1", "v2", "v3"]
+
+    docs: list[Document] = await invoker(retriever, "+0.249", start_k=1, max_depth=3)
+    assert sorted_doc_ids(docs) == ["v0", "v1", "v2", "v3"]
