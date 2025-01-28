@@ -57,6 +57,7 @@ class MetadataEdgeFunction:
         edges: list[EdgeSpec],
     ) -> None:
         self.edges = edges
+        print(edges)
         for source, target in edges:
             if not isinstance(source, str | Id):
                 raise ValueError(f"Expected 'str | Id' but got: {source}")

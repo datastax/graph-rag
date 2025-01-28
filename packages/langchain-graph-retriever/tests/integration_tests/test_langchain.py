@@ -17,7 +17,7 @@ class TestGraphTraversalRetriever(RetrieversIntegrationTests):
         store.add_documents(load_animal_docs())
         return {
             "store": store,
-            "edges": ["habitat"],
+            "edges": [("habitat", "habitat")],
         }
 
     @property

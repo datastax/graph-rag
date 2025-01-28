@@ -15,7 +15,7 @@ def mk_node(metadata: dict[str, Any]) -> Node:
 
 
 def test_initialization():
-    edge_function = MetadataEdgeFunction(["a", ("b", "c"), "b"])
+    edge_function = MetadataEdgeFunction([("a", "a"), ("b", "c"), ("b", "b")])
     assert edge_function.edges == [("a", "a"), ("b", "c"), ("b", "b")]
 
 
