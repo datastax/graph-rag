@@ -34,7 +34,7 @@ vector_store = Chroma(embedding_function=your_embedding_function)
 retriever = GraphRetriever(
     store=vector_store,
     # Define edges based on document metadata
-    edges=["keywords"],
+    edges=[("keywords", "keywords")],
 )
 
 # Perform a retrieval

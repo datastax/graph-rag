@@ -96,7 +96,7 @@ simple = GraphRetriever(
     # Adapt AstraDBVectorStore for use with Graph Retrievers.
     store = vector_store,
     # Define the relationships to navigate:
-    edges = ["habitat", "origin"],
+    edges = [("habitat", "habitat"), ("origin", "origin")],
     strategy = Eager(k=10, start_k=1, depth=2),
 )
 ```

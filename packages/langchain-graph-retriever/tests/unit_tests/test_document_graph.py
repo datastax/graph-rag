@@ -42,7 +42,7 @@ def test_create_graph(docs: list[Document]):
 
     graph = create_graph(
         docs,
-        edges=["keywords"],
+        edges=[("keywords", "keywords")],
     )
     assert sorted(nx.to_edgelist(graph)) == [
         ("doc1", "doc2", {}),
@@ -65,7 +65,7 @@ def test_create_graph(docs: list[Document]):
 def test_communities(animal_docs: list[Document]):
     graph = create_graph(
         animal_docs,
-        edges=["habitat"],
+        edges=[("habitat", "habitat")],
     )
     communities = group_by_community(graph)
 
