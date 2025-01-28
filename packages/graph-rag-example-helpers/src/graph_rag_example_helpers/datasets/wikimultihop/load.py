@@ -1,8 +1,8 @@
 import asyncio
+import os.path
 import zipfile
 from collections.abc import Callable, Iterable, Iterator
 from math import ceil
-import os.path
 
 import astrapy
 import astrapy.exceptions
@@ -18,7 +18,7 @@ from graph_rag_example_helpers.persistent_iteration import PersistentIteration
 LINES_IN_FILE = 5989847
 
 
-def wikipedia_lines(para_with_hyperlink_zip_path: str) -> Iterable[str]:
+def wikipedia_lines(para_with_hyperlink_zip_path: str) -> Iterable[bytes]:
     """
     Return iterable of lines from the wikipedia file.
 
@@ -53,15 +53,12 @@ BatchPreparer = Callable[[Iterator[bytes]], Iterator[Document]]
 
 
 async def aload_2wikimultihop(
-        para_with_hyperlink_zip_path: str,
-        store: VectorStore,
-        batch_prepare: BatchPreparer) -> None:
+    para_with_hyperlink_zip_path: str, store: VectorStore, batch_prepare: BatchPreparer
+) -> None:
     """
     Load 2wikimultihop data into the given `VectorStore`.
 
     Parameters
-    ----------
-        Parameters
     ----------
     para_with_hyperlink_zip_path : str
         Path to `para_with_hyperlink.zip` downloaded following the instructions
