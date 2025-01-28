@@ -15,7 +15,7 @@ from pydantic import ConfigDict, computed_field, model_validator
 from langchain_graph_retriever._traversal import Traversal
 from langchain_graph_retriever.adapters.base import Adapter
 from langchain_graph_retriever.adapters.inference import infer_adapter
-from langchain_graph_retriever.edges.metadata import Id, MetadataEdgeFunction
+from langchain_graph_retriever.edges.metadata import EdgeSpec, MetadataEdgeFunction
 from langchain_graph_retriever.strategies import Eager, Strategy
 from langchain_graph_retriever.types import EdgeFunction
 
@@ -34,7 +34,7 @@ class GraphRetriever(BaseRetriever):
     ----------
     store : Adapter | VectorStore
         The vector store or adapter used for document retrieval.
-    edges : list[str | tuple[str, str | Id]] | EdgeFunction, default []
+    edges : list[str | EdgeSpec] | EdgeFunction, default []
         Function to use for extracting edges from nodes. May be passed a list
         of arguments to construct a `MetadataEdgeFunction` from.
     strategy : Strategy, default Eager()
@@ -53,7 +53,7 @@ class GraphRetriever(BaseRetriever):
     """
 
     store: Adapter | VectorStore
-    edges: list[str | tuple[str, str | Id]] | EdgeFunction = []
+    edges: list[str | EdgeSpec] | EdgeFunction = []
     strategy: Strategy = Eager()
 
     # Capture the extra fields in `self.model_extra` rather than ignoring.
@@ -82,14 +82,14 @@ class GraphRetriever(BaseRetriever):
         return self
 
     def _edge_function(
-        self, edges: list[str | tuple[str, str | Id]] | EdgeFunction | None = None
+        self, edges: list[str | EdgeSpec] | EdgeFunction | None = None
     ) -> EdgeFunction:
         """
         Create an `EdgeHelper` instance for managing edges during traversal.
 
         Parameters
         ----------
-        edges : list[str | tuple[str, str | Id]] | EdgeFunction, optional
+        edges : list[str | EdgeSpec] | EdgeFunction, optional
             Overridden edge definitions from the invocation.
 
         Returns
@@ -125,7 +125,7 @@ class GraphRetriever(BaseRetriever):
         self,
         query: str,
         *,
-        edges: list[str | tuple[str, str | Id]] | None = None,
+        edges: list[str | EdgeSpec] | None = None,
         initial_roots: Sequence[str] = (),
         filter: dict[str, Any] | None = None,
         store_kwargs: dict[str, Any] = {},
@@ -141,7 +141,7 @@ class GraphRetriever(BaseRetriever):
         ----------
         query : str
             The query string to search for.
-        edges : list[str | tuple[str, str]], optional
+        edges : list[str | EdgeSpec], optional
             Optional edge definitions for this retrieval.
         initial_roots : Sequence[str]
             Document IDs to use as initial roots. The top `adjacent_k` nodes
@@ -174,7 +174,7 @@ class GraphRetriever(BaseRetriever):
         self,
         query: str,
         *,
-        edges: list[str | tuple[str, str | Id]] | None = None,
+        edges: list[str | EdgeSpec] | None = None,
         initial_roots: Sequence[str] = (),
         filter: dict[str, Any] | None = None,
         store_kwargs: dict[str, Any] = {},
@@ -190,7 +190,7 @@ class GraphRetriever(BaseRetriever):
         ----------
         query : str
             The query string to search for.
-        edges : list[str | tuple[str, str]], optional
+        edges : list[str | EdgeSpec], optional
             Override edge definitions for this invocation.
         initial_roots : Sequence[str]
             Document IDs to use as initial roots. The top `adjacent_k` nodes

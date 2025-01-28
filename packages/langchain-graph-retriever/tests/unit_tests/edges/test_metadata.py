@@ -39,10 +39,21 @@ def test_edge_function():
 
 def test_link_to_id():
     edge_function = MetadataEdgeFunction([("mentions", Id())])
-    assert edge_function(mk_node({"mentions": ["a", "c"]})) == Edges(
-        {IdEdge("id")},
-        {IdEdge("a"), IdEdge("c")},
-    )
+    result = edge_function(mk_node({"mentions": ["a", "c"]}))
+
+    assert result.incoming == {IdEdge("id")}
+    assert result.outgoing == {IdEdge("a"), IdEdge("c")}
+
+
+def test_link_from_id():
+    edge_function = MetadataEdgeFunction([(Id(), "mentions")])
+    result = edge_function(mk_node({"mentions": ["a", "c"]}))
+
+    assert result.incoming == {
+        MetadataEdge("mentions", "a"),
+        MetadataEdge("mentions", "c"),
+    }
+    assert result.outgoing == {MetadataEdge("mentions", "id")}
 
 
 def test_unsupported_values():

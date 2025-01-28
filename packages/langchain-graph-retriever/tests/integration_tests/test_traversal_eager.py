@@ -322,7 +322,7 @@ async def test_earth(
     assert sorted_doc_ids(docs) == ["doc1", "doc2", "greetings"]
 
 
-async def test_ids(invoker) -> None:
+async def test_mentions_to_ids(invoker) -> None:
     v0 = Document(id="v0", page_content="-0.124")
     v1 = Document(id="v1", page_content="+0.127", metadata={"mentions": ["v0"]})
     v2 = Document(id="v2", page_content="+0.250", metadata={"mentions": ["v1", "v3"]})
@@ -344,6 +344,30 @@ async def test_ids(invoker) -> None:
 
     docs = await invoker(retriever, "+0.249", start_k=1, max_depth=3)
     assert sorted_doc_ids(docs) == ["v0", "v1", "v2", "v3"]
+
+
+async def test_ids_to_mentions(invoker) -> None:
+    v0 = Document(id="v0", page_content="-0.124")
+    v1 = Document(id="v1", page_content="+0.127", metadata={"mentions": ["v0"]})
+    v2 = Document(id="v2", page_content="+0.250", metadata={"mentions": ["v1", "v3"]})
+    v3 = Document(id="v3", page_content="+1.000")
+
+    store = InMemoryVectorStore(embedding=Angular2DEmbeddings())
+    store.add_documents([v0, v1, v2, v3])
+
+    retriever = GraphRetriever(
+        store=InMemoryAdapter(vector_store=store),
+        edges=[(Id(), "mentions")],
+    )
+
+    docs: list[Document] = await invoker(retriever, "-0.125", start_k=1, max_depth=0)
+    assert sorted_doc_ids(docs) == ["v0"]
+
+    docs = await invoker(retriever, "-0.125", start_k=1, max_depth=1)
+    assert sorted_doc_ids(docs) == ["v0", "v1"]
+
+    docs = await invoker(retriever, "-0.125", start_k=1, max_depth=3)
+    assert sorted_doc_ids(docs) == ["v0", "v1", "v2"]
 
 
 async def test_edge_function(invoker) -> None:
