@@ -2,6 +2,4 @@
 title: Examples
 ---
 
-# Examples
-
 * [Lazy GraphRAG](./lazy-graph-rag.ipynb) shows how to load Wikipedia data into a LangChain VectorStore with citation and entity information in the metadata for graph traversal, as well as chains for extracting the claims from each community and selecting the most useful claims.

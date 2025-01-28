@@ -1,0 +1,95 @@
+quartodoc:
+  style: pkgdown
+  dir: reference/langchain_graph_retriever
+  css: css/_styles-quartodoc.css
+  package: langchain_graph_retriever
+  render_interlinks: true
+  rewrite_all_pages: true
+  options:
+    include_attributes: true
+  title: 'API Reference'
+  sidebar:
+    file: "reference/langchain_graph_retriever/_sidebar.yml"
+    style: docked
+    search: true
+    collapse-level: 3
+    id: "reference.langchain_graph_retriever"
+    contents:
+      - text: "API Reference"
+        href: reference/index.qmd
+        contents:
+          - "{{ contents }}"
+  sections:
+  - title: langchain_graph_retriever
+    contents:
+    - name: GraphRetriever
+    - name: document_graph
+  - subtitle: 'strategies'
+    contents:
+    - name: Eager
+      package: 'langchain_graph_retriever.strategies:eager'
+    - name: Mmr
+      package: 'langchain_graph_retriever.strategies:mmr'
+    - name: Strategy
+      package: 'langchain_graph_retriever.strategies'
+  - subtitle: 'document_transformers'
+    contents:
+    - name: GLiNEREntityExtractor
+      package: 'langchain_graph_retriever.document_transformers:gliner_entity_extractor'
+    - name: HierarchyLinkExtractor
+      package: 'langchain_graph_retriever.document_transformers:hierarchy_link_extractor'
+    - name: HtmlHyperlinkExtractor
+      package: 'langchain_graph_retriever.document_transformers:html_hyperlink_extractor'
+    - name: KeybertKeywordExtractor
+      package: 'langchain_graph_retriever.document_transformers:keybert_keyword_extractor'
+    - name: MetadataDenormalizer
+      package: 'langchain_graph_retriever.document_transformers:metadata_denormalizer'
+  - subtitle: 'adapters'
+    contents:
+    - name: Adapter
+      package: 'langchain_graph_retriever.adapters:base'
+    - name: DenormalizedAdapter
+      package: 'langchain_graph_retriever.adapters:base'
+    - name: AstraAdapter
+      package: 'langchain_graph_retriever.adapters:astra'
+    - name: CassandraAdapter
+      package: 'langchain_graph_retriever.adapters:cassandra'
+    - name: ChromaAdapter
+      package: 'langchain_graph_retriever.adapters:chroma'
+    - name: InMemoryAdapter
+      package: 'langchain_graph_retriever.adapters:in_memory'
+    - name: OpenSearchAdapter
+      package: 'langchain_graph_retriever.adapters:open_search'
+    - name: 'inference'
+      package: 'langchain_graph_retriever.adapters'
+      members:
+        - infer_adapter
+  - subtitle: 'types'
+    contents:
+    - name: Node
+      package: 'langchain_graph_retriever:types'
+    - name: Edge
+      package: 'langchain_graph_retriever:types'
+    - name: MetadataEdge
+      package: 'langchain_graph_retriever:types'
+    - name: IdEdge
+      package: 'langchain_graph_retriever:types'
+    - name: Edges
+      package: 'langchain_graph_retriever:types'
+    - name: EdgeFunction
+      package: 'langchain_graph_retriever:types'
+  - subtitle: 'edges.metadata'
+    contents:
+    - name: Id
+      package: 'langchain_graph_retriever.edges:metadata'
+    - name: MetadataEdgeFunction
+      package: 'langchain_graph_retriever.edges:metadata'
+  - subtitle: 'utils'
+    contents:
+    - name: math
+      package: 'langchain_graph_retriever.utils'
+      members:
+        - Matrix
+        - cosine_similarity
+        - cosine_similarity_top_k
+

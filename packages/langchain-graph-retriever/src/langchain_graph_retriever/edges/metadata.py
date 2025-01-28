@@ -137,7 +137,7 @@ class MetadataEdgeFunction:
         Returns
         -------
         Edges
-            specyfing the incoming and outgoing edges of the node
+            specifying the incoming and outgoing edges of the node
         """
         outgoing_edges = self._edges_from_dict(node.id, node.metadata)
         incoming_edges = self._edges_from_dict(node.id, node.metadata, incoming=True)

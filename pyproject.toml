@@ -52,6 +52,7 @@ dev = [
 ]
 
 docs = [
+    "quarto-cli>=1.6.40",
     "quartodoc>=0.9.1",
     "nbformat>=5.10.4",
     "nbclient>=0.10.2",
@@ -156,7 +157,11 @@ sequence = [
 [tool.poe.tasks.docs-api]
 help = "Generates the API docs"
 sequence = [
-    {cmd = "uv run quartodoc build", cwd="docs"},
+    {cmd = "uv run quartodoc interlinks", cwd="docs"},
+    {cmd = "uv run scripts/langchain-interlinks.py"},
+    {cmd = "uv run quartodoc build --config _graph_rag_example_helpers.yml", cwd="docs"},
+    {cmd = "uv run quartodoc build --config _graph_retriever.yml", cwd="docs"},
+    {cmd = "uv run quartodoc build --config _langchain_graph_retriever.yml", cwd="docs"},
 ]
 
 [tool.poe.tasks.docs-preview]

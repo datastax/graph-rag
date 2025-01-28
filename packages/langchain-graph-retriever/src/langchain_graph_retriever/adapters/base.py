@@ -482,8 +482,6 @@ class Adapter(Generic[StoreT], abc.ABC):
             The query embedding used for selecting the most relevant nodes.
         adjacent_k : int
             The numebr of relevant nodes to select for the edges.
-        strategy : Strategy
-            The traversal strategy being used.
         filter : dict[str, Any], optional
             Optional metadata to filter the results.
         **kwargs : Any
@@ -631,6 +629,8 @@ class DenormalizedAdapter(Adapter[StoreT]):
     metadata_denormalizer: MetadataDenormalizer | None
         (Optional) An instance of the MetadataDenormalizer used for doc insertion.
         If not passed then a default instance of MetadataDenormalizer is used.
+    nested_metadata_fields: set[str]
+        The set of metadata fields that contain nested values.
     """
 
     def __init__(

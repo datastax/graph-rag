@@ -8,7 +8,7 @@ This page is an executable notebook demonstrating how to combine Graph Traversal
 
 ## Pre-requisites
 
-We assume you already have a working `langchain` installation, including an LLM and embedding model as well as a [supported vector store](/reference/Adapter.qmd).
+We assume you already have a working `langchain` installation, including an LLM and embedding model as well as a [supported vector store](/reference/langchain_graph_retriever/Adapter.qmd).
 
 In that case, you only need to isntall `langchain-graph-retriever`:
 

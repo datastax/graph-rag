@@ -51,7 +51,7 @@ def infer_adapter(store: Adapter | VectorStore) -> Adapter:
 
     Parameters
     ----------
-    vector_store : VectorStore
+    store : VectorStore
         The vector store instance.
 
     Returns

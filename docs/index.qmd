@@ -4,7 +4,9 @@ Graph RAG provides retrievers combining **unstructured** similarity-search on ve
 **structured** traversal of metadata properties.
 These retrievers are implemented using the metadata search functionality of existing vector stores, **allowing you to traverse your existing vector store**!
 
-The core library (`graph-retriever`) can be used in generic Python applications, while `langchain-graph-retriever` provides [langchain](https://python.langchain.com/docs/introduction/)-specific functionality.
+The core library (`graph-retriever`) can be used in generic Python applications, while\
+`langchain-graph-retriever` provides [langchain](https://python.langchain.com/docs/introduction/)-specific functionality.
+
 
 ## Getting Started with LangChain
 

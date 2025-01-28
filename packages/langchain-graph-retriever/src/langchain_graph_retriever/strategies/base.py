@@ -7,7 +7,7 @@ import warnings
 from collections.abc import Iterable
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from langchain_graph_retriever.types import Node
 

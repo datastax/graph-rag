@@ -1,8 +1,9 @@
 /.quarto/
-_sidebar.yml
-reference/
-^reference/index.qmd
+reference/**/*.qmd
+reference/**/_sidebar.yml
+!reference/index.qmd
 _site
+_inv
 *.quarto_ipynb
 *_files/execute-results
 *_files/figure-html

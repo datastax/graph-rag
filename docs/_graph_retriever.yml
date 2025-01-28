@@ -1,0 +1,17 @@
+quartodoc:
+  style: pkgdown
+  dir: reference/graph_retriever
+  package: graph_retriever
+  render_interlinks: true
+  rewrite_all_pages: true
+  options:
+    include_attributes: true
+  title: 'API Reference'
+  sidebar:
+    file: "reference/graph_retriever/_sidebar.yml"
+    style: docked
+    search: true
+    collapse-level: 3
+    id: "reference.graph_retriever"
+  sections:
+  - title: graph_retriever

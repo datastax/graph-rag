@@ -1,6 +1,12 @@
 project:
   type: website
 
+metadata-files:
+  - reference/langchain_graph_retriever/_sidebar.yml
+  - reference/graph_retriever/_sidebar.yml
+  - reference/graph_rag_example_helpers/_sidebar.yml
+
+
 website:
   title: Graph RAG
   twitter-card: true
@@ -8,12 +14,13 @@ website:
     background: primary
     search: true
     left:
-      - text: "Home"
+      - text: Home
         href: index.qmd
       - posts/index.qmd
       - getting-started.qmd
       - examples/index.qmd
-      - reference/index.qmd
+      - text: API Reference
+        href: reference/index.qmd
     right:
       - icon: github
         href: https://github.com/datastax/graph-rag
@@ -28,70 +35,29 @@ website:
     - edit
     - source
   site-url: https://datastax.github.io/graph-rag
-
-
-metadata-files:
-  - _sidebar.yml
-
 format:
   html:
     theme: pulse
     toc: true
     anchor-sections: true
     css:
-      - reference/_styles-quartodoc.css
+      - css/_styles-quartodoc.css
 
     link-external-icon: true
     link-external-newwindow: true
     link-external-filter: '^(?:http:|https:)\/\/datastax.github.io\/graph-rag'
 
-quartodoc:
-  style: pkgdown
-  dir: reference
-  out_index: _api_index.qmd
-  css: reference/_styles-quartodoc.css
-  sidebar:
-    file: "_sidebar.yml"
-    style: docked
-    search: true
-    collapse-level: 2
-    contents:
-      - text: "Home"
-        href: index.qmd
-      - href: getting-started.qmd
-      - examples/index.qmd
-      - section: "Reference"
-        contents:
-          - "{{ contents }}"
-
-  package: langchain_graph_retriever
-  sections:
-    - title: LangChain Graph Retriever
-      desc: Graph `Retriever` implementation for LangChain `VectorStore`s.
-      contents:
-      - GraphRetriever
-    - title: Retrieval Strategies
-      desc: Strategies for use with the retrieval.
-      package: langchain_graph_retriever.strategies
-      contents:
-      - Strategy
-      - Eager
-      - Mmr
-    - title: Adapters
-      desc: Adapters for LangChain `VectorStore`s supporting Graph traversal.
-      package: langchain_graph_retriever.adapters
-      contents:
-      - Adapter
-      - astra.AstraAdapter
-      - cassandra.CassandraAdapter
-      - chroma.ChromaAdapter
-      - in_memory.InMemoryAdapter
-      - open_search.OpenSearchAdapter
 
 filters:
   - interlinks
 
 interlinks:
   sources:
+    langchain:
+      url: https://python.langchain.com/api_reference/
+    networkx:
+      url: https://networkx.org/documentation/stable/
+    numpy:
+      url: https://numpy.org/doc/stable/
     python:
       url: https://docs.python.org/3/
