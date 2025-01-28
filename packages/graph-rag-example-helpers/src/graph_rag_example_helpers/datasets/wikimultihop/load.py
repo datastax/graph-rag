@@ -88,8 +88,8 @@ async def aload_2wikimultihop(store: VectorStore, batch_prepare: BatchPreparer) 
         if batch_docs:
             task = asyncio.create_task(add_docs(batch_docs, offset))
 
-            # It is OK if tasks are lost upon failure since that means we're aborting the
-            # loading.
+            # It is OK if tasks are lost upon failure since that means we're
+            # aborting the loading.
             tasks.append(task)
 
             while len(tasks) >= MAX_IN_FLIGHT:
