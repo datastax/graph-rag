@@ -5,7 +5,8 @@ from typing import Any
 
 import networkx as nx
 from langchain_core.documents import Document
-
+from langchain_graph_retriever.types import Edge, EdgeFunction, Node
+from langchain_graph_retriever.edges.metadata import EdgeSpec, MetadataEdgeFunction
 
 def _best_communities(graph: nx.DiGraph) -> list[list[str]]:
     """
@@ -75,7 +76,7 @@ def _get_md_values(metadata: dict[str, Any], field: str) -> Iterable[Any]:
 def create_graph(
     documents: Sequence[Document],
     *,
-    edges: Iterable[str | tuple[str, str]],
+    edges: list[EdgeSpec] | EdgeFunction,
 ) -> nx.DiGraph:
     """
     Create a directed graph from a sequence of documents.
@@ -102,43 +103,40 @@ def create_graph(
     """
     graph = nx.DiGraph()
 
-    # Analyze the edges to determine from and to fields.
-    edge_fields = set()
-    to_fields = set()
-
-    for edge in edges:
-        if isinstance(edge, str):
-            edge_fields.add((edge, edge))
-            to_fields.add(edge)
-        else:
-            edge_from, edge_to = edge
-            edge_fields.add((edge_from, edge_to))
-            to_fields.add(edge_to)
+    edge_function : EdgeFunction
+    if isinstance(edges, list):
+        edge_function = MetadataEdgeFunction(edges)
+    elif callable(edges):
+        edge_function = edges
+    else:
+        raise ValueError(f"Expected `list[EdgeSpec] | EdgeFunction` but got: {edges}")
 
     # First pass -- index documents based on "to_fields" so we can navigate to them.
-    documents_by_to_field: dict[tuple[Any, Any], set[str]] = {}
+    documents_by_incoming: dict[Edge, set[str]] = {}
+    outgoing_by_id: dict[str, set[Edge]] = {}
     for document in documents:
         assert document.id is not None
         graph.add_node(document.id, doc=document)
 
-        for to_field in to_fields:
-            for to_value in _get_md_values(document.metadata, to_field):
-                documents_by_to_field.setdefault((to_field, to_value), set()).add(
-                    document.id
-                )
+        edges = edge_function(Node(
+            id = document.id,
+            depth = 0,
+            embedding = [],
+            metadata = document.metadata,
+        ))
+
+        for incoming in edges.incoming:
+            documents_by_incoming.setdefault(incoming, set()).add(document.id)
+        outgoing_by_id[document.id] = edges.outgoing
 
     # Second pass -- add edges for each outgoing edge.
     # print(graph.nodes)
-    for document in documents:
-        for from_field, to_field in edge_fields:
-            linked_to = set()
-            for from_value in _get_md_values(document.metadata, from_field):
-                links = documents_by_to_field.get((to_field, from_value), set())
-                linked_to.update(links)
-
-            for target in linked_to:
-                if document.id != target:
-                    graph.add_edge(document.id, target)
+    for id, outgoing in outgoing_by_id.items():
+        linked_to = set()
+        for out in outgoing:
+            linked_to.update(documents_by_incoming.get(out, set()))
+        for target in linked_to - {id}:
+            graph.add_edge(id, target)
 
     return graph
 

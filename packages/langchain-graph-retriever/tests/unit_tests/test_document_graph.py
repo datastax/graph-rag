@@ -4,6 +4,7 @@ import networkx as nx
 import pytest
 from langchain_core.documents import Document
 from langchain_graph_retriever.document_graph import create_graph, group_by_community
+from langchain_graph_retriever import Id
 
 
 @pytest.fixture
@@ -19,13 +20,13 @@ def docs() -> list[Document]:
     doc1 = Document(
         id="doc1",
         page_content="Hello World",
-        metadata={"outgoing": "parent", "keywords": ["greeting", "world"]},
+        metadata={"outgoing": "parent", "keywords": ["greeting", "world"], "mentions": ["doc0"]},
     )
 
     doc2 = Document(
         id="doc2",
         page_content="Hello Earth",
-        metadata={"outgoing": "parent", "keywords": ["greeting", "earth"]},
+        metadata={"outgoing": "parent", "keywords": ["greeting", "earth"], "mentions": ["doc1", "doc0"]},
     )
     return [doc0, doc1, doc2]
 
@@ -51,7 +52,7 @@ def test_create_graph(docs: list[Document]):
 
     graph = create_graph(
         docs,
-        edges=[("outgoing", "incoming"), "keywords"],
+        edges=[("outgoing", "incoming"), ("keywords", "keywords")],
     )
     assert sorted(nx.to_edgelist(graph)) == [
         ("doc1", "doc0", {}),
@@ -60,6 +61,16 @@ def test_create_graph(docs: list[Document]):
         ("doc2", "doc1", {}),
     ]
     assert graph.nodes["doc1"]["doc"] == docs[1]
+
+    graph = create_graph(
+        docs,
+        edges=[("mentions", Id())],
+    )
+    assert sorted(nx.to_edgelist(graph)) == [
+        ("doc1", "doc0", {}),
+        ("doc2", "doc0", {}),
+        ("doc2", "doc1", {}),
+    ]
 
 
 def test_communities(animal_docs: list[Document]):
