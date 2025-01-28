@@ -80,7 +80,11 @@ verbosity = -1
 RUFF = "ruff@0.8.6"
 DEPTRY = "deptry@0.22.0"
 
-[tool.poe.tasks.install]
+[tool.poe.tasks.install-deps]
+help = "Install dependencies from all packages and all extras"
+cmd = "uv sync --all-packages --all-extras"
+
+[tool.poe.tasks.install-docs-deps]
 help = "Install dependencies from all packages and all extras"
 cmd = "uv sync --all-packages --all-extras --group docs"
 
@@ -154,7 +158,7 @@ cmd = "uv run pytest -vs . --stores=all"
 [tool.poe.tasks.build]
 help = "Builds all the packages"
 sequence = [
-    "install",
+    "install-deps",
     {cmd = "uv build --all-packages"},
 ]
 

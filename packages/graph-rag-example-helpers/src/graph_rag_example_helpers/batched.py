@@ -1,6 +1,6 @@
 try:
     # Try importing the function from itertools (Python 3.12+)
-    from itertools import batched
+    from itertools import batched  # type: ignore[attr-defined]
 except ImportError:
     from collections.abc import Iterator
     from itertools import islice

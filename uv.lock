@@ -3,7 +3,8 @@ requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.12.4'",
     "python_full_version >= '3.12' and python_full_version < '3.12.4'",
-    "python_full_version < '3.12'",
+    "python_full_version == '3.11.*'",
+    "python_full_version < '3.11'",
 ]
 
 [manifest]
@@ -2185,6 +2186,7 @@ dependencies = [
     { name = "networkx" },
     { name = "numpy" },
     { name = "pydantic" },
+    { name = "typing-extensions" },
 ]
 
 [package.optional-dependencies]
@@ -2250,6 +2252,7 @@ requires-dist = [
     { name = "opensearch-py", marker = "extra == 'opensearch'", specifier = ">=2.8.0" },
     { name = "pydantic", specifier = ">=2.10.4" },
     { name = "simsimd", marker = "extra == 'simsimd'", specifier = ">=6.2.1" },
+    { name = "typing-extensions", specifier = ">=4.12.2" },
 ]
 
 [package.metadata.requires-dev]

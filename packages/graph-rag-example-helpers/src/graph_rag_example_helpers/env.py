@@ -1,10 +1,10 @@
 import os
-from enum import StrEnum, auto
+from enum import Enum, auto
 
 from dotenv import find_dotenv, load_dotenv
 
 
-class Environment(StrEnum):
+class Environment(Enum):
     """Enumeration of supported environments for examples."""
 
     CASSIO = auto()

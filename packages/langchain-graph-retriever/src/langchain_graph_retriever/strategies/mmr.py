@@ -3,11 +3,11 @@
 import dataclasses
 from collections.abc import Iterable
 from functools import cached_property
-from typing import override
 
 import numpy as np
 from numpy.typing import NDArray
 from pydantic import Field
+from typing_extensions import override
 
 from langchain_graph_retriever.strategies.base import Strategy
 from langchain_graph_retriever.types import Node

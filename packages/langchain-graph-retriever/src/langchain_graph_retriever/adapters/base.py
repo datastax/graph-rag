@@ -3,17 +3,15 @@
 import abc
 import asyncio
 from collections.abc import Iterable, Sequence
-from typing import (
-    Any,
-    Generic,
-    TypeVar,
-    override,
-)
+from typing import Any, Generic, TypeVar
 
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.runnables import run_in_executor
 from langchain_core.vectorstores import VectorStore
+from typing_extensions import (
+    override,
+)
 
 from langchain_graph_retriever.document_transformers.metadata_denormalizer import (
     MetadataDenormalizer,

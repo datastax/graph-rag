@@ -3,7 +3,7 @@ name = "langchain-graph-retriever"
 version = "0.1.0"
 description = "LangChain retriever for traversing document graphs on top of vector-based similarity search."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 
@@ -44,6 +44,7 @@ dependencies = [
     "networkx>=3.4.2",
     "numpy>=1.26.4",
     "pydantic>=2.10.4",
+    "typing-extensions>=4.12.2",
 ]
 
 [project.urls]

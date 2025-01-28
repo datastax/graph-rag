@@ -70,28 +70,34 @@ async def aload_2wikimultihop(store: VectorStore, batch_prepare: BatchPreparer) 
             f"Resuming loading with {persistence.completed_count()}"
             f" completed, {total_batches} remaining"
         )
-    async with asyncio.TaskGroup() as tg:
-        tasks = []
 
-        @backoff.on_exception(
-            backoff.expo,
-            EXCEPTIONS_TO_RETRY,
-            max_tries=MAX_RETRIES,
-        )
-        async def add_docs(batch_docs, offset) -> None:
-            await store.aadd_documents(batch_docs)
+    # We can't use asyncio.TaskGroup in 3.10. This would be simpler with that.
+    tasks: list[asyncio.Task] = []
+
+    @backoff.on_exception(
+        backoff.expo,
+        EXCEPTIONS_TO_RETRY,
+        max_tries=MAX_RETRIES,
+    )
+    async def add_docs(batch_docs, offset) -> None:
+        await store.aadd_documents(batch_docs)
+        persistence.ack(offset)
+
+    for offset, batch_lines in tqdm(persistence, total=total_batches):
+        batch_docs = batch_prepare(batch_lines)
+        if batch_docs:
+            task = asyncio.create_task(add_docs(batch_docs, offset))
+
+            # It is OK if tasks are lost upon failure since that means we're aborting the
+            # loading.
+            tasks.append(task)
+
+            while len(tasks) >= MAX_IN_FLIGHT:
+                _, pending = await asyncio.wait(
+                    tasks, return_when=asyncio.FIRST_COMPLETED
+                )
+                tasks = list(pending)
+        else:
             persistence.ack(offset)
-
-        for offset, batch_lines in tqdm(persistence, total=total_batches):
-            batch_docs = batch_prepare(batch_lines)
-            if batch_docs:
-                tasks.append(tg.create_task(add_docs(batch_docs, offset)))
-                while len(tasks) >= MAX_IN_FLIGHT:
-                    _, pending = await asyncio.wait(
-                        tasks, return_when=asyncio.FIRST_COMPLETED
-                    )
-                    tasks = list(pending)
-            else:
-                persistence.ack(offset)
 
     assert persistence.pending_count() == 0
