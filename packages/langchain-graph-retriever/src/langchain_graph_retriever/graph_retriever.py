@@ -34,8 +34,9 @@ class GraphRetriever(BaseRetriever):
     ----------
     store : Adapter | VectorStore
         The vector store or adapter used for document retrieval.
-    edges : list[str | tuple[str, str]]
-        Definitions of edges used for graph traversal.
+    edges : list[str | tuple[str, str | Id]] | EdgeFunction, default []
+        Function to use for extracting edges from nodes. May be passed a list
+        of arguments to construct a `MetadataEdgeFunction` from.
     strategy : Strategy, default Eager()
         The traversal strategy to use.
         Defaults to an `Eager` (breadth-first) strategy which explores
@@ -45,14 +46,14 @@ class GraphRetriever(BaseRetriever):
     ----------
     store : Adapter | VectorStore
         The vector store or adapter used for document retrieval.
-    edges : list[str | tuple[str, str | Id]]
+    edges : list[str | tuple[str, str | Id]] | EdgeFunction
         Definitions of edges used for graph traversal.
     strategy : Strategy
         The traversal strategy to use.
     """
 
     store: Adapter | VectorStore
-    edges: list[str | tuple[str, str | Id]]
+    edges: list[str | tuple[str, str | Id]] | EdgeFunction = []
     strategy: Strategy = Eager()
 
     # Capture the extra fields in `self.model_extra` rather than ignoring.
@@ -81,24 +82,37 @@ class GraphRetriever(BaseRetriever):
         return self
 
     def _edge_function(
-        self, edges: list[str | tuple[str, str | Id]] | None = None
+        self, edges: list[str | tuple[str, str | Id]] | EdgeFunction | None = None
     ) -> EdgeFunction:
         """
         Create an `EdgeHelper` instance for managing edges during traversal.
 
         Parameters
         ----------
-        edges : list[str | tuple[str, str]], optional
+        edges : list[str | tuple[str, str | Id]] | EdgeFunction, optional
             Overridden edge definitions from the invocation.
 
         Returns
         -------
         EdgeHelper
             An instance of `EdgeHelper` configured with the specified edges.
+
+        Raises
+        ------
+        ValueError
+            If edges were not specified to constructor or invocation.
         """
-        return MetadataEdgeFunction(
-            edges=self.edges if edges is None else edges,
-        )
+        if isinstance(edges, list) or (edges is None and isinstance(self.edges, list)):
+            return MetadataEdgeFunction(
+                edges=self.edges if edges is None else edges,
+            )
+        elif edges is not None:
+            return edges
+        elif self.edges is not None:
+            return self.edges
+        else:
+            raise ValueError("Must specify edges")
+
 
     @computed_field  # type: ignore
     @cached_property
