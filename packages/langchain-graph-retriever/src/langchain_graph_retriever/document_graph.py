@@ -5,8 +5,10 @@ from typing import Any
 
 import networkx as nx
 from langchain_core.documents import Document
-from langchain_graph_retriever.types import Edge, EdgeFunction, Node
+
 from langchain_graph_retriever.edges.metadata import EdgeSpec, MetadataEdgeFunction
+from langchain_graph_retriever.types import Edge, EdgeFunction, Node
+
 
 def _best_communities(graph: nx.DiGraph) -> list[list[str]]:
     """
@@ -88,22 +90,23 @@ def create_graph(
     ----------
     documents : Sequence[Document]
         A sequence of documents to add as nodes.
-    edges : Iterable[str | tuple[str, str]])
-        Definitions of edges to use for creating the graph. Each edge can be:
-        - A string representing a single metadata field (interpreted as both
-            `from` and `to`).
-        - A tuple of two strings (`from_field`, `to_field`) specifying the
-            relationship.
+    edges : list[EdgeSpec] | EdgeFunction
+        Definitions of edges to use for creating the graph or edge function to use.
 
     Returns
     -------
     nx.DiGraph
         The created directed graph with documents as nodes and metadata
         relationships as edges.
+
+    Raises
+    ------
+    ValueError
+        If the edges are invalid.
     """
     graph = nx.DiGraph()
 
-    edge_function : EdgeFunction
+    edge_function: EdgeFunction
     if isinstance(edges, list):
         edge_function = MetadataEdgeFunction(edges)
     elif callable(edges):
@@ -118,16 +121,18 @@ def create_graph(
         assert document.id is not None
         graph.add_node(document.id, doc=document)
 
-        edges = edge_function(Node(
-            id = document.id,
-            depth = 0,
-            embedding = [],
-            metadata = document.metadata,
-        ))
+        document_edges = edge_function(
+            Node(
+                id=document.id,
+                depth=0,
+                embedding=[],
+                metadata=document.metadata,
+            )
+        )
 
-        for incoming in edges.incoming:
+        for incoming in document_edges.incoming:
             documents_by_incoming.setdefault(incoming, set()).add(document.id)
-        outgoing_by_id[document.id] = edges.outgoing
+        outgoing_by_id[document.id] = document_edges.outgoing
 
     # Second pass -- add edges for each outgoing edge.
     # print(graph.nodes)

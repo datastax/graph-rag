@@ -3,8 +3,8 @@ from typing import cast
 import networkx as nx
 import pytest
 from langchain_core.documents import Document
-from langchain_graph_retriever.document_graph import create_graph, group_by_community
 from langchain_graph_retriever import Id
+from langchain_graph_retriever.document_graph import create_graph, group_by_community
 
 
 @pytest.fixture
@@ -20,13 +20,21 @@ def docs() -> list[Document]:
     doc1 = Document(
         id="doc1",
         page_content="Hello World",
-        metadata={"outgoing": "parent", "keywords": ["greeting", "world"], "mentions": ["doc0"]},
+        metadata={
+            "outgoing": "parent",
+            "keywords": ["greeting", "world"],
+            "mentions": ["doc0"],
+        },
     )
 
     doc2 = Document(
         id="doc2",
         page_content="Hello Earth",
-        metadata={"outgoing": "parent", "keywords": ["greeting", "earth"], "mentions": ["doc1", "doc0"]},
+        metadata={
+            "outgoing": "parent",
+            "keywords": ["greeting", "earth"],
+            "mentions": ["doc1", "doc0"],
+        },
     )
     return [doc0, doc1, doc2]
 
