@@ -15,7 +15,7 @@ from typing_extensions import Self
 from langchain_graph_retriever._traversal import Traversal
 from langchain_graph_retriever.adapters.base import Adapter
 from langchain_graph_retriever.adapters.inference import infer_adapter
-from langchain_graph_retriever.edges.metadata import EdgeSpec, MetadataEdgeFunction
+from langchain_graph_retriever.edges.metadata import EdgeSpec
 from langchain_graph_retriever.strategies import Eager, Strategy
 from langchain_graph_retriever.types import EdgeFunction
 
@@ -34,9 +34,10 @@ class GraphRetriever(BaseRetriever):
     ----------
     store : Adapter | VectorStore
         The vector store or adapter used for document retrieval.
-    edges : list[str | EdgeSpec] | EdgeFunction, default []
-        Function to use for extracting edges from nodes. May be passed a list
-        of arguments to construct a `MetadataEdgeFunction` from.
+    edges : list[EdgeSpec] | EdgeFunction, default []
+        Function to use for extracting edges from nodes. May be passed a list of
+        arguments to construct a `MetadataEdgeFunction` from, or an
+        `EdgeFunction`.
     strategy : Strategy, default Eager()
         The traversal strategy to use.
         Defaults to an `Eager` (breadth-first) strategy which explores
@@ -53,7 +54,7 @@ class GraphRetriever(BaseRetriever):
     """
 
     store: Adapter | VectorStore
-    edges: list[str | EdgeSpec] | EdgeFunction = []
+    edges: list[EdgeSpec] | EdgeFunction = []
     strategy: Strategy = Eager()
 
     # Capture the extra fields in `self.model_extra` rather than ignoring.
@@ -81,40 +82,6 @@ class GraphRetriever(BaseRetriever):
             self.model_extra.clear()
         return self
 
-    def _edge_function(
-        self, edges: list[str | EdgeSpec] | EdgeFunction | None = None
-    ) -> EdgeFunction:
-        """
-        Create an `EdgeHelper` instance for managing edges during traversal.
-
-        Parameters
-        ----------
-        edges : list[str | EdgeSpec] | EdgeFunction, optional
-            Overridden edge definitions from the invocation.
-
-        Returns
-        -------
-        EdgeHelper
-            An instance of `EdgeHelper` configured with the specified edges.
-
-        Raises
-        ------
-        ValueError
-            If edges were not specified to constructor or invocation.
-        """
-        if edges is not None:
-            if isinstance(edges, list):
-                return MetadataEdgeFunction(edges)
-            else:
-                return edges
-        elif self.edges is not None:
-            if isinstance(self.edges, list):
-                return MetadataEdgeFunction(self.edges)
-            else:
-                return self.edges
-        else:
-            raise ValueError("edges must be specified to constructor or invocation")
-
     @computed_field  # type: ignore
     @cached_property
     def adapter(self) -> Adapter:
@@ -125,7 +92,7 @@ class GraphRetriever(BaseRetriever):
         self,
         query: str,
         *,
-        edges: list[str | EdgeSpec] | None = None,
+        edges: list[EdgeSpec] | EdgeFunction | None = None,
         initial_roots: Sequence[str] = (),
         filter: dict[str, Any] | None = None,
         store_kwargs: dict[str, Any] = {},
@@ -141,7 +108,7 @@ class GraphRetriever(BaseRetriever):
         ----------
         query : str
             The query string to search for.
-        edges : list[str | EdgeSpec], optional
+        edges : list[EdgeSpec] | EdgeFunction, optional
             Optional edge definitions for this retrieval.
         initial_roots : Sequence[str]
             Document IDs to use as initial roots. The top `adjacent_k` nodes
@@ -157,10 +124,19 @@ class GraphRetriever(BaseRetriever):
         -------
         list[Document]
             The retrieved documents.
+
+        Raises
+        ------
+        ValueError
+            If edges weren't provided in this call or the constructor.
         """
+        edges = edges or self.edges
+        if edges is None:
+            raise ValueError("'edges' must be provided in this call or the constructor")
+
         traversal = Traversal(
             query=query,
-            edge_function=self._edge_function(edges),
+            edges=edges,
             strategy=Strategy.build(base_strategy=self.strategy, **kwargs),
             store=self.adapter,
             metadata_filter=filter,
@@ -174,7 +150,7 @@ class GraphRetriever(BaseRetriever):
         self,
         query: str,
         *,
-        edges: list[str | EdgeSpec] | None = None,
+        edges: list[EdgeSpec] | EdgeFunction | None = None,
         initial_roots: Sequence[str] = (),
         filter: dict[str, Any] | None = None,
         store_kwargs: dict[str, Any] = {},
@@ -190,7 +166,7 @@ class GraphRetriever(BaseRetriever):
         ----------
         query : str
             The query string to search for.
-        edges : list[str | EdgeSpec], optional
+        edges : list[EdgeSpec] | EdgeFunction, optional
             Override edge definitions for this invocation.
         initial_roots : Sequence[str]
             Document IDs to use as initial roots. The top `adjacent_k` nodes
@@ -206,10 +182,18 @@ class GraphRetriever(BaseRetriever):
         -------
         list[Document]
             The retrieved documents.
+
+        Raises
+        ------
+        ValueError
+            If edges weren't provided in this call or the constructor.
         """
+        edges = edges or self.edges
+        if edges is None:
+            raise ValueError("'edges' must be provided in this call or the constructor")
         traversal = Traversal(
             query=query,
-            edge_function=self._edge_function(edges),
+            edges=edges,
             strategy=Strategy.build(base_strategy=self.strategy, **kwargs),
             store=self.adapter,
             metadata_filter=filter,

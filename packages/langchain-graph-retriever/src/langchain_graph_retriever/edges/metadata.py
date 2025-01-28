@@ -33,13 +33,12 @@ class MetadataEdgeFunction:
 
     Parameters
     ----------
-        edges : list[str | EdgeSpec]
-            Definitions of edges for traversal, represented
-            as a single field or pair of fields representing the source and target
-            of the deges.
+        edges : list[EdgeSpec]
+            Definitions of edges for traversal, represented as a pair of fields
+            representing the source and target of the edges. Each may be:
 
-            - If a string `key`, `doc.metadata[key]` is the source of values.
-            - If the placeholder `Id()`, then `doc.id` is the source of values.
+            - A string, `key`, indicating `doc.metadata[key]` as the value.
+            - The placeholder `Id()`, indicating `doc.id` as the value.
 
     Attributes
     ----------
@@ -55,23 +54,14 @@ class MetadataEdgeFunction:
 
     def __init__(
         self,
-        edges: list[str | EdgeSpec],
+        edges: list[EdgeSpec],
     ) -> None:
-        self.edges: list[EdgeSpec] = []
-        for edge in edges:
-            if isinstance(edge, str):
-                self.edges.append((edge, edge))
-            elif (
-                isinstance(edge, tuple)
-                and len(edge) == 2
-                and isinstance(edge[0], str | Id)
-                and isinstance(edge[1], str | Id)
-            ):
-                self.edges.append((edge[0], edge[1]))
-            else:
-                raise ValueError(
-                    "Invalid type for edge. must be 'str' or 'tuple[str,str]'"
-                )
+        self.edges = edges
+        for source, target in edges:
+            if not isinstance(source, str | Id):
+                raise ValueError(f"Expected 'str | Id' but got: {source}")
+            if not isinstance(target, str | Id):
+                raise ValueError(f"Expected 'str | Id' but got: {target}")
 
     def _edges_from_dict(
         self,

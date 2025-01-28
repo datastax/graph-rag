@@ -21,7 +21,7 @@ async def test_animals_bidir_collection(animal_store: Adapter, invoker):
     # test graph-search on a normalized bi-directional edge
     retriever = GraphRetriever(
         store=animal_store,
-        edges=["keywords"],
+        edges=[("keywords", "keywords")],
     )
 
     docs: list[Document] = await invoker(
@@ -50,7 +50,7 @@ async def test_animals_bidir_collection(animal_store: Adapter, invoker):
 async def test_animals_bidir_item(animal_store: Adapter, invoker):
     retriever = GraphRetriever(
         store=animal_store,
-        edges=["habitat"],
+        edges=[("habitat", "habitat")],
     )
 
     docs: list[Document] = await invoker(

@@ -28,7 +28,7 @@ async def test_animals_bidir_collection_eager(animal_store: Adapter, invoker):
     # test graph-search on a normalized bi-directional edge
     retriever = GraphRetriever(
         store=animal_store,
-        edges=["keywords"],
+        edges=[("keywords", "keywords")],
         strategy=Eager(k=100, start_k=2, max_depth=0),
     )
 
@@ -71,7 +71,7 @@ async def test_animals_bidir_collection_eager(animal_store: Adapter, invoker):
 async def test_animals_bidir_item(animal_store: Adapter, invoker):
     retriever = GraphRetriever(
         store=animal_store,
-        edges=["habitat"],
+        edges=[("habitat", "habitat")],
     )
 
     docs: list[Document] = await invoker(
@@ -107,7 +107,7 @@ async def test_animals_bidir_item(animal_store: Adapter, invoker):
 async def test_animals_initial_roots(animal_store: Adapter, invoker):
     retriever = GraphRetriever(
         store=animal_store,
-        edges=["keywords"],
+        edges=[("keywords", "keywords")],
         strategy=Eager(k=10, start_k=0),
     )
 
@@ -253,7 +253,7 @@ async def test_parser(
 
     retriever = GraphRetriever(
         store=adapter_factory.create(request, ParserEmbeddings(dimension=2), documents),
-        edges=[("out", "in"), "tag"],
+        edges=[("out", "in"), ("tag", "tag")],
         strategy=Eager(k=10, start_k=2, max_depth=2),
     )
 
@@ -302,7 +302,7 @@ async def test_earth(
             [greetings, doc1, doc2],
             nested_metadata_fields={"keywords"},
         ),
-        edges=[("outgoing", "incoming"), "keywords"],
+        edges=[("outgoing", "incoming"), ("keywords", "keywords")],
         strategy=Eager(k=10, start_k=2, max_depth=0),
     )
 

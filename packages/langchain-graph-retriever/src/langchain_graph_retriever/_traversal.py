@@ -6,6 +6,7 @@ from typing import Any
 from langchain_core.documents import Document
 
 from langchain_graph_retriever.adapters.base import METADATA_EMBEDDING_KEY, Adapter
+from langchain_graph_retriever.edges.metadata import EdgeSpec, MetadataEdgeFunction
 from langchain_graph_retriever.strategies import Strategy
 from langchain_graph_retriever.types import Edge, EdgeFunction, Node
 
@@ -25,8 +26,9 @@ class Traversal:
     ----------
     query : str
         The query string for the traversal.
-    edge_function : EdgeFunction
-        A helper object for managing graph edges.
+    edges : list[EdgeSpec] | EdgeFunction
+        An `EdgeFunction` or the edge specifications to use for creating a
+        `MetadataEdgeFunction`.
     strategy : Strategy
         The traversal strategy that defines how nodes are discovered, selected,
         and finalized.
@@ -45,7 +47,7 @@ class Traversal:
         self,
         query: str,
         *,
-        edge_function: EdgeFunction,
+        edges: list[EdgeSpec] | EdgeFunction,
         strategy: Strategy,
         store: Adapter,
         metadata_filter: dict[str, Any] | None = None,
@@ -53,7 +55,15 @@ class Traversal:
         store_kwargs: dict[str, Any] = {},
     ) -> None:
         self.query = query
-        self.edge_function = edge_function
+
+        self.edge_function: EdgeFunction
+        if isinstance(edges, list):
+            self.edge_function = MetadataEdgeFunction(edges)
+        elif callable(edges):
+            self.edge_function = edges
+        else:
+            raise ValueError(f"Invalid edges: {edges}")
+
         self.strategy = strategy
         self.store = store
         self.metadata_filter = metadata_filter
