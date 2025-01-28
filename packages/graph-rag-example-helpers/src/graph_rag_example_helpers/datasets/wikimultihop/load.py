@@ -2,8 +2,7 @@ import asyncio
 import zipfile
 from collections.abc import Callable, Iterable, Iterator
 from math import ceil
-from os.path import dirname
-from os.path import join as joinpath
+import os.path
 
 import astrapy
 import astrapy.exceptions
@@ -18,51 +17,65 @@ from graph_rag_example_helpers.persistent_iteration import PersistentIteration
 
 LINES_IN_FILE = 5989847
 
-PARA_WITH_HYPERLINK = joinpath(dirname(__file__), "para_with_hyperlink.zip")
 
-
-def wikipedia_lines() -> Iterable[str]:
+def wikipedia_lines(para_with_hyperlink_zip_path: str) -> Iterable[str]:
     """
     Return iterable of lines from the wikipedia file.
+
+    Parameters
+    ----------
+    para_with_hyperlink_zip_path : str
+        Path to `para_with_hyperlink.zip` downloaded following the instructions
+        in
+        [2wikimultihop](https://github.com/Alab-NII/2wikimultihop?tab=readme-ov-file#new-update-april-7-2021).
 
     Yields
     ------
     str
         Lines from the Wikipedia file.
     """
-    with zipfile.ZipFile(PARA_WITH_HYPERLINK, "r") as archive:
+    with zipfile.ZipFile(para_with_hyperlink_zip_path, "r") as archive:
         with archive.open("para_with_hyperlink.jsonl", "r") as para_with_hyperlink:
-            for line in para_with_hyperlink:
-                yield str(line)
+            yield from para_with_hyperlink
 
 
 BATCH_SIZE = 1000
 MAX_IN_FLIGHT = 5
 
 EXCEPTIONS_TO_RETRY = (
-    httpx.NetworkError,
+    httpx.TransportError,
     astrapy.exceptions.DataAPIException,
 )
 
 MAX_RETRIES = 8
 
-BatchPreparer = Callable[[Iterator[str]], Iterator[Document]]
+BatchPreparer = Callable[[Iterator[bytes]], Iterator[Document]]
 
 
-async def aload_2wikimultihop(store: VectorStore, batch_prepare: BatchPreparer) -> None:
+async def aload_2wikimultihop(
+        para_with_hyperlink_zip_path: str,
+        store: VectorStore,
+        batch_prepare: BatchPreparer) -> None:
     """
     Load 2wikimultihop data into the given `VectorStore`.
 
     Parameters
     ----------
+        Parameters
+    ----------
+    para_with_hyperlink_zip_path : str
+        Path to `para_with_hyperlink.zip` downloaded following the instructions
+        in
+        [2wikimultihop](https://github.com/Alab-NII/2wikimultihop?tab=readme-ov-file#new-update-april-7-2021).
     store : VectorStore
         The VectorStore to populate.
     batch_prepare : BatchPreparer
         Function to apply to batches of lines to produce the document.
     """
+    assert os.path.isfile(para_with_hyperlink_zip_path)
     persistence = PersistentIteration(
         journal_name="load_2wikimultihop.jrnl",
-        iterator=batched(wikipedia_lines(), BATCH_SIZE),
+        iterator=batched(wikipedia_lines(para_with_hyperlink_zip_path), BATCH_SIZE),
     )
     total_batches = ceil(LINES_IN_FILE / BATCH_SIZE) - persistence.completed_count()
     if persistence.completed_count() > 0:

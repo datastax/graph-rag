@@ -38,6 +38,7 @@ docstring-code-format = true
 [tool.uv.sources]
 graph-retriever = { workspace = true }
 langchain-graph-retriever = { workspace = true }
+graph-rag-example-helpers = { workspace = true }
 
 [tool.uv.workspace]
 members = ["packages/*"]
@@ -60,6 +61,8 @@ docs = [
     "langchain-graph-retriever>=0.1.0",
     "matplotlib>=3.10.0",
     "jupyterlab>=4.3.4",
+    "pip>=25.0",
+    "graph-rag-example-helpers",
 ]
 
 [tool.coverage.report]
