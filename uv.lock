@@ -2186,6 +2186,7 @@ name = "langchain-graph-retriever"
 version = "0.1.0"
 source = { editable = "packages/langchain-graph-retriever" }
 dependencies = [
+    { name = "backoff" },
     { name = "langchain-core" },
     { name = "networkx" },
     { name = "numpy" },
@@ -2241,6 +2242,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "backoff", specifier = ">=2.2.1" },
     { name = "beautifulsoup4", marker = "extra == 'beautifulsoup4'", specifier = ">=4.12.3" },
     { name = "cassio", marker = "extra == 'cassandra'", specifier = ">=0.1.10" },
     { name = "chromadb", marker = "extra == 'chroma'", specifier = ">=0.5.23" },

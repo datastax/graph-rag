@@ -5,14 +5,27 @@ from typing import Any
 
 from typing_extensions import override
 
+import backoff
+
 try:
     from langchain_astradb import AstraDBVectorStore
 except (ImportError, ModuleNotFoundError):
     raise ImportError("please `pip install langchain-astradb`")
+
+try:
+    import astrapy
+except (ImportError, ModuleNotFoundError):
+    raise ImportError("please `pip install astrapy")
+import httpx
 from langchain_core.documents import Document
 
 from .base import METADATA_EMBEDDING_KEY, Adapter
 
+_EXCEPTIONS_TO_RETRY = (
+    httpx.TransportError,
+    astrapy.exceptions.DataAPIException,
+)
+_MAX_RETRIES = 3
 
 class AstraAdapter(Adapter[AstraDBVectorStore]):
     """
@@ -40,6 +53,7 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         return docs
 
     @override
+    @backoff.on_exception(backoff.expo, _EXCEPTIONS_TO_RETRY, max_tries=_MAX_RETRIES)
     def similarity_search_with_embedding(
         self,
         query: str,
@@ -60,6 +74,7 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         )
 
     @override
+    @backoff.on_exception(backoff.expo, _EXCEPTIONS_TO_RETRY, max_tries=_MAX_RETRIES)
     async def asimilarity_search_with_embedding(
         self,
         query: str,
@@ -81,6 +96,7 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         )
 
     @override
+    @backoff.on_exception(backoff.expo, _EXCEPTIONS_TO_RETRY, max_tries=_MAX_RETRIES)
     def _similarity_search_with_embedding_by_vector(
         self,
         embedding: list[float],
@@ -99,6 +115,7 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
         return self._build_docs(docs_with_embeddings=docs_with_embeddings)
 
     @override
+    @backoff.on_exception(backoff.expo, _EXCEPTIONS_TO_RETRY, max_tries=_MAX_RETRIES)
     async def _asimilarity_search_with_embedding_by_vector(
         self,
         embedding: list[float],
@@ -125,6 +142,7 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
                 docs.append(doc)
         return docs
 
+    @backoff.on_exception(backoff.expo, _EXCEPTIONS_TO_RETRY, max_tries=_MAX_RETRIES)
     def _get_by_id_with_embedding(self, document_id: str) -> Document | None:
         """
         Retrieve a document by its ID, including its embedding.
@@ -165,6 +183,7 @@ class AstraAdapter(Adapter[AstraDBVectorStore]):
                 docs.append(doc)
         return docs
 
+    @backoff.on_exception(backoff.expo, _EXCEPTIONS_TO_RETRY, max_tries=_MAX_RETRIES)
     async def _aget_by_id_with_embedding(self, document_id: str) -> Document | None:
         """
         Asynchronously retrieve a document by its ID, including its embedding.

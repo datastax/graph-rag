@@ -173,3 +173,13 @@ def test_communities(animal_docs: list[Document]):
         ["narwhal"],
         ["octopus"],
     ]
+
+def test_communities_disconnected_graph():
+    graph = nx.DiGraph()
+    graph.add_node("n1", doc=Document(id="n1", page_content="n1"))
+    graph.add_node("n2", doc=Document(id="n2", page_content="n2"))
+
+    communities = group_by_community(graph)
+
+    community_ids = [sorted([cast(str, d.id) for d in c]) for c in communities]
+    assert community_ids == [["n1"], ["n2"]]

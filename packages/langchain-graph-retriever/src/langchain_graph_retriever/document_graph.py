@@ -30,8 +30,13 @@ def _best_communities(graph: nx.DiGraph) -> list[list[str]]:
     # TODO: Also continue running until the size of communities is below
     # a specified threshold?
 
-    best_modularity = float("-inf")
     best_communities = [[node] for node in graph]
+    if graph.number_of_edges() == 0:
+        # If there are no edges, then we can't do any beter.
+        return best_communities
+
+    # TODO: stop running if we reach a target modularity and/or number of communities?
+    best_modularity = float("-inf")
     for new_communities in nx.algorithms.community.girvan_newman(graph):
         new_modularity = nx.algorithms.community.modularity(graph, new_communities)
         if new_modularity > best_modularity:
