@@ -1,4 +1,3 @@
-from langchain_graph_retriever.types import Edges, MetadataEdge, Node
 import pytest
 from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore
@@ -10,6 +9,7 @@ from langchain_graph_retriever.edges.metadata import Id
 from langchain_graph_retriever.strategies import (
     Eager,
 )
+from langchain_graph_retriever.types import Edges, MetadataEdge, Node
 
 from tests.animal_docs import (
     ANIMALS_DEPTH_0_EXPECTED,
@@ -345,9 +345,18 @@ async def test_ids(invoker) -> None:
     docs = await invoker(retriever, "+0.249", start_k=1, max_depth=3)
     assert sorted_doc_ids(docs) == ["v0", "v1", "v2", "v3"]
 
+
 async def test_edge_function(invoker) -> None:
-    v0 = Document(id="v0", page_content="-0.124", metadata={"links": [("a", 5.0)], "incoming": ["a"]})
-    v1 = Document(id="v1", page_content="+1.000", metadata={"links": [("a", 6.0)], "incoming": ["a"]})
+    v0 = Document(
+        id="v0",
+        page_content="-0.124",
+        metadata={"links": [("a", 5.0)], "incoming": ["a"]},
+    )
+    v1 = Document(
+        id="v1",
+        page_content="+1.000",
+        metadata={"links": [("a", 6.0)], "incoming": ["a"]},
+    )
 
     store = InMemoryVectorStore(embedding=Angular2DEmbeddings())
     store.add_documents([v0, v1])
@@ -356,8 +365,8 @@ async def test_edge_function(invoker) -> None:
         links = node.metadata.get("links", [])
         incoming = node.metadata.get("incoming", [])
         return Edges(
-            incoming = {MetadataEdge("incoming", v) for v in incoming},
-            outgoing = {MetadataEdge("incoming", v) for v, _weight in links},
+            incoming={MetadataEdge("incoming", v) for v in incoming},
+            outgoing={MetadataEdge("incoming", v) for v, _weight in links},
         )
 
     retriever = GraphRetriever(
@@ -368,6 +377,5 @@ async def test_edge_function(invoker) -> None:
     docs: list[Document] = await invoker(retriever, "-0.125", start_k=1, max_depth=0)
     assert sorted_doc_ids(docs) == ["v0"]
 
-    docs: list[Document] = await invoker(retriever, "-0.125", start_k=1, max_depth=1)
+    docs = await invoker(retriever, "-0.125", start_k=1, max_depth=1)
     assert sorted_doc_ids(docs) == ["v0", "v1"]
-

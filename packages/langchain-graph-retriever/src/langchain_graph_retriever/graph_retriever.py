@@ -102,17 +102,18 @@ class GraphRetriever(BaseRetriever):
         ValueError
             If edges were not specified to constructor or invocation.
         """
-        if isinstance(edges, list) or (edges is None and isinstance(self.edges, list)):
-            return MetadataEdgeFunction(
-                edges=self.edges if edges is None else edges,
-            )
-        elif edges is not None:
-            return edges
+        if edges is not None:
+            if isinstance(edges, list):
+                return MetadataEdgeFunction(edges)
+            else:
+                return edges
         elif self.edges is not None:
-            return self.edges
+            if isinstance(self.edges, list):
+                return MetadataEdgeFunction(self.edges)
+            else:
+                return self.edges
         else:
-            raise ValueError("Must specify edges")
-
+            raise ValueError("edges must be specified to constructor or invocation")
 
     @computed_field  # type: ignore
     @cached_property
