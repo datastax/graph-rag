@@ -1,7 +1,8 @@
 """Provide eager (breadth-first) traversal strategy."""
 
 from collections.abc import Iterable
-from typing import override
+
+from typing_extensions import override
 
 from langchain_graph_retriever.strategies.base import Strategy
 from langchain_graph_retriever.types import Node

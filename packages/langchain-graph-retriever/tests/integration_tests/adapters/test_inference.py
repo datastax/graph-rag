@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import Any, override
+from typing import Any
 
 import pytest
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings, FakeEmbeddings
 from langchain_core.vectorstores import VectorStore
 from langchain_graph_retriever.adapters import Adapter, infer_adapter
+from typing_extensions import override
 
 from tests.integration_tests.stores import AdapterFactory
 

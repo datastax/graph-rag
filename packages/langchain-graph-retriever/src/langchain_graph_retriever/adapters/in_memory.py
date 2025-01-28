@@ -1,10 +1,11 @@
 """Provides an adapter for the InMemoryVectorStore integration."""
 
 from collections.abc import Callable, Iterable, Sequence
-from typing import Any, override
+from typing import Any
 
 from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore
+from typing_extensions import override
 
 from .base import METADATA_EMBEDDING_KEY, Adapter
 

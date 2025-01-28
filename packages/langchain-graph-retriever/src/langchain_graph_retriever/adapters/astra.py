@@ -1,10 +1,9 @@
 """Provides an adapter for AstraDB vector store integration."""
 
 from collections.abc import Sequence
-from typing import (
-    Any,
-    override,
-)
+from typing import Any
+
+from typing_extensions import override
 
 try:
     from langchain_astradb import AstraDBVectorStore

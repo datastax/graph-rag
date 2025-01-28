@@ -4,13 +4,13 @@ from collections.abc import Sequence
 from functools import cached_property
 from typing import (
     Any,
-    Self,
 )
 
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.vectorstores import VectorStore
 from pydantic import ConfigDict, computed_field, model_validator
+from typing_extensions import Self
 
 from langchain_graph_retriever._traversal import Traversal
 from langchain_graph_retriever.adapters.base import Adapter

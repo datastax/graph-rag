@@ -2,9 +2,10 @@
 
 import json
 from collections.abc import Sequence
-from typing import Any, override
+from typing import Any
 
 from langchain_core.documents import BaseDocumentTransformer, Document
+from typing_extensions import override
 
 DENORMALIZED_KEYS_KEY = "__denormalized_keys"
 DEFAULT_PATH_DELIMITER = "→"  # unicode 2192

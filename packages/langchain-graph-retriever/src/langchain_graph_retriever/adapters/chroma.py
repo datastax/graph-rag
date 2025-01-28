@@ -1,9 +1,10 @@
 """Provides an adapter for Chroma vector store integration."""
 
 from collections.abc import Sequence
-from typing import Any, override
+from typing import Any
 
 from langchain_core.documents import Document
+from typing_extensions import override
 
 from .base import METADATA_EMBEDDING_KEY, DenormalizedAdapter
 

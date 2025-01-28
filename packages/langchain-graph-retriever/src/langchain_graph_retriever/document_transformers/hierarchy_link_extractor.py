@@ -1,7 +1,8 @@
 from collections.abc import Sequence
-from typing import Any, override
+from typing import Any
 
 from langchain_core.documents import BaseDocumentTransformer, Document
+from typing_extensions import override
 
 
 class HierarchyLinkExtractor(BaseDocumentTransformer):

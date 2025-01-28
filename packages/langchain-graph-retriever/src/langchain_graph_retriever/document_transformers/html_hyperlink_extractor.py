@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, override
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urldefrag, urljoin, urlparse
 
 from langchain_core._api import beta
 from langchain_core.documents import BaseDocumentTransformer, Document
+from typing_extensions import override
 
 if TYPE_CHECKING:
     from bs4 import BeautifulSoup  # type: ignore

@@ -1,7 +1,9 @@
 """Provides an adapter for Cassandra vector store integration."""
 
 from collections.abc import Sequence
-from typing import Any, override
+from typing import Any
+
+from typing_extensions import override
 
 try:
     from langchain_community.vectorstores import Cassandra
