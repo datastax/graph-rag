@@ -2,9 +2,10 @@ from collections.abc import Sequence
 from typing import Any
 
 import spacy
-from spacy.language import Language
 from langchain_core.documents import BaseDocumentTransformer, Document
+from spacy.language import Language
 from typing_extensions import override
+
 
 class SpacyNERTransformer(BaseDocumentTransformer):
     """
@@ -67,7 +68,6 @@ class SpacyNERTransformer(BaseDocumentTransformer):
 
     Notes
     -----
-
      See spaCy docs for the selected model to determine what NER labels will be
      used. The default model
     (en_core_web_sm)[https://spacy.io/models/en#en_core_web_sm-labels] produces:
@@ -97,7 +97,6 @@ class SpacyNERTransformer(BaseDocumentTransformer):
         else:
             raise ValueError(f"Invalid model: {model}")
 
-
     @override
     def transform_documents(
         self, documents: Sequence[Document], **kwargs: Any
@@ -106,23 +105,22 @@ class SpacyNERTransformer(BaseDocumentTransformer):
         for doc in documents:
             results = self.model(doc.page_content).ents
             # Filter and de-duplicate entities.
-            entities = list({
-                f"{e.label_}: {e.text}"
-                for e in results
-                if not self.include_labels or e.label_ in self.include_labels
-                if not self.exclude_labels or e.label_ not in self.exclude_labels
-            })
+            entities = list(
+                {
+                    f"{e.label_}: {e.text}"
+                    for e in results
+                    if not self.include_labels or e.label_ in self.include_labels
+                    if not self.exclude_labels or e.label_ not in self.exclude_labels
+                }
+            )
             # Limit it, if necessary.
             if self.limit:
-                entities = entities[:self.limit]
+                entities = entities[: self.limit]
             docs.append(
                 Document(
-                    id = doc.id,
-                    page_content = doc.page_content,
-                    metadata = {
-                        self.metadata_key: entities,
-                        **doc.metadata
-                    }
+                    id=doc.id,
+                    page_content=doc.page_content,
+                    metadata={self.metadata_key: entities, **doc.metadata},
                 )
             )
         return docs

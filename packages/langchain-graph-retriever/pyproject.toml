@@ -62,6 +62,8 @@ DEP002 = ["cassio"]
 
 [project.optional-dependencies]
 astra = [
+    "astrapy>=1.5.2",
+    "httpx>=0.28.1",
     "langchain-astradb>=0.5.2",
 ]
 beautifulsoup4 = [
@@ -87,6 +89,9 @@ opensearch = [
 ]
 simsimd = [
     "simsimd>=6.2.1",
+]
+spacy = [
+    "spacy>=3.8.4",
 ]
 
 [build-system]

@@ -174,6 +174,7 @@ def test_communities(animal_docs: list[Document]):
         ["octopus"],
     ]
 
+
 def test_communities_disconnected_graph():
     graph = nx.DiGraph()
     graph.add_node("n1", doc=Document(id="n1", page_content="n1"))

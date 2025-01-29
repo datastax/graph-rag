@@ -53,9 +53,7 @@ BatchPreparer = Callable[[Iterator[bytes]], Iterator[Document]]
 
 
 async def aload_2wikimultihop(
-    para_with_hyperlink_zip_path: str,
-    store: VectorStore,
-    batch_prepare: BatchPreparer
+    para_with_hyperlink_zip_path: str, store: VectorStore, batch_prepare: BatchPreparer
 ) -> None:
     """
     Load 2wikimultihop data into the given `VectorStore`.
@@ -93,15 +91,14 @@ async def aload_2wikimultihop(
     )
     async def add_docs(batch_docs, offset) -> None:
         from astrapy.exceptions import InsertManyException
+
         try:
             await store.aadd_documents(batch_docs)
             persistence.ack(offset)
         except InsertManyException as err:
-            error_codes = {err_desc.error_code for err_desc in err.error_descriptors}
-            print(f"Error Codes: {error_codes}, {err}")
             for err_desc in err.error_descriptors:
                 if err_desc.error_code != "DOCUMENT_ALREADY_EXISTS":
-                    print(err_desc)
+                    print(err_desc)  # noqa: T201
             raise
 
     for offset, batch_lines in tqdm(persistence, total=total_batches):
@@ -121,7 +118,7 @@ async def aload_2wikimultihop(
                 )
                 for complete in completed:
                     if (e := complete.exception()) is not None:
-                        print(f"Exception in task: {e}")
+                        print(f"Exception in task: {e}")  # noqa: T201
                 tasks = list(pending)
         else:
             persistence.ack(offset)
@@ -134,9 +131,8 @@ async def aload_2wikimultihop(
         )
         for complete in completed:
             if (e := complete.exception()) is not None:
-                print(f"Exception in task: {e}")
+                print(f"Exception in task: {e}")  # noqa: T201
         tasks = list(pending)
 
-    print(f"Tasks: {len(tasks)}, Pending Count: {persistence.pending_count()}")
     assert len(tasks) == 0
     assert persistence.pending_count() == 0

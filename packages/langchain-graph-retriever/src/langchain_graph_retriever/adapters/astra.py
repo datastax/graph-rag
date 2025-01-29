@@ -3,9 +3,8 @@
 from collections.abc import Sequence
 from typing import Any
 
-from typing_extensions import override
-
 import backoff
+from typing_extensions import override
 
 try:
     from langchain_astradb import AstraDBVectorStore
@@ -26,6 +25,7 @@ _EXCEPTIONS_TO_RETRY = (
     astrapy.exceptions.DataAPIException,
 )
 _MAX_RETRIES = 3
+
 
 class AstraAdapter(Adapter[AstraDBVectorStore]):
     """
