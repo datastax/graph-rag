@@ -154,9 +154,8 @@ sequence = [
 ]
 
 [tool.poe.tasks.docs-api]
-help = "Updates the package installation and generates the API docs"
+help = "Generates the API docs"
 sequence = [
-    {cmd = "uv pip install packages/* --force-reinstall"},
     {cmd = "uv run quartodoc build", cwd="docs"},
 ]
 
