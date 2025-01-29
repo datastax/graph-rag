@@ -9,7 +9,7 @@ from langchain_core.vectorstores import VectorStore
 from langchain_graph_retriever.adapters import Adapter, infer_adapter
 from typing_extensions import override
 
-from tests.integration_tests.stores import AdapterFactory
+from tests.stores import AdapterFactory
 
 
 def test_infer_store(adapter_factory: AdapterFactory) -> None:

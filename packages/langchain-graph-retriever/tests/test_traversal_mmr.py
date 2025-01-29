@@ -13,8 +13,8 @@ from tests.animal_docs import (
     ANIMALS_QUERY,
 )
 from tests.embeddings.simple_embeddings import Angular2DEmbeddings
-from tests.integration_tests.assertions import sorted_doc_ids
-from tests.integration_tests.stores import Adapter
+from tests.assertions import sorted_doc_ids
+from tests.stores import Adapter
 
 
 async def test_animals_bidir_collection(animal_store: Adapter, invoker):

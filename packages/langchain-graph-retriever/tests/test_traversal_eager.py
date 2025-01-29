@@ -20,8 +20,8 @@ from tests.embeddings.simple_embeddings import (
     EarthEmbeddings,
     ParserEmbeddings,
 )
-from tests.integration_tests.assertions import assert_document_format, sorted_doc_ids
-from tests.integration_tests.stores import Adapter, AdapterFactory
+from tests.assertions import assert_document_format, sorted_doc_ids
+from tests.stores import Adapter, AdapterFactory
 
 
 async def test_animals_bidir_collection_eager(animal_store: Adapter, invoker):

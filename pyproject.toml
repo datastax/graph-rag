@@ -136,18 +136,6 @@ sequence = [
 help = "Runs all formatting, lints, and checks (fixing where possible)"
 sequence = [ "lock-fix", "fmt-fix", "lint-fix", "type-check", "dep-check"]
 
-[tool.poe.tasks.integration]
-help = "Runs integration tests (against in-memory stores)"
-cwd = "packages/langchain-graph-retriever"
-args = [{ name = "path", positional = true, default = "tests/integration_tests"}]
-cmd = "uv run pytest -vs $path"
-
-[tool.poe.tasks.unit]
-help = "Runs unit tests"
-cwd = "packages/langchain-graph-retriever"
-args = [{ name = "path", positional = true, default = "tests/unit_tests"}]
-cmd = "uv run pytest -vs $path"
-
 [tool.poe.tasks.test]
 help = "Runs all tests (against in-memory stores)"
 cwd = "packages/langchain-graph-retriever"
