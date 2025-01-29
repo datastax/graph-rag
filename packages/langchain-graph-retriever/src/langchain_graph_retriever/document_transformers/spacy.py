@@ -1,9 +1,9 @@
 from collections.abc import Sequence
 from typing import Any
 
-import spacy  # typing: ignore
+import spacy  # type: ignore
 from langchain_core.documents import BaseDocumentTransformer, Document
-from spacy.language import Language  # typing: ignore
+from spacy.language import Language  # type: ignore
 from typing_extensions import override
 
 
