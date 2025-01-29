@@ -1344,8 +1344,24 @@ dev = [
 name = "graph-retriever"
 version = "0.1.0"
 source = { editable = "packages/graph-retriever" }
+dependencies = [
+    { name = "numpy" },
+    { name = "pydantic" },
+    { name = "typing-extensions" },
+]
+
+[package.optional-dependencies]
+simsimd = [
+    { name = "simsimd" },
+]
 
 [package.metadata]
+requires-dist = [
+    { name = "numpy", specifier = ">=1.26.4" },
+    { name = "pydantic", specifier = ">=2.10.4" },
+    { name = "simsimd", marker = "extra == 'simsimd'", specifier = ">=6.2.1" },
+    { name = "typing-extensions", specifier = ">=4.12.2" },
+]
 
 [package.metadata.requires-dev]
 dev = []

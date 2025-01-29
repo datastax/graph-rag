@@ -166,6 +166,7 @@ async def test_animals_initial_roots(animal_store: Adapter, invoker):
 
 
 async def test_animals_item_to_collection(animal_store: Adapter, invoker):
+    # Maybe include?
     retriever = GraphRetriever(
         store=animal_store,
         edges=[("habitat", "keywords")],

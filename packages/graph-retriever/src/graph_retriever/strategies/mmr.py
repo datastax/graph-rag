@@ -9,9 +9,9 @@ from numpy.typing import NDArray
 from pydantic import Field
 from typing_extensions import override
 
-from langchain_graph_retriever.strategies.base import Strategy
-from langchain_graph_retriever.types import Node
-from langchain_graph_retriever.utils.math import cosine_similarity
+from graph_retriever.strategies.base import Strategy
+from graph_retriever.types import Node
+from graph_retriever.utils.math import cosine_similarity
 
 NEG_INF = float("-inf")
 

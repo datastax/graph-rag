@@ -28,6 +28,9 @@ ignore = ["D100", "D104", "D107"]
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 
+[tool.ruff.lint.pydoclint]
+ignore-one-line-docstrings = true
+
 [tool.ruff.lint.per-file-ignores]
 "**/{tests,tools,scripts}/*" = ["D", "DOC"]
 "*.ipynb" = ["D", "DOC"]
@@ -80,7 +83,7 @@ source = [
 verbosity = -1
 
 [tool.poe.env]
-RUFF = "ruff@0.8.6"
+RUFF = "ruff@0.9.4"
 DEPTRY = "deptry@0.22.0"
 
 [tool.poe.tasks.install-deps]

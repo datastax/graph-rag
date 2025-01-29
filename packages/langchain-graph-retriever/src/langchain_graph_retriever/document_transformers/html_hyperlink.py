@@ -184,7 +184,9 @@ class HtmlHyperlinkExtractor(BaseDocumentTransformer):
 
         from langchain_community.graph_vectorstores import CassandraGraphVectorStore
 
-        store = CassandraGraphVectorStore.from_documents(documents=documents, embedding=...)
+        store = CassandraGraphVectorStore.from_documents(
+            documents=documents, embedding=...
+        )
 
     Parameters
     ----------

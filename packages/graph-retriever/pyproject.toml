@@ -38,7 +38,11 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
-dependencies = []
+dependencies = [
+    "pydantic>=2.10.4",
+    "numpy>=1.26.4",
+    "typing-extensions>=4.12.2",
+]
 
 [project.urls]
 "Homepage" = "https://github.com/datastax/graph-rag"
@@ -46,7 +50,9 @@ dependencies = []
 "Documentation" = "https://datastax.github.com/graph-rag"
 
 [project.optional-dependencies]
-
+simsimd = [
+    "simsimd>=6.2.1",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
