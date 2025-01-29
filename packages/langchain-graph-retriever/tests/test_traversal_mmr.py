@@ -12,8 +12,8 @@ from tests.animal_docs import (
     ANIMALS_DEPTH_0_EXPECTED,
     ANIMALS_QUERY,
 )
-from tests.embeddings.simple_embeddings import Angular2DEmbeddings
 from tests.assertions import sorted_doc_ids
+from tests.embeddings.simple_embeddings import Angular2DEmbeddings
 from tests.stores import Adapter
 
 
