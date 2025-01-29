@@ -2327,7 +2327,7 @@ simsimd = [
     { name = "simsimd" },
 ]
 spacy = [
-    { name = "spacy", marker = "python_full_version < '3.13'" },
+    { name = "spacy" },
 ]
 
 [package.dev-dependencies]
@@ -2367,7 +2367,7 @@ requires-dist = [
     { name = "opensearch-py", marker = "extra == 'opensearch'", specifier = ">=2.8.0" },
     { name = "pydantic", specifier = ">=2.10.4" },
     { name = "simsimd", marker = "extra == 'simsimd'", specifier = ">=6.2.1" },
-    { name = "spacy", marker = "python_full_version < '3.13' and extra == 'spacy'", specifier = ">=3.8.4" },
+    { name = "spacy", marker = "extra == 'spacy'", specifier = ">=3.8.4" },
     { name = "typing-extensions", specifier = ">=4.12.2" },
 ]
 

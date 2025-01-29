@@ -70,7 +70,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install Python dependencies
-        run: uv sync --frozen --all-packages --all-extras
+        run: uv sync --frozen --all-packages
         shell: bash
 
       - name: Test All Stores (3.12 only)
