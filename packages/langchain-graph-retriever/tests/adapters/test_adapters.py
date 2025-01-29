@@ -15,7 +15,7 @@ from langchain_graph_retriever.types import Edge, IdEdge, MetadataEdge
 
 from tests.animal_docs import load_animal_docs
 from tests.embeddings.simple_embeddings import AnimalEmbeddings
-from tests.integration_tests.stores import AdapterFactory
+from tests.stores import AdapterFactory
 
 
 def assert_valid_result(doc: Document):

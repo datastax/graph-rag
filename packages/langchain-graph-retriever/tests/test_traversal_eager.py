@@ -15,13 +15,13 @@ from tests.animal_docs import (
     ANIMALS_DEPTH_0_EXPECTED,
     ANIMALS_QUERY,
 )
+from tests.assertions import assert_document_format, sorted_doc_ids
 from tests.embeddings.simple_embeddings import (
     Angular2DEmbeddings,
     EarthEmbeddings,
     ParserEmbeddings,
 )
-from tests.integration_tests.assertions import assert_document_format, sorted_doc_ids
-from tests.integration_tests.stores import Adapter, AdapterFactory
+from tests.stores import Adapter, AdapterFactory
 
 
 async def test_animals_bidir_collection_eager(animal_store: Adapter, invoker):

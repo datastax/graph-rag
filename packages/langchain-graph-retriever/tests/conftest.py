@@ -1,16 +1,46 @@
 import asyncio
 
 import pytest
+from langchain_core.documents import Document
+from langchain_graph_retriever.adapters import Adapter
 from pytest import Parser
 
 from tests.animal_docs import animal_docs
-from tests.integration_tests.stores import ALL_STORES, TESTCONTAINER_STORES
+from tests.embeddings import AnimalEmbeddings
+from tests.invoker import invoker
+from tests.stores import (
+    ALL_STORES,
+    TESTCONTAINER_STORES,
+    AdapterFactory,
+    adapter_factory,
+    enabled_stores,
+    store_param,
+)
 
-_ = (animal_docs,)
+# Mark these imports as used so they don't removed.
+# They need to be imported here so the fixtures are available.
+_ = (
+    animal_docs,
+    adapter_factory,
+    store_param,
+    enabled_stores,
+    invoker,
+)
+
+
+@pytest.fixture(scope="session")
+def animal_store(
+    request: pytest.FixtureRequest,
+    adapter_factory: AdapterFactory,
+    animal_docs: list[Document],
+) -> Adapter:
+    return adapter_factory.create(
+        request, AnimalEmbeddings(), animal_docs, nested_metadata_fields={"keywords"}
+    )
 
 
 # may need to do some trickery if/when this is going to be used in end-user tests.
-pytest.register_assert_rewrite("test.integration_tests.adapters.test_adapters")
+pytest.register_assert_rewrite("test.adapters.test_adapters")
 
 
 @pytest.fixture(scope="session")

@@ -58,8 +58,6 @@ Then you can run `urp lint` instead.
 
 ### Testing
 
-* `integration` Runs integration tests (against in-memory stores)
-* `unit` Runs unit tests
 * `test` Runs unit and integration tests (against in-memory stores)
 * `test-all` Runs unit and integration tests (against all stores)
 
