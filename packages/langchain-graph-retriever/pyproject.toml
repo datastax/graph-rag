@@ -91,7 +91,7 @@ simsimd = [
     "simsimd>=6.2.1",
 ]
 spacy = [
-    "spacy>=3.8.4",
+    "spacy>=3.8.4 ; python_version < '3.13'",
 ]
 
 [build-system]
