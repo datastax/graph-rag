@@ -4,17 +4,17 @@ from typing import Any
 file = "docs/_inv/langchain_objects.json"
 
 langchain_class_remapping = {
-    'langchain_astradb.vectorstores.AstraDBVectorStore': 'langchain_astradb.AstraDBVectorStore',
-    'langchain_chroma.vectorstores.Chroma': 'langchain_chroma.Chroma',
-    'langchain_core.documents.base.Document': 'langchain_core.documents.Document',
-    'langchain_core.vectorstores.in_memory.InMemoryVectorStore': 'langchain_core.vectorstores.InMemoryVectorStore',
-    'langchain_core.vectorstores.base.VectorStore': 'langchain_core.vectorstores.VectorStore',
-    'langchain_community.vectorstores.opensearch_vector_search.OpenSearchVectorSearch': 'langchain_community.vectorstores.OpenSearchVectorSearch',
-    'langchain_community.vectorstores.cassandra.Cassandra': 'langchain_community.vectorstores.Cassandra'
+    "langchain_astradb.vectorstores.AstraDBVectorStore": "langchain_astradb.AstraDBVectorStore",  # noqa: E501
+    "langchain_chroma.vectorstores.Chroma": "langchain_chroma.Chroma",  # noqa: E501
+    "langchain_core.documents.base.Document": "langchain_core.documents.Document",  # noqa: E501
+    "langchain_core.vectorstores.in_memory.InMemoryVectorStore": "langchain_core.vectorstores.InMemoryVectorStore",  # noqa: E501
+    "langchain_core.vectorstores.base.VectorStore": "langchain_core.vectorstores.VectorStore",  # noqa: E501
+    "langchain_community.vectorstores.opensearch_vector_search.OpenSearchVectorSearch": "langchain_community.vectorstores.OpenSearchVectorSearch",  # noqa: E501
+    "langchain_community.vectorstores.cassandra.Cassandra": "langchain_community.vectorstores.Cassandra",  # noqa: E501
 }
 
 objects: dict[str, Any] = {}
-with open(file, "r") as f:
+with open(file) as f:
     objects = json.load(f)
 
 items: list[dict[str, Any]] = objects["items"]
