@@ -35,15 +35,17 @@ quartodoc:
   - subtitle: 'document_transformers'
     contents:
     - name: GLiNEREntityExtractor
-      package: 'langchain_graph_retriever.document_transformers:gliner_entity_extractor'
+      package: 'langchain_graph_retriever.document_transformers:gliner'
     - name: HierarchyLinkExtractor
-      package: 'langchain_graph_retriever.document_transformers:hierarchy_link_extractor'
+      package: 'langchain_graph_retriever.document_transformers:hierarchy'
     - name: HtmlHyperlinkExtractor
-      package: 'langchain_graph_retriever.document_transformers:html_hyperlink_extractor'
+      package: 'langchain_graph_retriever.document_transformers:html_hyperlink'
     - name: KeybertKeywordExtractor
-      package: 'langchain_graph_retriever.document_transformers:keybert_keyword_extractor'
+      package: 'langchain_graph_retriever.document_transformers:keybert'
     - name: MetadataDenormalizer
       package: 'langchain_graph_retriever.document_transformers:metadata_denormalizer'
+    - name: SpacyNERTransformer
+      package: 'langchain_graph_retriever.document_transformers:spacy'
   - subtitle: 'adapters'
     contents:
     - name: Adapter
@@ -80,6 +82,8 @@ quartodoc:
       package: 'langchain_graph_retriever:types'
   - subtitle: 'edges.metadata'
     contents:
+    - name: EdgeSpec
+      package: 'langchain_graph_retriever.edges:metadata'
     - name: Id
       package: 'langchain_graph_retriever.edges:metadata'
     - name: MetadataEdgeFunction

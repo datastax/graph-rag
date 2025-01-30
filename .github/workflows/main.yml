@@ -124,7 +124,7 @@ jobs:
         uses: quarto-dev/quarto-actions/setup@v2
 
       - name: Sync Docs Dependencies
-        run: uv sync --all-packages --group=docs
+        run: uv sync --all-packages --group=docs --all-extras
 
       - name: Check if documentation can be built
         run: uv run poe docs-build
