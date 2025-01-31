@@ -181,6 +181,14 @@ sequence = [
     {cmd = "quarto preview", cwd="docs"},
 ]
 
+[tool.poe.tasks.coverage]
+help = "Runs tests and reports coverage."
+sequence = [
+    {cmd = "uv run coverage run -m pytest packages/graph-retriever" },
+    {cmd = "uv run coverage run -a -m pytest packages/langchain-graph-retriever" },
+    {cmd = "uv run coverage report" },
+]
+
 [tool.poe.tasks.docs-build]
 help = "Builds the docs site in `_site`"
 sequence = [
