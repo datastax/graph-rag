@@ -1,3 +1,5 @@
+from typing import Iterable
+from graph_retriever.edges.metadata import Id
 from graph_retriever.strategies import Mmr
 from langchain_core.documents import Document
 from langchain_core.embeddings import FakeEmbeddings
@@ -36,3 +38,30 @@ def test_infers_adapter() -> None:
     )
 
     assert isinstance(retriever.adapter, InMemoryAdapter)
+
+def sorted_ids(docs: Iterable[Document]) -> list[str]:
+    ids = []
+    for doc in docs:
+        assert doc.id is not None
+        ids.append(doc.id)
+    return sorted(ids)
+
+async def test_invoke() -> None:
+    doc1 = Document(
+        id="doc1",
+        page_content="lorem ipsum and whatnot",
+    )
+    doc2 = Document(
+        id="doc2",
+        page_content="lorem ipsum and some more",
+        metadata={"mentions": ["doc1"]},
+    )
+    store = InMemoryVectorStore.from_documents([doc1, doc2], FakeEmbeddings(size=8))
+
+    retriever = GraphRetriever(store=store, edges=[("mentions", Id())])
+
+    assert sorted_ids(retriever.invoke("lorem")) == ["doc1", "doc2"]
+    assert sorted_ids(await retriever.ainvoke("lorem")) == [
+        "doc1",
+        "doc2",
+    ]

@@ -33,6 +33,17 @@ class ChromaAdapter(DenormalizedAdapter[Chroma]):
     """
 
     @override
+    def update_filter_hook(
+        self, filter: dict[str, Any] | None
+    ) -> dict[str, Any] | None:
+        filter = super().update_filter_hook(filter)
+        if not filter or len(filter) <= 1:
+            return filter
+
+        conjoined = [{k: v} for k, v in filter.items()]
+        return {"$and": conjoined}
+
+    @override
     def _similarity_search_with_embedding_by_vector(
         self,
         embedding: list[float],

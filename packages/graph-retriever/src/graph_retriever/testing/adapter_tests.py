@@ -5,40 +5,32 @@ from dataclasses import dataclass
 from typing import Any
 
 import pytest
+
 from graph_retriever import Adapter, Edge, IdEdge, MetadataEdge
 from graph_retriever.content import Content
-from langchain_core.documents import Document
-from langchain_core.embeddings import Embeddings
-from langchain_graph_retriever._conversion import METADATA_EMBEDDING_KEY
-from langchain_graph_retriever.document_transformers.metadata_denormalizer import (
-    DENORMALIZED_KEYS_KEY,
-)
-
-from tests.animal_docs import load_animal_docs
-from tests.embeddings.simple_embeddings import AnimalEmbeddings
-from tests.stores import AdapterFactory
 
 
 def assert_valid_result(content: Content):
+    """Assert the content is valid."""
     assert isinstance(content.id, str)
-
-    assert DENORMALIZED_KEYS_KEY not in content.metadata
-    assert METADATA_EMBEDDING_KEY not in content.metadata
     assert_is_embedding(content.embedding)
 
 
-def assert_is_embedding(value):
+def assert_is_embedding(value: Any):
+    """Assert the value is an embedding."""
     assert isinstance(value, list)
     for item in value:
         assert isinstance(item, float)
 
 
 def assert_valid_results(docs: Iterable[Content]):
+    """Assert all of the contents are valid results."""
     for doc in docs:
         assert_valid_result(doc)
 
 
 def assert_ids_any_order(results: Iterable[Content], expected: list[str]) -> None:
+    """Assert the results are valid and match the IDs."""
     assert_valid_results(results)
 
     result_ids = [r.id for r in results]
@@ -48,33 +40,35 @@ def assert_ids_any_order(results: Iterable[Content], expected: list[str]) -> Non
 
 @dataclass
 class GetCase:
+    """A test case for `get` and `aget`."""
+
+    id: str
     request: list[str]
     expected: list[str]
 
 
-GET_CASES: dict[str, GetCase] = {
+GET_CASES: list[GetCase] = [
     # Currently, this is not required for `get` implementations since the
     # traversal skips making `get` calls with no IDs. Some stores (such as chroma)
     # fail in this case.
-    # "none": GetCase([], []),
-    "one": GetCase(["boar"], ["boar"]),
-    "many": GetCase(["boar", "chinchilla", "cobra"], ["boar", "chinchilla", "cobra"]),
-    "missing": GetCase(
+    # GetCase("none", [], []),
+    GetCase("one", ["boar"], ["boar"]),
+    GetCase("many", ["boar", "chinchilla", "cobra"], ["boar", "chinchilla", "cobra"]),
+    GetCase(
+        "missing",
         ["boar", "chinchilla", "unicorn", "cobra"], ["boar", "chinchilla", "cobra"]
     ),
-    "duplicate": GetCase(
+    GetCase("duplicate",
         ["boar", "chinchilla", "boar", "cobra"], ["boar", "chinchilla", "cobra"]
     ),
-}
-
-
-@pytest.fixture(params=GET_CASES.keys())
-def get_case(request) -> GetCase:
-    return GET_CASES[request.param]
+]
 
 
 @dataclass
 class SimilaritySearchCase:
+    """A test case for `similarity_search_*` and `asimilarity_search_*` methods."""
+
+    id: str
     query: str
     expected: list[str]
     k: int | None = None
@@ -84,6 +78,7 @@ class SimilaritySearchCase:
 
     @property
     def kwargs(self):
+        """Return keyword arguments for the test invocation."""
         kwargs = {}
         if self.k is not None:
             kwargs["k"] = self.k
@@ -92,62 +87,60 @@ class SimilaritySearchCase:
         return kwargs
 
 
-SIMILARITY_SEARCH_CASES: dict[str, SimilaritySearchCase] = {
-    "basic": SimilaritySearchCase(
+SIMILARITY_SEARCH_CASES: list[SimilaritySearchCase] = [
+    SimilaritySearchCase(
+        "basic",
         "domesticated hunters", ["cat", "horse", "chicken", "llama"]
     ),
-    "k_2": SimilaritySearchCase("domesticated hunters", k=2, expected=["cat", "horse"]),
+    SimilaritySearchCase("k2", "domesticated hunters", k=2, expected=["cat", "horse"]),
     # Many stores fail in this case. Generally it doesn't happen in the code, since
     # no IDs means we don't need to make the call. Not currently part of the contract.
-    # "k_0": SimilaritySearchCase("domesticated hunters", k=0, expected=[]),
-    "value_filter": SimilaritySearchCase(
+    #SimilaritySearchCase("k0", "domesticated hunters", k=0, expected=[]),
+    SimilaritySearchCase(
+        "value_filter",
         "domesticated hunters",
         filter={"type": "mammal"},
         expected=["cat", "dog", "horse", "llama"],
     ),
-    "list_filter": SimilaritySearchCase(
+    SimilaritySearchCase(
+        "list_filter",
         "domesticated hunters", filter={"keywords": "hunting"}, expected=["cat"]
     ),
-    "two_filters": SimilaritySearchCase(
+    SimilaritySearchCase(
+        "two_filters",
         "domesticated hunters",
         filter={"type": "mammal", "diet": "carnivorous"},
         expected=["cat", "dingo", "ferret"],
-        skips={"chroma": "does not support multiple filters"},
     ),
     # OpenSearch supports filtering on multiple values, but it is not currently
     # relied on. Since no other adapters support it, we don't test it nor should
     # traversal depend on it.
-    # "multi_list_filter": SimilaritySearchCase(
+    # SimilaritySearchCase(
+    #   "multi_list_filter",
     #   "domesticated hunters",
     #   filter={"keywords": ["hunting", "agile"]},
     #   expected=["cat", "fox", "gazelle", "mongoose"]
     # ),
-}
-
-
-@pytest.fixture(params=SIMILARITY_SEARCH_CASES.keys())
-def similarity_search_case(store_param: str, request) -> SimilaritySearchCase:
-    case = SIMILARITY_SEARCH_CASES[request.param]
-    skip = case.skips.get(store_param, None)
-    if skip is not None:
-        pytest.skip(skip)
-    return case
+]
 
 
 @dataclass
 class GetAdjacentCase:
+    """A test case for `get_adjacent` and `aget_adjacent`."""
+    id: str
     query: str
-    outgoing_edges: set[Edge]
+    edges: set[Edge]
     expected: list[str]
 
     adjacent_k: int = 4
     filter: dict[str, Any] | None = None
 
 
-GET_ADJACENT_CASES: dict[str, GetAdjacentCase] = {
-    "one_edge": GetAdjacentCase(
+GET_ADJACENT_CASES: list[GetAdjacentCase] = [
+    GetAdjacentCase(
+        "one_edge",
         "domesticated hunters",
-        outgoing_edges={MetadataEdge("type", "mammal")},
+        edges={MetadataEdge("type", "mammal")},
         expected=["horse", "llama", "dog", "cat"],
     ),
     # Note: Currently, all stores implement get adjacent by performing a
@@ -156,9 +149,10 @@ GET_ADJACENT_CASES: dict[str, GetAdjacentCase] = {
     # stores (eg., OpenSearch) implement get adjacent more efficiently. We may
     # wish to have `get_adjacent` select the top `adjacent_k` by sorting by
     # similarity internally to better reflect this.
-    "two_edges_same_field": GetAdjacentCase(
+    GetAdjacentCase(
+        "two_edges_same_field",
         "domesticated hunters",
-        outgoing_edges={
+        edges={
             MetadataEdge("type", "mammal"),
             MetadataEdge("type", "crustacean"),
         },
@@ -171,9 +165,10 @@ GET_ADJACENT_CASES: dict[str, GetAdjacentCase] = {
             "lobster",
         ],
     ),
-    "ids": GetAdjacentCase(
+    GetAdjacentCase(
+        "ids",
         "domesticated hunters",
-        outgoing_edges={
+        edges={
             IdEdge("cat"),
             IdEdge("dog"),
             IdEdge("unicorn"),
@@ -185,26 +180,49 @@ GET_ADJACENT_CASES: dict[str, GetAdjacentCase] = {
             "crab",
         ],
     ),
-}
+]
 
 
-@pytest.fixture(params=GET_ADJACENT_CASES.keys())
-def get_adjacent_case(request) -> GetAdjacentCase:
-    return GET_ADJACENT_CASES[request.param]
+class AdapterComplianceSuite(abc.ABC):
+    """
+    Test suite for adapter compliance.
 
+    To use this, create a sub-class containing a `@pytest.fixture` named
+    `adapter` which returns an `Adapter` with the documents from `animals.jsonl`
+    loaded.
+    """
 
-class AdapterComplianceSuite:
+    @pytest.fixture(params=GET_CASES, ids=lambda c: c.id)
+    def get_case(self, request) -> GetCase:
+        """Fixture providing the `get` and `aget` test cases."""
+        return request.param
+
+    @pytest.fixture(params=GET_ADJACENT_CASES, ids=lambda c: c.id)
+    def get_adjacent_case(self, request) -> GetAdjacentCase:
+        """Fixture providing the `get_adjacent` and `aget_adjacent` test cases."""
+        return request.param
+
+    @pytest.fixture(
+        params=SIMILARITY_SEARCH_CASES, ids=lambda c: c.id
+    )
+    def similarity_search_case(self, request) -> SimilaritySearchCase:
+        """Fixture providing the `(a)?similarity_search_*` test cases."""
+        return request.param
+
     def test_get(self, adapter: Adapter, get_case: GetCase) -> None:
+        """Run tests for `get`."""
         results = adapter.get(get_case.request)
         assert_ids_any_order(results, get_case.expected)
 
     async def test_aget(self, adapter: Adapter, get_case: GetCase) -> None:
+        """Run tests for `aget`."""
         results = await adapter.aget(get_case.request)
         assert_ids_any_order(results, get_case.expected)
 
     def test_similarity_search_with_embedding(
         self, adapter: Adapter, similarity_search_case: SimilaritySearchCase
     ) -> None:
+        """Run tests for `similarity_search_with_embedding."""
         embedding, results = adapter.similarity_search_with_embedding(
             similarity_search_case.query, **similarity_search_case.kwargs
         )
@@ -214,6 +232,7 @@ class AdapterComplianceSuite:
     async def test_asimilarity_search_with_embedding(
         self, adapter: Adapter, similarity_search_case: SimilaritySearchCase
     ) -> None:
+        """Run tests for `asimilarity_search_with_embedding."""
         embedding, results = await adapter.asimilarity_search_with_embedding(
             similarity_search_case.query, **similarity_search_case.kwargs
         )
@@ -223,6 +242,7 @@ class AdapterComplianceSuite:
     def test_similarity_search_with_embedding_by_vector(
         self, adapter: Adapter, similarity_search_case: SimilaritySearchCase
     ) -> None:
+        """Run tests for `similarity_search_with_embedding_by_vector."""
         embedding = adapter.embed_query(similarity_search_case.query)
         results = adapter.similarity_search_with_embedding_by_vector(
             embedding, **similarity_search_case.kwargs
@@ -232,6 +252,7 @@ class AdapterComplianceSuite:
     async def test_asimilarity_search_with_embedding_by_vector(
         self, adapter: Adapter, similarity_search_case: SimilaritySearchCase
     ) -> None:
+        """Run tests for `asimilarity_search_with_embedding_by_vector."""
         embedding = adapter.embed_query(similarity_search_case.query)
         results = await adapter.asimilarity_search_with_embedding_by_vector(
             embedding, **similarity_search_case.kwargs
@@ -241,9 +262,10 @@ class AdapterComplianceSuite:
     async def test_get_adjacent(
         self, adapter: Adapter, get_adjacent_case: GetAdjacentCase
     ) -> None:
+        """Run tests for `get_adjacent."""
         embedding = adapter.embed_query(get_adjacent_case.query)
         results = adapter.get_adjacent(
-            edges=get_adjacent_case.outgoing_edges,
+            edges=get_adjacent_case.edges,
             query_embedding=embedding,
             k=get_adjacent_case.adjacent_k,
             filter=get_adjacent_case.filter,
@@ -253,39 +275,12 @@ class AdapterComplianceSuite:
     async def test_aget_adjacent(
         self, adapter: Adapter, get_adjacent_case: GetAdjacentCase
     ) -> None:
+        """Run tests for `aget_adjacent."""
         embedding = adapter.embed_query(get_adjacent_case.query)
         results = await adapter.aget_adjacent(
-            edges=get_adjacent_case.outgoing_edges,
+            edges=get_adjacent_case.edges,
             query_embedding=embedding,
             k=get_adjacent_case.adjacent_k,
             filter=get_adjacent_case.filter,
         )
         assert_ids_any_order(results, get_adjacent_case.expected)
-
-
-class TestBuiltinAdapters(AdapterComplianceSuite):
-    @pytest.fixture(scope="class")
-    def adapter(
-        self, adapter_factory: AdapterFactory, request: pytest.FixtureRequest
-    ) -> Adapter:
-        return adapter_factory.create(
-            request,
-            embedding=AnimalEmbeddings(),
-            docs=load_animal_docs(),
-            nested_metadata_fields={"keywords"},
-        )
-
-
-class TestAdapterCompliance(abc.ABC, AdapterComplianceSuite):
-    """
-    Run the AdapterComplianceSuite on a the adapter created by `make`.
-
-    To use this, instantiate it in your `pytest` code and implement `make` to create.
-    """
-
-    @abc.abstractmethod
-    def make(self, embedding: Embeddings, docs: list[Document]) -> Adapter: ...
-
-    @pytest.fixture(scope="class")
-    def adapter(self) -> Adapter:
-        return self.make(embedding=AnimalEmbeddings(), docs=load_animal_docs())

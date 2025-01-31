@@ -4,7 +4,7 @@ from graph_retriever.content import Content
 from graph_retriever.strategies.mmr import Mmr
 
 from tests.testing.adapters import ANIMALS_DEPTH_0_EXPECTED, ANIMALS_QUERY
-from tests.testing.embeddings import angular_2d_embedding
+from graph_retriever.testing.embeddings import angular_2d_embedding
 from tests.testing.invoker import SyncOrAsync
 
 

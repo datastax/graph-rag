@@ -9,7 +9,7 @@ from tests.testing.adapters import (
     ANIMALS_DEPTH_0_EXPECTED,
     ANIMALS_QUERY,
 )
-from tests.testing.embeddings import (
+from graph_retriever.testing.embeddings import (
     ParserEmbeddings,
     angular_2d_embedding,
     earth_embeddings,

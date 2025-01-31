@@ -52,6 +52,7 @@ class ParserEmbeddings:
         self.dimension = dimension
 
     def __call__(self, text: str) -> list[float]:
+        """Return the embedding."""
         try:
             vals = json.loads(text)
             assert len(vals) == self.dimension
@@ -65,6 +66,8 @@ def _string_to_number(word: str) -> int:
 
 
 class WordEmbeddings:
+    """Embeddings based on a word list."""
+
     def __init__(self, words: list[str]):
         self._words = words
         self._offsets = [
@@ -72,6 +75,7 @@ class WordEmbeddings:
         ]
 
     def __call__(self, text: str) -> list[float]:
+        """Return the embedding."""
         return [
             1.0 + (100 / self._offsets[i]) if word in text else 0.2 / (i + 1)
             for i, word in enumerate(self._words)
@@ -79,6 +83,8 @@ class WordEmbeddings:
 
 
 class AnimalEmbeddings(WordEmbeddings):
+    """Embeddings for animal test-case."""
+
     def __init__(self):
         super().__init__(
             words="""

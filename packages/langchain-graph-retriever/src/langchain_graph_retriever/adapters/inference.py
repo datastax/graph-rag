@@ -1,6 +1,7 @@
 """Infers the appropriate adapter for a given vector store."""
 
 import importlib
+from typing import Type
 
 from graph_retriever import Adapter
 from langchain_core.vectorstores import VectorStore
@@ -41,6 +42,31 @@ def _full_class_name(cls: type) -> str:
     return f"{cls.__module__}.{cls.__name__}"
 
 
+def _infer_adapter_name(cls: Type) -> tuple[str, str]:
+    """Return the module and class of the adapter or raise."""
+    store_classes = [cls]
+    while store_classes:
+        store_class = store_classes.pop()
+
+        store_class_name = _full_class_name(store_class)
+        if store_class_name in STOP_NAMES:
+            continue
+
+        adapter = _KNOWN_STORES.get(store_class_name, None)
+        if adapter is not None:
+            return adapter
+
+        # If we didn't find it yet, and the naem wasn't a stopping point,
+        # we queue up the base classes for consideration. This allows
+        # matching subclasses of supported vector stores.
+        store_classes.extend(store_class.__bases__)
+
+    store_class_name = _full_class_name(cls)
+    raise ValueError(
+        f"Expected adapter or supported vector store, but got {store_class_name}"
+    )
+
+
 def infer_adapter(store: Adapter | VectorStore) -> Adapter:
     """
     Dynamically infer the adapter for a given vector store.
@@ -66,27 +92,8 @@ def infer_adapter(store: Adapter | VectorStore) -> Adapter:
     if isinstance(store, Adapter):
         return store
 
-    store_classes = [store.__class__]
-    while store_classes:
-        store_class = store_classes.pop()
+    module_name, class_name = _infer_adapter_name(store.__class__)
+    adapter_module = importlib.import_module(module_name)
+    adapter_class = getattr(adapter_module, class_name)
+    return adapter_class(store)
 
-        store_class_name = _full_class_name(store_class)
-        if store_class_name in STOP_NAMES:
-            continue
-
-        adapter = _KNOWN_STORES.get(store_class_name, None)
-        if adapter is not None:
-            module_name, class_name = adapter
-            adapter_module = importlib.import_module(module_name)
-            adapter_class = getattr(adapter_module, class_name)
-            return adapter_class(store)
-
-        # If we didn't find it yet, and the naem wasn't a stopping point,
-        # we queue up the base classes for consideration. This allows
-        # matching subclasses of supported vector stores.
-        store_classes.extend(store_class.__bases__)
-
-    store_class_name = _full_class_name(store.__class__)
-    raise ValueError(
-        f"Expected adapter or supported vector store, but got {store_class_name}"
-    )

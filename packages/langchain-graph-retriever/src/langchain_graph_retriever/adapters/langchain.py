@@ -61,8 +61,8 @@ class LangchainAdapter(Generic[StoreT], Adapter):
         return self._safe_embedding.embed_query(query)
 
     def update_filter_hook(
-        self, filter: dict[str, str] | None
-    ) -> dict[str, str] | None:
+        self, filter: dict[str, Any] | None
+    ) -> dict[str, Any] | None:
         """
         Update the metadata filter before executing the query.
 
@@ -73,7 +73,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
 
         Returns
         -------
-        dict[str, str] | None
+        dict[str, Any] | None
             The updated filter on the metadata to apply.
         """
         return filter
@@ -401,6 +401,7 @@ class DenormalizedAdapter(LangchainAdapter[StoreT]):
     ) -> dict[str, str] | None:
         if filter is None:
             return None
+
         denormalized_filter = {}
         for key, value in filter.items():
             if key in self.nested_metadata_fields:

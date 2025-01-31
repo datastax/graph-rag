@@ -5,8 +5,7 @@ import pytest
 from graph_retriever import Content
 from graph_retriever.adapters import Adapter
 from graph_retriever.adapters.in_memory import InMemory
-
-from tests.testing import embeddings
+from graph_retriever.testing import embeddings
 
 
 def load_animal_content(embedding: embeddings.AnimalEmbeddings) -> list[Content]:
