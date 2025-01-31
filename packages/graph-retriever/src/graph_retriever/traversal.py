@@ -3,7 +3,8 @@
 from collections.abc import Iterable, Sequence
 from typing import Any
 
-from graph_retriever import Content, Edge, EdgeFunction, Node
+from graph_retriever.content import Content
+from graph_retriever.types import Edge, EdgeFunction, Node
 from graph_retriever.adapters import Adapter
 from graph_retriever.edges.metadata import EdgeSpec, MetadataEdgeFunction
 from graph_retriever.strategies import Strategy
