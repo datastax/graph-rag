@@ -3,10 +3,10 @@ from collections.abc import Callable
 from typing import Generic, TypeVar
 
 import pytest
+from graph_retriever import Adapter
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.vectorstores import InMemoryVectorStore, VectorStore
-from graph_retriever import Adapter
 from langchain_graph_retriever.document_transformers.metadata_denormalizer import (
     MetadataDenormalizer,
 )

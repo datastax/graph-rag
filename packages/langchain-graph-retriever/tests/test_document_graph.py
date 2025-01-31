@@ -2,8 +2,8 @@ from typing import cast
 
 import networkx as nx
 import pytest
-from langchain_core.documents import Document
 from graph_retriever import Id
+from langchain_core.documents import Document
 from langchain_graph_retriever.document_graph import create_graph, group_by_community
 
 

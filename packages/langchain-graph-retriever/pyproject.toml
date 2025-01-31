@@ -41,9 +41,9 @@ classifiers = [
 
 dependencies = [
     "backoff>=2.2.1",
+    "graph-retriever",
     "langchain-core>=0.3.29",
     "networkx>=3.4.2",
-    "numpy>=1.26.4",
     "pydantic>=2.10.4",
     "typing-extensions>=4.12.2",
 ]
@@ -59,6 +59,9 @@ opensearch-py = "opensearchpy"
 
 [tool.deptry.per_rule_ignores]
 DEP002 = ["cassio"]
+
+[tool.uv.sources]
+graph-retriever = { workspace = true }
 
 [project.optional-dependencies]
 astra = [
@@ -86,9 +89,6 @@ keybert = [
 opensearch = [
    "langchain-community>=0.3.14",
    "opensearch-py>=2.8.0",
-]
-simsimd = [
-    "simsimd>=6.2.1",
 ]
 spacy = [
     "spacy>=3.8.4",

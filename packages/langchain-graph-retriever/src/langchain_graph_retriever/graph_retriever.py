@@ -6,17 +6,16 @@ from typing import (
     Any,
 )
 
+from graph_retriever import Adapter, EdgeFunction, EdgeSpec, atraverse, traverse
+from graph_retriever.strategies import Eager, Strategy
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.vectorstores import VectorStore
-from langchain_graph_retriever._conversion import node_to_doc
 from pydantic import ConfigDict, computed_field, model_validator
 from typing_extensions import Self
 
-from graph_retriever import traverse, atraverse, Adapter, EdgeSpec, EdgeFunction
+from langchain_graph_retriever._conversion import node_to_doc
 from langchain_graph_retriever.adapters.inference import infer_adapter
-from graph_retriever.edges.metadata import EdgeSpec
-from graph_retriever.strategies import Eager, Strategy
 
 
 # this class uses pydantic, so store must be provided at init time.

@@ -3,12 +3,11 @@
 from collections.abc import Iterable, Sequence
 from typing import Any
 
-from graph_retriever.content import Content
 import networkx as nx
-from langchain_core.documents import Document
-
+from graph_retriever import Edge, EdgeFunction
+from graph_retriever.content import Content
 from graph_retriever.edges.metadata import EdgeSpec, MetadataEdgeFunction
-from graph_retriever import Edge, EdgeFunction, Node
+from langchain_core.documents import Document
 
 
 def _best_communities(graph: nx.DiGraph) -> list[list[str]]:

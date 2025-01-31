@@ -1,9 +1,9 @@
+from graph_retriever.strategies import Mmr
 from langchain_core.documents import Document
 from langchain_core.embeddings import FakeEmbeddings
 from langchain_core.vectorstores.in_memory import InMemoryVectorStore
 from langchain_graph_retriever import GraphRetriever
 from langchain_graph_retriever.adapters.in_memory import InMemoryAdapter
-from graph_retriever.strategies import Mmr
 
 
 def test_mmr_parameters() -> None:

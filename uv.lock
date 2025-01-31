@@ -2368,9 +2368,9 @@ version = "0.1.0"
 source = { editable = "packages/langchain-graph-retriever" }
 dependencies = [
     { name = "backoff" },
+    { name = "graph-retriever" },
     { name = "langchain-core" },
     { name = "networkx" },
-    { name = "numpy" },
     { name = "pydantic" },
     { name = "typing-extensions" },
 ]
@@ -2402,9 +2402,6 @@ opensearch = [
     { name = "langchain-community" },
     { name = "opensearch-py" },
 ]
-simsimd = [
-    { name = "simsimd" },
-]
 spacy = [
     { name = "spacy" },
 ]
@@ -2434,6 +2431,7 @@ requires-dist = [
     { name = "cassio", marker = "extra == 'cassandra'", specifier = ">=0.1.10" },
     { name = "chromadb", marker = "extra == 'chroma'", specifier = ">=0.5.23" },
     { name = "gliner", marker = "extra == 'gliner'", specifier = "==0.2.13" },
+    { name = "graph-retriever", editable = "packages/graph-retriever" },
     { name = "httpx", marker = "extra == 'astra'", specifier = ">=0.28.1" },
     { name = "keybert", marker = "extra == 'keybert'", specifier = ">=0.8.5" },
     { name = "langchain-astradb", marker = "extra == 'astra'", specifier = ">=0.5.2" },
@@ -2442,10 +2440,8 @@ requires-dist = [
     { name = "langchain-community", marker = "extra == 'opensearch'", specifier = ">=0.3.14" },
     { name = "langchain-core", specifier = ">=0.3.29" },
     { name = "networkx", specifier = ">=3.4.2" },
-    { name = "numpy", specifier = ">=1.26.4" },
     { name = "opensearch-py", marker = "extra == 'opensearch'", specifier = ">=2.8.0" },
     { name = "pydantic", specifier = ">=2.10.4" },
-    { name = "simsimd", marker = "extra == 'simsimd'", specifier = ">=6.2.1" },
     { name = "spacy", marker = "extra == 'spacy'", specifier = ">=3.8.4" },
     { name = "typing-extensions", specifier = ">=4.12.2" },
 ]

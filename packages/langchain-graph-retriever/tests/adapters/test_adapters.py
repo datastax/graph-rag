@@ -4,11 +4,11 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
 
-from graph_retriever.content import Content
 import pytest
+from graph_retriever import Adapter, Edge, IdEdge, MetadataEdge
+from graph_retriever.content import Content
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
-from graph_retriever import Adapter, Edge, IdEdge, MetadataEdge
 from langchain_graph_retriever._conversion import METADATA_EMBEDDING_KEY
 from langchain_graph_retriever.document_transformers.metadata_denormalizer import (
     DENORMALIZED_KEYS_KEY,

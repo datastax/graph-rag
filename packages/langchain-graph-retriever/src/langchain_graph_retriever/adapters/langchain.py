@@ -10,16 +10,17 @@ from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.runnables import run_in_executor
 from langchain_core.vectorstores import VectorStore
-from langchain_graph_retriever._conversion import doc_to_content
 from typing_extensions import (
     override,
 )
 
+from langchain_graph_retriever._conversion import doc_to_content
 from langchain_graph_retriever.document_transformers.metadata_denormalizer import (
     MetadataDenormalizer,
 )
 
 StoreT = TypeVar("StoreT", bound=VectorStore)
+
 
 class LangchainAdapter(Generic[StoreT], Adapter):
     """

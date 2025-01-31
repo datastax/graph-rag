@@ -1,8 +1,8 @@
-from .content import Content
-from .edges.metadata import Id, EdgeSpec
-from .types import Edge, EdgeFunction, Edges, IdEdge, MetadataEdge, Node
 from .adapters import Adapter
-from .traversal import traverse, atraverse
+from .content import Content
+from .edges.metadata import EdgeSpec, Id
+from .traversal import atraverse, traverse
+from .types import Edge, EdgeFunction, Edges, IdEdge, MetadataEdge, Node
 
 __all__ = [
     "Adapter",

@@ -1,13 +1,13 @@
-from graph_retriever.content import Content
 import pytest
+from graph_retriever import Edges, Id, MetadataEdge
+from graph_retriever.content import Content
+from graph_retriever.strategies import Eager
 from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_graph_retriever import (
     GraphRetriever,
 )
 from langchain_graph_retriever.adapters.in_memory import InMemoryAdapter
-from graph_retriever import Id, Edges, MetadataEdge, Node
-from graph_retriever.strategies import Eager
 
 from tests.animal_docs import (
     ANIMALS_DEPTH_0_EXPECTED,

@@ -7,13 +7,11 @@ METADATA_EMBEDDING_KEY = "__embedding"
 
 def node_to_doc(node: Node) -> Document:
     return Document(
-        id = node.id,
-        page_content = node.content,
-        metadata = {
-            **node.extra_metadata,
-            **node.metadata
-        }
+        id=node.id,
+        page_content=node.content,
+        metadata={**node.extra_metadata, **node.metadata},
     )
+
 
 def doc_to_content(doc: Document, *, embedding: list[float] | None = None) -> Content:
     """
@@ -40,8 +38,8 @@ def doc_to_content(doc: Document, *, embedding: list[float] | None = None) -> Co
     assert embedding is not None
 
     return Content(
-        id = doc.id,
-        content = doc.page_content,
-        embedding = embedding,
-        metadata = doc.metadata,
+        id=doc.id,
+        content=doc.page_content,
+        embedding=embedding,
+        metadata=doc.metadata,
     )

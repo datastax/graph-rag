@@ -17,9 +17,8 @@ try:
 except (ImportError, ModuleNotFoundError):
     raise ImportError("please `pip install astrapy")
 import httpx
-from langchain_core.documents import Document
-
 from graph_retriever.adapters import Adapter
+from langchain_core.documents import Document
 
 _EXCEPTIONS_TO_RETRY = (
     httpx.TransportError,
@@ -60,12 +59,14 @@ class AstraAdapter(Adapter):
         contents = []
         for doc, embedding in docs_with_embeddings:
             assert doc.id is not None
-            contents.append(Content(
-                id = doc.id,
-                content = doc.page_content,
-                metadata=doc.metadata,
-                embedding=embedding,
-            ))
+            contents.append(
+                Content(
+                    id=doc.id,
+                    content=doc.page_content,
+                    metadata=doc.metadata,
+                    embedding=embedding,
+                )
+            )
         return contents
 
     @override
@@ -164,10 +165,10 @@ class AstraAdapter(Adapter):
         embedding = self.vector_store.document_codec.decode_vector(hit)
         assert embedding is not None
         return Content(
-            id = doc.id,
-            content = doc.page_content,
-            metadata = doc.metadata,
-            embedding = embedding,
+            id=doc.id,
+            content=doc.page_content,
+            metadata=doc.metadata,
+            embedding=embedding,
         )
 
     @backoff.on_exception(backoff.expo, _EXCEPTIONS_TO_RETRY, max_tries=_MAX_RETRIES)

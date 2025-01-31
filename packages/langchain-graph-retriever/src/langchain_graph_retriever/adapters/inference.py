@@ -2,8 +2,8 @@
 
 import importlib
 
-from langchain_core.vectorstores import VectorStore
 from graph_retriever import Adapter
+from langchain_core.vectorstores import VectorStore
 
 ADAPTERS_PKG = "langchain_graph_retriever.adapters"
 _KNOWN_STORES = {
