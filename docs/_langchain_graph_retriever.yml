@@ -24,14 +24,6 @@ quartodoc:
     contents:
     - name: GraphRetriever
     - name: document_graph
-  - subtitle: 'strategies'
-    contents:
-    - name: Eager
-      package: 'langchain_graph_retriever.strategies:eager'
-    - name: Mmr
-      package: 'langchain_graph_retriever.strategies:mmr'
-    - name: Strategy
-      package: 'langchain_graph_retriever.strategies'
   - subtitle: 'document_transformers'
     contents:
     - name: GLiNEREntityExtractor
@@ -48,10 +40,10 @@ quartodoc:
       package: 'langchain_graph_retriever.document_transformers:spacy'
   - subtitle: 'adapters'
     contents:
-    - name: Adapter
-      package: 'langchain_graph_retriever.adapters:base'
+    - name: LangchainAdapter
+      package: 'langchain_graph_retriever.adapters:langchain'
     - name: DenormalizedAdapter
-      package: 'langchain_graph_retriever.adapters:base'
+      package: 'langchain_graph_retriever.adapters:langchain'
     - name: AstraAdapter
       package: 'langchain_graph_retriever.adapters:astra'
     - name: CassandraAdapter
@@ -66,34 +58,4 @@ quartodoc:
       package: 'langchain_graph_retriever.adapters'
       members:
         - infer_adapter
-  - subtitle: 'types'
-    contents:
-    - name: Node
-      package: 'langchain_graph_retriever:types'
-    - name: Edge
-      package: 'langchain_graph_retriever:types'
-    - name: MetadataEdge
-      package: 'langchain_graph_retriever:types'
-    - name: IdEdge
-      package: 'langchain_graph_retriever:types'
-    - name: Edges
-      package: 'langchain_graph_retriever:types'
-    - name: EdgeFunction
-      package: 'langchain_graph_retriever:types'
-  - subtitle: 'edges.metadata'
-    contents:
-    - name: EdgeSpec
-      package: 'langchain_graph_retriever.edges:metadata'
-    - name: Id
-      package: 'langchain_graph_retriever.edges:metadata'
-    - name: MetadataEdgeFunction
-      package: 'langchain_graph_retriever.edges:metadata'
-  - subtitle: 'utils'
-    contents:
-    - name: math
-      package: 'langchain_graph_retriever.utils'
-      members:
-        - Matrix
-        - cosine_similarity
-        - cosine_similarity_top_k
 

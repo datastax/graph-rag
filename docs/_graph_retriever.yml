@@ -15,3 +15,28 @@ quartodoc:
     id: "reference.graph_retriever"
   sections:
   - title: graph_retriever
+    contents:
+    - name: traverse
+    - name: atraverse
+    - name: Adapter
+    - name: Content
+    - name: Edge
+    - name: Edges
+    - name: EdgeSpec
+    - name: EdgeFunction
+    - name: Id
+    - name: IdEdge
+    - name: MetadataEdge
+    - name: Node
+  - subtitle: 'edges'
+    contents:
+    - name: MetadataEdgeFunction
+      package: 'graph_retriever.edges:metadata'
+  - subtitle: 'strategies'
+    contents:
+    - name: Eager
+      package: 'graph_retriever.strategies:eager'
+    - name: Mmr
+      package: 'graph_retriever.strategies:mmr'
+    - name: Strategy
+      package: 'graph_retriever.strategies'

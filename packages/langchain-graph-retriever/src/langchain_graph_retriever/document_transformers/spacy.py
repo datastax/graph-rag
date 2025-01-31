@@ -59,7 +59,7 @@ class SpacyNERTransformer(BaseDocumentTransformer):
     ----------
     include_labels : set[str], optional
         Set of entity labels to include. Will include all labels if empty.
-    exclude_lables : set[str], optional
+    exclude_labels : set[str], optional
         Set of entity lables to exclude. Will not exclude anything if empty.
     metadata_key : str, default ""
         The metadata key to store the extracted entities in.
