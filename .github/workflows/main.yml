@@ -106,7 +106,10 @@ jobs:
 
       - name: Report Coverage
         if: ${{ success() && matrix.python-version == '3.12' }}
-        uses: coverallsapp/github-action@v2
+        run: |
+          uvx coveralls
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run `type-check`
         run: uv run poe type-check
