@@ -75,7 +75,7 @@ jobs:
 
       - name: Test graph-retriever
         run:
-          uv run pytest -vs packages/graph-retriever
+          uv run coverage run -m pytest -vs packages/graph-retriever
               --junitxml=junit/test-results-gr-${{ matrix.python-version }}.xml
 
       - name: (non-3.12) Test langchain-graph-retriever (In-Memory Stores)
@@ -86,7 +86,7 @@ jobs:
       - name: (3.12 only) Test langchain-graph-retriever (All Stores)
         if: ${{ success() && matrix.python-version == '3.12' }}
         id: test
-        run: uv run pytest -vs packages/langchain-graph-retriever --stores=all
+        run: uv run coverage run -a -m pytest -vs packages/langchain-graph-retriever --stores=all
                 --junitxml=junit/test-results-lgr-${{ matrix.python-version }}.xml
         env:
           ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
@@ -103,6 +103,10 @@ jobs:
           ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
           ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
           ASTRA_DB_KEYSPACE: ci_${{ github.run_id }}_${{ strategy.job-index }}_${{ github.run_attempt }}
+
+      - name: Report Coveralls
+        if: ${{ success() && matrix.python_version == '3.12' }}
+        uses: coverallsapp/github-action@v2
 
       - name: Run `type-check`
         run: uv run poe type-check
