@@ -8,3 +8,5 @@ _inv
 *_files/execute-results
 *_files/figure-html
 objects.json
+_sidebar.yml
+_styles-quartodoc.css
