@@ -76,7 +76,7 @@ branch = true
 source = [
     "packages/graph-retriever/src/graph_retriever",
     "packages/langchain-graph-retriever/src/langchain_graph_retriever",
-    ]
+]
 
 [tool.poe]
 # comment this out to debug poe tasks
@@ -185,7 +185,7 @@ sequence = [
 help = "Runs tests and reports coverage."
 sequence = [
     {cmd = "uv run coverage run -m pytest packages/graph-retriever" },
-    {cmd = "uv run coverage run -a -m pytest packages/langchain-graph-retriever" },
+    {cmd = "uv run coverage run -a -m pytest packages/langchain-graph-retriever --stores=all" },
     {cmd = "uv run coverage report" },
 ]
 
