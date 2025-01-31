@@ -104,8 +104,8 @@ jobs:
           ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
           ASTRA_DB_KEYSPACE: ci_${{ github.run_id }}_${{ strategy.job-index }}_${{ github.run_attempt }}
 
-      - name: Report Coveralls
-        if: ${{ success() && matrix.python_version == '3.12' }}
+      - name: Report Coverage
+        if: ${{ success() && matrix.python-version == '3.12' }}
         uses: coverallsapp/github-action@v2
 
       - name: Run `type-check`

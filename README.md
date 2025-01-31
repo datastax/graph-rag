@@ -133,6 +133,8 @@ Distributed under the Apache 2 License. See `LICENSE.txt` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+[coverage-shield]: https://img.shields.io/coverallsCoverage/github/datastax/graph-rag?style=for-the-badge
+[coverage-url]: https://coveralls.io/github/datastax/graph-rag
 [status-shield]: https://img.shields.io/github/check-runs/datastax/graph-rag/main?style=for-the-badge
 [status-url]: https://github.com/datastax/graph-rag/actions/workflows/main.yml?query=branch%3Amain
 [contributors-shield]: https://img.shields.io/github/contributors/datastax/graph-rag.svg?style=for-the-badge
