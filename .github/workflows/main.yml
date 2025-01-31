@@ -74,7 +74,7 @@ jobs:
         shell: bash
 
       - name: Test graph-retriever
-        run: |
+        run:
           uv run pytest -vs packages/graph-retriever
               --junitxml=junit/test-results-gr-${{ matrix.python-version }}.xml
 
