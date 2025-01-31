@@ -16,6 +16,7 @@ Retrievers providing both **unstructured** (similarity-search on vectors) and
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
 [![Status][status-shield]][status-url]
+[![Coverage][coverage-shield]][coverage-url]
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
