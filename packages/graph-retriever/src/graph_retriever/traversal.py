@@ -395,6 +395,7 @@ class _Traversal:
 
         node = Node(
             id=content.id,
+            content=content.content,
             depth=depth,
             embedding=content.embedding,
             metadata=content.metadata,

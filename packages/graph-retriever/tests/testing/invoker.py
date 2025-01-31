@@ -5,11 +5,8 @@ from collections.abc import Callable, Sequence
 from typing import Any, Generic, TypeVar
 
 import pytest
-from graph_retriever import EdgeFunction, Node
-from graph_retriever.adapters import Adapter
-from graph_retriever.edges.metadata import EdgeSpec
+from graph_retriever import Adapter, EdgeSpec, atraverse, traverse, EdgeFunction, Node
 from graph_retriever.strategies import Strategy
-from graph_retriever.traversal import atraverse, traverse
 
 
 class SyncOrAsync(abc.ABC):

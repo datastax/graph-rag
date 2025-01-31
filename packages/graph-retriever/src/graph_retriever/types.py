@@ -22,6 +22,8 @@ class Node:
     ----------
     id : str
         The unique identifier of the document represented by this node.
+    content : str
+        The content.
     depth : int
         The depth (number of edges) through which this node was discovered. This
         depth may not reflect the true depth in the full graph if only a subset
@@ -38,6 +40,7 @@ class Node:
     """
 
     id: str
+    content: str
     depth: int
     embedding: list[float]
     metadata: dict[str, Any] = field(default_factory=dict)

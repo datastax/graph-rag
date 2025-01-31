@@ -12,8 +12,8 @@ except (ImportError, ModuleNotFoundError):
 
 from langchain_core.documents import Document
 
-from .base import METADATA_EMBEDDING_KEY, DenormalizedAdapter
-
+from langchain_graph_retriever._conversion import METADATA_EMBEDDING_KEY
+from langchain_graph_retriever.adapters.langchain import DenormalizedAdapter
 
 class CassandraAdapter(DenormalizedAdapter[Cassandra]):
     """
@@ -81,26 +81,6 @@ class CassandraAdapter(DenormalizedAdapter[Cassandra]):
             )
             for hit in hits
         ]
-
-    @override
-    async def asimilarity_search_with_embedding(
-        self,
-        query: str,
-        k: int = 4,
-        filter: dict[str, str] | None = None,
-        **kwargs: Any,
-    ) -> tuple[list[float], list[Document]]:
-        query_embedding = self._safe_embedding.embed_query(text=query)
-        if k == 0:
-            return query_embedding, []
-
-        docs = await self.asimilarity_search_with_embedding_by_vector(
-            embedding=query_embedding,
-            k=k,
-            filter=filter,
-            **kwargs,
-        )
-        return query_embedding, docs
 
     @override
     async def _asimilarity_search_with_embedding_by_vector(  # type: ignore

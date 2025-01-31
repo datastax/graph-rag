@@ -8,6 +8,7 @@ from graph_retriever.types import Edges, IdEdge, MetadataEdge, Node
 def mk_node(metadata: dict[str, Any]) -> Node:
     return Node(
         id="id",
+        content="testing",
         metadata=metadata,
         depth=0,
         embedding=[],

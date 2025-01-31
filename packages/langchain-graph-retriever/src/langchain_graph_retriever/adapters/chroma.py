@@ -6,7 +6,8 @@ from typing import Any
 from langchain_core.documents import Document
 from typing_extensions import override
 
-from .base import METADATA_EMBEDDING_KEY, DenormalizedAdapter
+from langchain_graph_retriever._conversion import METADATA_EMBEDDING_KEY
+from langchain_graph_retriever.adapters.langchain import DenormalizedAdapter
 
 try:
     from langchain_chroma import Chroma

@@ -4,26 +4,27 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
 
+from graph_retriever.content import Content
 import pytest
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
-from langchain_graph_retriever.adapters.base import METADATA_EMBEDDING_KEY, Adapter
+from graph_retriever import Adapter, Edge, IdEdge, MetadataEdge
+from langchain_graph_retriever._conversion import METADATA_EMBEDDING_KEY
 from langchain_graph_retriever.document_transformers.metadata_denormalizer import (
     DENORMALIZED_KEYS_KEY,
 )
-from langchain_graph_retriever.types import Edge, IdEdge, MetadataEdge
 
 from tests.animal_docs import load_animal_docs
 from tests.embeddings.simple_embeddings import AnimalEmbeddings
 from tests.stores import AdapterFactory
 
 
-def assert_valid_result(doc: Document):
-    assert isinstance(doc.id, str)
+def assert_valid_result(content: Content):
+    assert isinstance(content.id, str)
 
-    assert DENORMALIZED_KEYS_KEY not in doc.metadata
-    assert METADATA_EMBEDDING_KEY in doc.metadata
-    assert_is_embedding(doc.metadata[METADATA_EMBEDDING_KEY])
+    assert DENORMALIZED_KEYS_KEY not in content.metadata
+    assert METADATA_EMBEDDING_KEY not in content.metadata
+    assert_is_embedding(content.embedding)
 
 
 def assert_is_embedding(value):
@@ -32,12 +33,12 @@ def assert_is_embedding(value):
         assert isinstance(item, float)
 
 
-def assert_valid_results(docs: Iterable[Document]):
+def assert_valid_results(docs: Iterable[Content]):
     for doc in docs:
         assert_valid_result(doc)
 
 
-def assert_ids_any_order(results: Iterable[Document], expected: list[str]) -> None:
+def assert_ids_any_order(results: Iterable[Content], expected: list[str]) -> None:
     assert_valid_results(results)
 
     result_ids = [r.id for r in results]
@@ -222,9 +223,7 @@ class AdapterComplianceSuite:
     def test_similarity_search_with_embedding_by_vector(
         self, adapter: Adapter, similarity_search_case: SimilaritySearchCase
     ) -> None:
-        embedding = adapter._safe_embedding.embed_query(
-            text=similarity_search_case.query
-        )
+        embedding = adapter.embed_query(similarity_search_case.query)
         results = adapter.similarity_search_with_embedding_by_vector(
             embedding, **similarity_search_case.kwargs
         )
@@ -233,9 +232,7 @@ class AdapterComplianceSuite:
     async def test_asimilarity_search_with_embedding_by_vector(
         self, adapter: Adapter, similarity_search_case: SimilaritySearchCase
     ) -> None:
-        embedding = adapter._safe_embedding.embed_query(
-            text=similarity_search_case.query
-        )
+        embedding = adapter.embed_query(similarity_search_case.query)
         results = await adapter.asimilarity_search_with_embedding_by_vector(
             embedding, **similarity_search_case.kwargs
         )
@@ -244,11 +241,11 @@ class AdapterComplianceSuite:
     async def test_get_adjacent(
         self, adapter: Adapter, get_adjacent_case: GetAdjacentCase
     ) -> None:
-        embedding = adapter._safe_embedding.embed_query(text=get_adjacent_case.query)
+        embedding = adapter.embed_query(get_adjacent_case.query)
         results = adapter.get_adjacent(
-            outgoing_edges=get_adjacent_case.outgoing_edges,
+            edges=get_adjacent_case.outgoing_edges,
             query_embedding=embedding,
-            adjacent_k=get_adjacent_case.adjacent_k,
+            k=get_adjacent_case.adjacent_k,
             filter=get_adjacent_case.filter,
         )
         assert_ids_any_order(results, get_adjacent_case.expected)
@@ -256,11 +253,11 @@ class AdapterComplianceSuite:
     async def test_aget_adjacent(
         self, adapter: Adapter, get_adjacent_case: GetAdjacentCase
     ) -> None:
-        embedding = adapter._safe_embedding.embed_query(text=get_adjacent_case.query)
+        embedding = adapter.embed_query(get_adjacent_case.query)
         results = await adapter.aget_adjacent(
-            outgoing_edges=get_adjacent_case.outgoing_edges,
+            edges=get_adjacent_case.outgoing_edges,
             query_embedding=embedding,
-            adjacent_k=get_adjacent_case.adjacent_k,
+            k=get_adjacent_case.adjacent_k,
             filter=get_adjacent_case.filter,
         )
         assert_ids_any_order(results, get_adjacent_case.expected)

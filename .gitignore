@@ -172,3 +172,5 @@ cython_debug/
 .pypirc
 
 /.luarc.json
+
+.DS_Store

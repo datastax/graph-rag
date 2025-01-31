@@ -1,14 +1,16 @@
 """Defines the base class for vector store adapters."""
 
 import abc
-import asyncio
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 from typing import Any, Generic, TypeVar
 
+from graph_retriever import Adapter, Edge, MetadataEdge
+from graph_retriever.content import Content
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.runnables import run_in_executor
 from langchain_core.vectorstores import VectorStore
+from langchain_graph_retriever._conversion import doc_to_content
 from typing_extensions import (
     override,
 )
@@ -16,14 +18,10 @@ from typing_extensions import (
 from langchain_graph_retriever.document_transformers.metadata_denormalizer import (
     MetadataDenormalizer,
 )
-from langchain_graph_retriever.types import Edge, IdEdge, MetadataEdge
 
 StoreT = TypeVar("StoreT", bound=VectorStore)
 
-METADATA_EMBEDDING_KEY = "__embedding"
-
-
-class Adapter(Generic[StoreT], abc.ABC):
+class LangchainAdapter(Generic[StoreT], Adapter):
     """
     Base adapter for integrating vector stores with the graph retriever system.
 
@@ -57,86 +55,9 @@ class Adapter(Generic[StoreT], abc.ABC):
             raise ValueError(msg)
         return self.vector_store.embeddings
 
-    def similarity_search_with_embedding(
-        self,
-        query: str,
-        k: int = 4,
-        filter: dict[str, str] | None = None,
-        **kwargs: Any,
-    ) -> tuple[list[float], list[Document]]:
-        """
-        Return docs (with embeddings) most similar to the query.
-
-        Also returns the embedded query vector.
-
-        Parameters
-        ----------
-        query : str
-            Input text.
-        k : int, default 4
-            Number of Documents to return.
-        filter : dict[str, str], optional
-            Filter on the metadata to apply.
-        **kwargs : Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        query_embedding : list[float]
-            The embedded query vector
-        documents : list[Document]
-            List of up to `k` documents most similar to the query
-            vector.
-
-            Documents should have their embedding added to the
-            metadata under the `METADATA_EMBEDDING_KEY` key.
-        """
-        query_embedding = self._safe_embedding.embed_query(text=query)
-        docs = self.similarity_search_with_embedding_by_vector(
-            embedding=query_embedding,
-            k=k,
-            filter=filter,
-            **kwargs,
-        )
-        return query_embedding, docs
-
-    async def asimilarity_search_with_embedding(
-        self,
-        query: str,
-        k: int = 4,
-        filter: dict[str, str] | None = None,
-        **kwargs: Any,
-    ) -> tuple[list[float], list[Document]]:
-        """
-        Asynchronously return docs (with embeddings) most similar to the query.
-
-        Also returns the embedded query vector.
-
-        Parameters
-        ----------
-        query : str
-            Input text.
-        k : int, default 4
-            Number of Documents to return.
-        filter : dict[str, str], optional
-            Filter on the metadata to apply.
-        **kwargs : Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        query_embedding : list[float]
-            The embedded query vector
-        documents : list[Document]
-            List of up to `k` documents most similar to the query
-            vector.
-
-            Documents should have their embedding added to the
-            metadata under the `METADATA_EMBEDDING_KEY` key.
-        """
-        return await run_in_executor(
-            None, self.similarity_search_with_embedding, query, k, filter, **kwargs
-        )
+    @override
+    def embed_query(self, query):
+        return self._safe_embedding.embed_query(query)
 
     def update_filter_hook(
         self, filter: dict[str, str] | None
@@ -156,9 +77,9 @@ class Adapter(Generic[StoreT], abc.ABC):
         """
         return filter
 
-    def format_documents_hook(self, docs: list[Document]) -> list[Document]:
+    def format_documents_hook(self, docs: list[Document]) -> list[Content]:
         """
-        Format the documents filter after executing the query.
+        Format the documents as content after executing the query.
 
         Parameters
         ----------
@@ -167,10 +88,10 @@ class Adapter(Generic[StoreT], abc.ABC):
 
         Returns
         -------
-        list[Document]
-            The formatted documents
+        list[Content]
+            The formatted content.
         """
-        return docs
+        return [doc_to_content(doc) for doc in docs]
 
     @abc.abstractmethod
     def _similarity_search_with_embedding_by_vector(
@@ -203,15 +124,16 @@ class Adapter(Generic[StoreT], abc.ABC):
             metadata under the `METADATA_EMBEDDING_KEY` key.
         """
 
+    @override
     def similarity_search_with_embedding_by_vector(
         self,
         embedding: list[float],
         k: int = 4,
         filter: dict[str, str] | None = None,
         **kwargs: Any,
-    ) -> list[Document]:
+    ) -> list[Content]:
         """
-        Return docs (with embeddings) most similar to the query vector.
+        Return contents most similar to the query vector.
 
         Parameters
         ----------
@@ -226,11 +148,8 @@ class Adapter(Generic[StoreT], abc.ABC):
 
         Returns
         -------
-        list[Document]
-            List of Documents most similar to the query vector.
-
-            Documents should have their embedding added to the
-            metadata under the `METADATA_EMBEDDING_KEY` key.
+        list[Content]
+            List of Contents most similar to the query vector.
         """
         docs = self._similarity_search_with_embedding_by_vector(
             embedding=embedding,
@@ -278,35 +197,14 @@ class Adapter(Generic[StoreT], abc.ABC):
             **kwargs,
         )
 
+    @override
     async def asimilarity_search_with_embedding_by_vector(
         self,
         embedding: list[float],
         k: int = 4,
         filter: dict[str, str] | None = None,
         **kwargs: Any,
-    ) -> list[Document]:
-        """
-        Asynchronously return docs (with embeddings) most similar to the query vector.
-
-        Parameters
-        ----------
-        embedding : list[float]
-            Embedding to look up documents similar to.
-        k : int, default 4
-            Number of Documents to return.
-        filter : dict[str, str], optional
-            Filter on the metadata to apply.
-        **kwargs : Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        list[Document]
-            List of Documents most similar to the query vector.
-
-            Documents should have their embedding added to the
-            metadata under the `METADATA_EMBEDDING_KEY` key.
-        """
+    ) -> list[Content]:
         docs = await self._asimilarity_search_with_embedding_by_vector(
             embedding=embedding,
             k=k,
@@ -329,38 +227,15 @@ class Adapter(Generic[StoreT], abc.ABC):
         Sequence[str]
             List of IDs with duplicates removed
         """
-        seen = set()
-        return [id_ for id_ in ids if id_ not in seen and not seen.add(id_)]  # type: ignore
+        return list({k: True for k in ids}.keys())
 
+    @override
     def get(
         self,
         ids: Sequence[str],
         /,
         **kwargs: Any,
-    ) -> list[Document]:
-        """
-        Get documents by id.
-
-        Fewer documents may be returned than requested if some IDs are not found
-        or if there are duplicated IDs. This method should **NOT** raise
-        exceptions if no documents are found for some IDs.
-
-        Users should not assume that the order of the returned documents matches
-        the order of the input IDs. Instead, users should rely on the ID field
-        of the returned documents.
-
-        Parameters
-        ----------
-        ids : Sequence[str]
-            List of IDs to get.
-        **kwargs : Any
-            Additional keyword arguments. These are up to the implementation.
-
-        Returns
-        -------
-        list[Document]
-            List of documents that were found.
-        """
+    ) -> list[Content]:
         docs = self._get(self._remove_duplicates(ids), **kwargs)
         return self.format_documents_hook(docs)
 
@@ -395,35 +270,13 @@ class Adapter(Generic[StoreT], abc.ABC):
             List of documents that were found.
         """
 
+    @override
     async def aget(
         self,
         ids: Sequence[str],
         /,
         **kwargs: Any,
-    ) -> list[Document]:
-        """
-        Asynchronously get documents by id.
-
-        Fewer documents may be returned than requested if some IDs are not found
-        or if there are duplicated IDs. This method should **NOT** raise
-        exceptions if no documents are found for some IDs.
-
-        Users should not assume that the order of the returned documents matches
-        the order of the input IDs. Instead, users should rely on the ID field
-        of the returned documents.
-
-        Parameters
-        ----------
-        ids : Sequence[str]
-            List of IDs to get.
-        **kwargs : Any
-            Additional keyword arguments. These are up to the implementation.
-
-        Returns
-        -------
-        list[Document]
-            List of documents that were found.
-        """
+    ) -> list[Content]:
         docs = await self._aget(self._remove_duplicates(ids), **kwargs)
         return self.format_documents_hook(docs)
 
@@ -463,125 +316,6 @@ class Adapter(Generic[StoreT], abc.ABC):
             **kwargs,
         )
 
-    def get_adjacent(
-        self,
-        outgoing_edges: set[Edge],
-        query_embedding: list[float],
-        adjacent_k: int,
-        filter: dict[str, Any] | None,
-        **kwargs: Any,
-    ) -> Iterable[Document]:
-        """
-        Return the docs with incoming edges from any of the given edges.
-
-        Parameters
-        ----------
-        outgoing_edges : set[Edge]
-            The edges to look for.
-        query_embedding : list[float]
-            The query embedding used for selecting the most relevant nodes.
-        adjacent_k : int
-            The numebr of relevant nodes to select for the edges.
-        filter : dict[str, Any], optional
-            Optional metadata to filter the results.
-        **kwargs : Any
-            Keyword arguments to pass to the similarity search.
-
-        Returns
-        -------
-        Iterable[Document]
-            Iterable of adjacent nodes.
-
-        Raises
-        ------
-        ValueError
-            If unsupported edge types are encountered.
-        """
-        results: list[Document] = []
-
-        ids = []
-        for outgoing_edge in outgoing_edges:
-            if isinstance(outgoing_edge, MetadataEdge):
-                docs = self.similarity_search_with_embedding_by_vector(
-                    embedding=query_embedding,
-                    k=adjacent_k,
-                    filter=self._get_metadata_filter(
-                        base_filter=filter, edge=outgoing_edge
-                    ),
-                    **kwargs,
-                )
-                results.extend(docs)
-            elif isinstance(outgoing_edge, IdEdge):
-                ids.append(outgoing_edge.id)
-            else:
-                raise ValueError(f"Unsupported edge: {outgoing_edge}")
-
-        if ids:
-            results.extend(self.get(ids))
-        return results
-
-    async def aget_adjacent(
-        self,
-        outgoing_edges: set[Edge],
-        query_embedding: list[float],
-        adjacent_k: int,
-        filter: dict[str, Any] | None,
-        **kwargs: Any,
-    ) -> Iterable[Document]:
-        """
-        Asynchronously return the docs with incoming edges from any of the given edges.
-
-        Parameters
-        ----------
-        outgoing_edges : set[Edge]
-            The edges to look for.
-        query_embedding : list[float]
-            The query embedding used for selecting the most relevant nodes.
-        adjacent_k : int
-            The numebr of relevant nodes to select for the edges.
-        filter : dict[str, Any], optional
-            Optional metadata to filter the results.
-        **kwargs : Any
-            Keyword arguments to pass to the similarity search.
-
-        Returns
-        -------
-        Iterable[Document]
-            Iterable of adjacent nodes.
-
-        Raises
-        ------
-        ValueError
-            If unsupported edge types are encountered.
-        """
-        tasks = []
-        ids = []
-        for outgoing_edge in outgoing_edges:
-            if isinstance(outgoing_edge, MetadataEdge):
-                tasks.append(
-                    self.asimilarity_search_with_embedding_by_vector(
-                        embedding=query_embedding,
-                        k=adjacent_k,
-                        filter=self._get_metadata_filter(
-                            base_filter=filter, edge=outgoing_edge
-                        ),
-                        **kwargs,
-                    )
-                )
-            elif isinstance(outgoing_edge, IdEdge):
-                ids.append(outgoing_edge.id)
-            else:
-                raise ValueError(f"Unsupported edge: {outgoing_edge}")
-
-        if ids:
-            tasks.append(self.aget(ids))
-
-        results: list[Document] = []
-        for completed_task in asyncio.as_completed(tasks):
-            docs = await completed_task
-            results.extend(docs)
-        return results
-
     def _get_metadata_filter(
         self,
         base_filter: dict[str, Any] | None = None,
@@ -614,7 +348,7 @@ class Adapter(Generic[StoreT], abc.ABC):
         return metadata_filter
 
 
-class DenormalizedAdapter(Adapter[StoreT]):
+class DenormalizedAdapter(LangchainAdapter[StoreT]):
     """
     Base adapter for integrating vector stores with the graph retriever system.
 
@@ -677,5 +411,6 @@ class DenormalizedAdapter(Adapter[StoreT]):
         return denormalized_filter
 
     @override
-    def format_documents_hook(self, docs: list[Document]) -> list[Document]:
-        return list(self.metadata_denormalizer.revert_documents(documents=docs))
+    def format_documents_hook(self, docs: list[Document]) -> list[Content]:
+        normalized = list(self.metadata_denormalizer.revert_documents(documents=docs))
+        return super().format_documents_hook(normalized)

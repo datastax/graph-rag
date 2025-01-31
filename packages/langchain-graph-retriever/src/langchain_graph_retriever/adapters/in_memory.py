@@ -7,12 +7,13 @@ from langchain_core.documents import Document
 from langchain_core.vectorstores import InMemoryVectorStore
 from typing_extensions import override
 
-from .base import METADATA_EMBEDDING_KEY, Adapter
+from langchain_graph_retriever._conversion import METADATA_EMBEDDING_KEY
+from langchain_graph_retriever.adapters.langchain import LangchainAdapter
 
 SENTINEL = object()
 
 
-class InMemoryAdapter(Adapter[InMemoryVectorStore]):
+class InMemoryAdapter(LangchainAdapter[InMemoryVectorStore]):
     """
     Adapter for InMemoryVectorStore vector store.
 

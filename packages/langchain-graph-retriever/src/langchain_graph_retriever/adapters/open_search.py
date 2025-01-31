@@ -12,10 +12,10 @@ except (ImportError, ModuleNotFoundError):
 
 from langchain_core.documents import Document
 
-from .base import METADATA_EMBEDDING_KEY, Adapter
+from langchain_graph_retriever._conversion import METADATA_EMBEDDING_KEY
+from langchain_graph_retriever.adapters.langchain import LangchainAdapter
 
-
-class OpenSearchAdapter(Adapter[OpenSearchVectorSearch]):
+class OpenSearchAdapter(LangchainAdapter[OpenSearchVectorSearch]):
     """
     Adapter to traverse OpenSearch vector stores.
 

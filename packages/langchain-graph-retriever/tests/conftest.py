@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 from langchain_core.documents import Document
-from langchain_graph_retriever.adapters import Adapter
+from graph_retriever import Adapter
 from pytest import Parser
 
 from tests.animal_docs import animal_docs
