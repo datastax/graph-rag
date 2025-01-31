@@ -55,7 +55,6 @@ dev = [
 ]
 
 docs = [
-    "quarto-cli>=1.6.40",
     "quartodoc>=0.9.1",
     "nbformat>=5.10.4",
     "nbclient>=0.10.2",
@@ -175,14 +174,22 @@ sequence = [
 help = "Starts a live preview of the docs site"
 sequence = [
     "docs-api",
-    {cmd = "uv run quarto preview", cwd="docs"},
+    # DO NOT USE `uv run quarto`.
+    # We install quarto directly (rather than via PyPi) to avoid
+    # issues in the wrapper script like https://github.com/quarto-dev/quarto-cli/issues/11296.
+    # Instead, install directly from quarto and/or via github action.
+    {cmd = "quarto preview", cwd="docs"},
 ]
 
 [tool.poe.tasks.docs-build]
 help = "Builds the docs site in `_site`"
 sequence = [
     "docs-api",
-    {cmd = "uv run quarto render", cwd="docs"},
+    # DO NOT USE `uv run quarto`.
+    # We install quarto directly (rather than via PyPi) to avoid
+    # issues in the wrapper script like https://github.com/quarto-dev/quarto-cli/issues/11296.
+    # Instead, install directly from quarto and/or via github action.
+    {cmd = "quarto render", cwd="docs"},
 ]
 
 [tool.poe.tasks.help]
