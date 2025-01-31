@@ -144,7 +144,7 @@ Distributed under the Apache 2 License. See `LICENSE.txt` for more information.
 [forks-url]: https://github.com/datastax/graph-rag/network/members
 [stars-shield]: https://img.shields.io/github/stars/datastax/graph-rag.svg?style=for-the-badge
 [stars-url]: https://github.com/datastax/graph-rag/stargazers
-[issues-shield]: https://img.shields.io/github/issues/datastax/graph-rag/repo_name.svg?style=for-the-badge
+[issues-shield]: https://img.shields.io/github/issues/datastax/graph-rag.svg?style=for-the-badge
 [issues-url]: https://github.com/datastax/graph-rag/issues
 [license-shield]: https://img.shields.io/github/license/datastax/graph-rag.svg?style=for-the-badge
 [license-url]: https://github.com/datastax/graph-rag/blob/master/LICENSE.txt
