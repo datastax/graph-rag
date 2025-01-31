@@ -1,6 +1,7 @@
 import abc
 from collections.abc import Callable, Iterable, Sequence
 from typing import Any, TypeAlias
+
 from typing_extensions import override
 
 from graph_retriever.adapters.base import Adapter
