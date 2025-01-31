@@ -73,12 +73,22 @@ jobs:
         run: uv sync --frozen --all-packages
         shell: bash
 
-      - name: Test All Stores (3.12 only)
+      - name: Test graph-retriever
+        run: uv run pytest -vs packages/graph-retriever \
+            --junitxml=junit/test-results-gr-${{ matrix.python-version }}.xml
+
+      - name: (non-3.12) Test langchain-graph-retriever (In-Memory Stores)
+        if: ${{ success() && matrix.python-version != '3.12' }}
+        run:
+            uv run pytest -vs packages/langchain-graph-retriever \
+                --junitxml=junit/test-results-lgr-${{ matrix.python-version }}.xml
+
+      - name: (3.12 only) Test langchain-graph-retriever (All Stores)
         if: ${{ success() && matrix.python-version == '3.12' }}
         id: test
         run:
-            uv run poe test-all
-                --junitxml=junit/test-results-${{ matrix.python-version }}.xml
+            uv run pytest -vs packages/langchain-graph-retriever --stores=all \
+                --junitxml=junit/test-results-lgr-${{ matrix.python-version }}.xml
         env:
           ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
           ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
@@ -95,12 +105,6 @@ jobs:
           ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
           ASTRA_DB_KEYSPACE: ci_${{ github.run_id }}_${{ strategy.job-index }}_${{ github.run_attempt }}
 
-      - name: Test In-Memory Stores (non-3.12)
-        if: ${{ success() && matrix.python-version != '3.12' }}
-        run:
-            uv run poe test
-                --junitxml=junit/test-results-${{ matrix.python-version }}.xml
-
       - name: Run `type-check`
         run: uv run poe type-check
 
@@ -109,7 +113,38 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pytest-results-${{ matrix.python-version }}
-          path: packages/*/junit/test-results-${{ matrix.python-version }}.xml
+          path: junit/test-results-*.xml
+
+  # See https://github.com/EnricoMi/publish-unit-test-result-action#support-fork-repositories-and-dependabot-branches to
+  # enable uploading from forks.
+  publish-test-results:
+    name: "Publish test results"
+    needs: tests-and-type-check
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+
+      # only needed unless run with comment_mode: off
+      pull-requests: write
+
+      # only needed for private repository
+      contents: read
+
+      # only needed for private repository
+      issues: read
+    if: always()
+
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: pytest-results-*
+          path: artifacts
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: "artifacts/**/*.xml"
 
   build-docs:
     runs-on: ubuntu-latest
