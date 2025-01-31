@@ -141,13 +141,17 @@ sequence = [ "lock-fix", "fmt-fix", "lint-fix", "type-check", "dep-check"]
 
 [tool.poe.tasks.test]
 help = "Runs all tests (against in-memory stores)"
-cwd = "packages/langchain-graph-retriever"
-cmd = "uv run pytest -vs ."
+sequence = [
+  { cmd = "uv run pytest -vs .", cwd = "packages/graph-retriever" },
+  { cmd = "uv run pytest -vs .", cwd = "packages/langchain-graph-retriever" },
+]
 
 [tool.poe.tasks.test-all]
 help = "Runs all tests (against all stores)"
-cwd = "packages/langchain-graph-retriever"
-cmd = "uv run pytest -vs . --stores=all"
+sequence = [
+  { cmd = "uv run pytest -vs .", cwd = "packages/graph-retriever" },
+  { cmd = "uv run pytest -vs . --stores=all", cwd = "packages/langchain-graph-retriever" },
+]
 
 [tool.poe.tasks.build]
 help = "Builds all the packages"
