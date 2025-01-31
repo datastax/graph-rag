@@ -74,20 +74,19 @@ jobs:
         shell: bash
 
       - name: Test graph-retriever
-        run: uv run pytest -vs packages/graph-retriever \
-            --junitxml=junit/test-results-gr-${{ matrix.python-version }}.xml
+        run: |
+          uv run pytest -vs packages/graph-retriever
+              --junitxml=junit/test-results-gr-${{ matrix.python-version }}.xml
 
       - name: (non-3.12) Test langchain-graph-retriever (In-Memory Stores)
         if: ${{ success() && matrix.python-version != '3.12' }}
-        run:
-            uv run pytest -vs packages/langchain-graph-retriever \
+        run: uv run pytest -vs packages/langchain-graph-retriever
                 --junitxml=junit/test-results-lgr-${{ matrix.python-version }}.xml
 
       - name: (3.12 only) Test langchain-graph-retriever (All Stores)
         if: ${{ success() && matrix.python-version == '3.12' }}
         id: test
-        run:
-            uv run pytest -vs packages/langchain-graph-retriever --stores=all \
+        run: uv run pytest -vs packages/langchain-graph-retriever --stores=all
                 --junitxml=junit/test-results-lgr-${{ matrix.python-version }}.xml
         env:
           ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
