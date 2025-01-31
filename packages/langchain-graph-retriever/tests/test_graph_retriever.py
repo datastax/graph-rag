@@ -1,4 +1,5 @@
-from typing import Iterable
+from collections.abc import Iterable
+
 from graph_retriever.edges.metadata import Id
 from graph_retriever.strategies import Mmr
 from langchain_core.documents import Document
@@ -39,12 +40,14 @@ def test_infers_adapter() -> None:
 
     assert isinstance(retriever.adapter, InMemoryAdapter)
 
+
 def sorted_ids(docs: Iterable[Document]) -> list[str]:
     ids = []
     for doc in docs:
         assert doc.id is not None
         ids.append(doc.id)
     return sorted(ids)
+
 
 async def test_invoke() -> None:
     doc1 = Document(

@@ -56,10 +56,13 @@ GET_CASES: list[GetCase] = [
     GetCase("many", ["boar", "chinchilla", "cobra"], ["boar", "chinchilla", "cobra"]),
     GetCase(
         "missing",
-        ["boar", "chinchilla", "unicorn", "cobra"], ["boar", "chinchilla", "cobra"]
+        ["boar", "chinchilla", "unicorn", "cobra"],
+        ["boar", "chinchilla", "cobra"],
     ),
-    GetCase("duplicate",
-        ["boar", "chinchilla", "boar", "cobra"], ["boar", "chinchilla", "cobra"]
+    GetCase(
+        "duplicate",
+        ["boar", "chinchilla", "boar", "cobra"],
+        ["boar", "chinchilla", "cobra"],
     ),
 ]
 
@@ -89,13 +92,12 @@ class SimilaritySearchCase:
 
 SIMILARITY_SEARCH_CASES: list[SimilaritySearchCase] = [
     SimilaritySearchCase(
-        "basic",
-        "domesticated hunters", ["cat", "horse", "chicken", "llama"]
+        "basic", "domesticated hunters", ["cat", "horse", "chicken", "llama"]
     ),
     SimilaritySearchCase("k2", "domesticated hunters", k=2, expected=["cat", "horse"]),
     # Many stores fail in this case. Generally it doesn't happen in the code, since
     # no IDs means we don't need to make the call. Not currently part of the contract.
-    #SimilaritySearchCase("k0", "domesticated hunters", k=0, expected=[]),
+    # SimilaritySearchCase("k0", "domesticated hunters", k=0, expected=[]),
     SimilaritySearchCase(
         "value_filter",
         "domesticated hunters",
@@ -104,7 +106,9 @@ SIMILARITY_SEARCH_CASES: list[SimilaritySearchCase] = [
     ),
     SimilaritySearchCase(
         "list_filter",
-        "domesticated hunters", filter={"keywords": "hunting"}, expected=["cat"]
+        "domesticated hunters",
+        filter={"keywords": "hunting"},
+        expected=["cat"],
     ),
     SimilaritySearchCase(
         "two_filters",
@@ -127,6 +131,7 @@ SIMILARITY_SEARCH_CASES: list[SimilaritySearchCase] = [
 @dataclass
 class GetAdjacentCase:
     """A test case for `get_adjacent` and `aget_adjacent`."""
+
     id: str
     query: str
     edges: set[Edge]
@@ -202,9 +207,7 @@ class AdapterComplianceSuite(abc.ABC):
         """Fixture providing the `get_adjacent` and `aget_adjacent` test cases."""
         return request.param
 
-    @pytest.fixture(
-        params=SIMILARITY_SEARCH_CASES, ids=lambda c: c.id
-    )
+    @pytest.fixture(params=SIMILARITY_SEARCH_CASES, ids=lambda c: c.id)
     def similarity_search_case(self, request) -> SimilaritySearchCase:
         """Fixture providing the `(a)?similarity_search_*` test cases."""
         return request.param

@@ -4,15 +4,15 @@ from graph_retriever.adapters.in_memory import InMemory
 from graph_retriever.strategies import (
     Eager,
 )
-
-from tests.testing.adapters import (
-    ANIMALS_DEPTH_0_EXPECTED,
-    ANIMALS_QUERY,
-)
 from graph_retriever.testing.embeddings import (
     ParserEmbeddings,
     angular_2d_embedding,
     earth_embeddings,
+)
+
+from tests.testing.adapters import (
+    ANIMALS_DEPTH_0_EXPECTED,
+    ANIMALS_QUERY,
 )
 from tests.testing.invoker import SyncOrAsync
 

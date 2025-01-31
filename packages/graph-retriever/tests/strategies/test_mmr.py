@@ -2,9 +2,9 @@ from graph_retriever.adapters.base import Adapter
 from graph_retriever.adapters.in_memory import InMemory
 from graph_retriever.content import Content
 from graph_retriever.strategies.mmr import Mmr
+from graph_retriever.testing.embeddings import angular_2d_embedding
 
 from tests.testing.adapters import ANIMALS_DEPTH_0_EXPECTED, ANIMALS_QUERY
-from graph_retriever.testing.embeddings import angular_2d_embedding
 from tests.testing.invoker import SyncOrAsync
 
 

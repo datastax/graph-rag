@@ -42,6 +42,7 @@ dependencies = [
     "pydantic>=2.10.4",
     "numpy>=1.26.4",
     "typing-extensions>=4.12.2",
+    "pytest[testing]>=8.3.4",
 ]
 
 [project.urls]
@@ -52,6 +53,9 @@ dependencies = [
 [project.optional-dependencies]
 simsimd = [
     "simsimd>=6.2.1",
+]
+testing = [
+    "pytest>=8.3.4",
 ]
 
 [tool.pytest.ini_options]
@@ -68,5 +72,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [dependency-groups]
-dev = []
+dev = [
+    "pytest>=8.3.4",
+]
 

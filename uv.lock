@@ -1347,6 +1347,7 @@ source = { editable = "packages/graph-retriever" }
 dependencies = [
     { name = "numpy" },
     { name = "pydantic" },
+    { name = "pytest" },
     { name = "typing-extensions" },
 ]
 
@@ -1354,17 +1355,27 @@ dependencies = [
 simsimd = [
     { name = "simsimd" },
 ]
+testing = [
+    { name = "pytest" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
 
 [package.metadata]
 requires-dist = [
     { name = "numpy", specifier = ">=1.26.4" },
     { name = "pydantic", specifier = ">=2.10.4" },
+    { name = "pytest", marker = "extra == 'testing'", specifier = ">=8.3.4" },
+    { name = "pytest", extras = ["testing"], specifier = ">=8.3.4" },
     { name = "simsimd", marker = "extra == 'simsimd'", specifier = ">=6.2.1" },
     { name = "typing-extensions", specifier = ">=4.12.2" },
 ]
 
 [package.metadata.requires-dev]
-dev = []
+dev = [{ name = "pytest", specifier = ">=8.3.4" }]
 
 [[package]]
 name = "graph-retriever-workspace"

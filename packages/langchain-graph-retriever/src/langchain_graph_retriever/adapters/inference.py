@@ -1,7 +1,6 @@
 """Infers the appropriate adapter for a given vector store."""
 
 import importlib
-from typing import Type
 
 from graph_retriever import Adapter
 from langchain_core.vectorstores import VectorStore
@@ -42,7 +41,7 @@ def _full_class_name(cls: type) -> str:
     return f"{cls.__module__}.{cls.__name__}"
 
 
-def _infer_adapter_name(cls: Type) -> tuple[str, str]:
+def _infer_adapter_name(cls: type) -> tuple[str, str]:
     """Return the module and class of the adapter or raise."""
     store_classes = [cls]
     while store_classes:
@@ -83,11 +82,6 @@ def infer_adapter(store: Adapter | VectorStore) -> Adapter:
     -------
     Any
         The initialized adapter for the given vector store.
-
-    Raises
-    ------
-    ValueError
-        If the vector store type is not recognized.
     """
     if isinstance(store, Adapter):
         return store
@@ -96,4 +90,3 @@ def infer_adapter(store: Adapter | VectorStore) -> Adapter:
     adapter_module = importlib.import_module(module_name)
     adapter_class = getattr(adapter_module, class_name)
     return adapter_class(store)
-
