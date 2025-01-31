@@ -108,6 +108,7 @@ jobs:
         if: ${{ success() && matrix.python-version == '3.12' }}
         run: |
           uvx coveralls
+          uvx coveralls --finish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
