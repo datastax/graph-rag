@@ -10,7 +10,7 @@ This page is an executable notebook demonstrating how to combine Graph Traversal
 
 We assume you already have a working `langchain` installation, including an LLM and embedding model as well as a [supported vector store](/reference/langchain_graph_retriever/Adapter.qmd).
 
-In that case, you only need to isntall `langchain-graph-retriever`:
+In that case, you only need to install `langchain-graph-retriever`:
 
 ```{python}
 #| eval: False
