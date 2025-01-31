@@ -49,9 +49,9 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/datastax/graph-rag"
+"Homepage" = "https://datastax.github.io/graph-rag"
+"GitHub" = "https://github.com/datastax/graph-rag"
 "Bug Reports" = "https://github.com/datastax/graph-rag/issues"
-"Documentation" = "https://datastax.github.com/graph-rag"
 
 [tool.deptry.package_module_name_map]
 beautifulsoup4 = "bs4"
