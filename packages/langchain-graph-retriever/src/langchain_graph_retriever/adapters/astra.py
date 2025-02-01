@@ -1,14 +1,22 @@
 """Provides an adapter for AstraDB vector store integration."""
 
-from collections.abc import Sequence
-from typing import Any
+from __future__ import annotations
+
+import warnings
+from collections.abc import Iterable, Sequence
+from itertools import batched
+from typing import Any, cast
 
 import backoff
 from graph_retriever.content import Content
+from graph_retriever.types import Edge, IdEdge, MetadataEdge
 from typing_extensions import override
 
 try:
     from langchain_astradb import AstraDBVectorStore
+    from langchain_astradb.utils.vector_store_codecs import (
+        _AstraDBVectorStoreDocumentCodec,
+    )
 except (ImportError, ModuleNotFoundError):
     raise ImportError("please `pip install langchain-astradb`")
 
@@ -25,6 +33,63 @@ _EXCEPTIONS_TO_RETRY = (
     astrapy.exceptions.DataAPIException,
 )
 _MAX_RETRIES = 3
+
+
+class _QueryHelper:
+    def __init__(
+        self,
+        codec: _AstraDBVectorStoreDocumentCodec,
+        user_filter: dict[str, Any] | None = {},
+    ) -> None:
+        self.codec = codec
+        self.encoded_user_filter = (
+            codec.encode_filter(user_filter) if user_filter else {}
+        )
+
+    def encode_filter(self, filter: dict[str, Any]) -> dict[str, Any]:
+        encoded_filter = self.codec.encode_filter(filter)
+        return self._with_user_filter(encoded_filter)
+
+    def _with_user_filter(self, encoded_filter: dict[str, Any]) -> dict[str, Any]:
+        if self.encoded_user_filter:
+            return {"$and": [encoded_filter, self.encoded_user_filter]}
+        else:
+            return encoded_filter
+
+    def create_ids_query(self, ids: list[str]) -> dict[str, Any]:
+        if len(ids) == 0:
+            raise ValueError("IDs should not be empty")
+        elif len(ids) == 1:
+            # We need to avoid re-encoding in this case, since the codecs
+            # don't recognize `_id` and get confused (creating `metadata._id`).
+            return self._with_user_filter({"_id": ids[0]})
+        elif len(ids) < 100:
+            return self._with_user_filter({"_id": {"$in": ids}})
+        else:
+            raise ValueError("IDs should be less than 100, was {len(ids)}")
+
+    def create_metadata_query(
+        self, metadata: dict[str, Iterable[Any]]
+    ) -> dict[str, Any] | None:
+        metadata = {k: v for k, v in metadata.items() if v}
+        if not metadata:
+            return None
+
+        parts = []
+        for k, v in metadata.items():
+            # If there are more than 100 values, we can't create a single `$in` query.
+            # But, we can do it for each batch of 100.
+            for v_batch in batched(v, 100):
+                batch = list(v_batch)
+                if len(batch) == 1:
+                    parts.append({k: batch[0]})
+                else:
+                    parts.append({k: {"$in": batch}})
+
+        if len(parts) == 1:
+            return self.encode_filter(parts[0])
+        else:
+            return self.encode_filter({"$or": parts})
 
 
 class AstraAdapter(Adapter):
@@ -226,3 +291,161 @@ class AstraAdapter(Adapter):
             projection=self.vector_store.document_codec.full_projection,
         )
         return self._hit_to_content(hit)
+
+    def _prepare_edge_query_parts(
+        self, edges: set[Edge]
+    ) -> tuple[dict[str, Iterable[Any]], set[str]]:
+        """
+        Return metadata and ID query parts for edges.
+
+        Parameters
+        ----------
+        edges : set[Edge]
+            The edges to prepare.
+
+        Returns
+        -------
+        metadata_in : dict[str, set[Any]]
+            Dictionary of metadata constraints indicating the field to constrain
+            and the set of values.
+        ids : set[str]
+            Set of IDs to query for.
+
+        Raises
+        ------
+        ValueError
+            If any edges are invalid.
+        """
+        metadata_in: dict[str, set[Any]] = {}
+        ids = set()
+
+        for edge in edges:
+            if isinstance(edge, MetadataEdge):
+                metadata_in.setdefault(edge.incoming_field, set()).add(edge.value)
+            elif isinstance(edge, IdEdge):
+                ids.add(edge.id)
+            else:
+                raise ValueError(f"Unsupported edge {edge}")
+
+        return (cast(dict[str, Iterable[Any]], metadata_in), ids)
+
+    @override
+    def get_adjacent(
+        self,
+        edges: set[Edge],
+        query_embedding: list[float],
+        k: int,
+        filter: dict[str, Any] | None,
+        **kwargs: Any,
+    ) -> Iterable[Content]:
+        query_helper = _QueryHelper(self.vector_store.document_codec, filter)
+        metadata, ids = self._prepare_edge_query_parts(edges)
+
+        results = []
+        if (metadata_query := query_helper.create_metadata_query(metadata)) is not None:
+            results.extend(
+                self._execute_query(
+                    k=k,
+                    query_embedding=query_embedding,
+                    query=metadata_query,
+                )
+            )
+            ids.difference_update({c.id for c in results})
+
+        for id_batch in batched(ids, 100):
+            results.extend(
+                self._execute_query(
+                    k=k,
+                    query_embedding=query_embedding,
+                    query=query_helper.create_ids_query(list(id_batch)),
+                )
+            )
+
+        return results
+
+    @override
+    async def aget_adjacent(
+        self,
+        edges: set[Edge],
+        query_embedding: list[float],
+        k: int,
+        filter: dict[str, Any] | None,
+        **kwargs: Any,
+    ) -> Iterable[Content]:
+        query_helper = _QueryHelper(self.vector_store.document_codec, filter)
+        metadata, ids = self._prepare_edge_query_parts(edges)
+
+        results = []
+        if (metadata_query := query_helper.create_metadata_query(metadata)) is not None:
+            results.extend(
+                await self._aexecute_query(
+                    k=k,
+                    query_embedding=query_embedding,
+                    query=metadata_query,
+                )
+            )
+            ids.difference_update({c.id for c in results})
+
+        for id_batch in batched(ids, 100):
+            # I have tested (in the lazy graph rag example) doing these
+            # two queries concurrently, but it hurt perfomance. Likely this
+            # would depend on how many IDs the previous query eliminates from
+            # this query.
+            results.extend(
+                await self._aexecute_query(
+                    k=k,
+                    query_embedding=query_embedding,
+                    query=query_helper.create_ids_query(list(id_batch)),
+                )
+            )
+
+        return results
+
+    def _execute_query(
+        self, k: int, query_embedding: list[float], query: dict[str, Any]
+    ) -> list[Content]:
+        astra_env = self.vector_store.astra_env
+        astra_env.ensure_db_setup()
+
+        hits = astra_env.collection.find(
+            filter=query,
+            projection=self.vector_store.document_codec.full_projection,
+            limit=k,
+            include_sort_vector=True,
+            sort={"$vector": query_embedding},
+        )
+
+        return [content for hit in hits if (content := self._decode_hit(hit))]
+
+    async def _aexecute_query(
+        self, k: int, query_embedding: list[float], query: dict[str, Any]
+    ) -> list[Content]:
+        astra_env = self.vector_store.astra_env
+        await astra_env.aensure_db_setup()
+
+        hits = astra_env.async_collection.find(
+            filter=query,
+            projection=self.vector_store.document_codec.full_projection,
+            limit=k,
+            include_sort_vector=True,
+            sort={"$vector": query_embedding},
+        )
+
+        return [content async for hit in hits if (content := self._decode_hit(hit))]
+
+    def _decode_hit(self, hit: dict[str, Any]) -> Content | None:
+        codec = self.vector_store.document_codec
+        if "metadata" not in hit or codec.content_field not in hit:
+            id = hit.get("_id", "(no _id)")
+            warnings.warn(
+                f"Ignoring document with _id = {id}. Reason: missing required fields."
+            )
+            return None
+        embedding = self.vector_store.document_codec.decode_vector(hit)
+        assert embedding is not None
+        return Content(
+            id=hit["_id"],
+            content=hit[codec.content_field],
+            embedding=embedding,
+            metadata=hit["metadata"],
+        )

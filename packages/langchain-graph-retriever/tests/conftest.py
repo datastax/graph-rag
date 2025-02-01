@@ -10,6 +10,8 @@ from pytest import Parser
 
 from tests.embeddings import BaseEmbeddings
 
+pytest.register_assert_rewrite("graph_retriever.testing")
+
 
 @pytest.fixture(scope="session")
 def event_loop():

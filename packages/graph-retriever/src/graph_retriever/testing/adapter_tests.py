@@ -29,13 +29,30 @@ def assert_valid_results(docs: Iterable[Content]):
         assert_valid_result(doc)
 
 
-def assert_ids_any_order(results: Iterable[Content], expected: list[str]) -> None:
+def assert_ids_any_order(
+    results: Iterable[Content], expected: list[str], min_intersection: int | None = None
+) -> None:
     """Assert the results are valid and match the IDs."""
     assert_valid_results(results)
 
     result_ids = [r.id for r in results]
     assert len(set(result_ids)) == len(result_ids), "should not contain duplicates"
-    assert set(result_ids) == set(expected), "should contain exactly expected IDs"
+
+    if min_intersection is not None:
+        intersection = set(result_ids).intersection(expected)
+        min_intersection = min(min_intersection, len(expected))
+        assert len(intersection) >= min_intersection, (
+            f"{result_ids} should contain at least {min_intersection} "
+            f"from {expected} was {intersection}"
+        )
+
+        unexpected = set(result_ids) - set(expected)
+        assert not unexpected, (
+            f"{result_ids} should contain only elements of {expected}"
+            f", but had {unexpected}"
+        )
+    else:
+        assert set(result_ids) == set(expected), "should contain exactly expected IDs"
 
 
 @dataclass
@@ -64,6 +81,7 @@ GET_CASES: list[GetCase] = [
         ["boar", "chinchilla", "boar", "cobra"],
         ["boar", "chinchilla", "cobra"],
     ),
+    # TODO: Add test for get when filtered out?
 ]
 
 
@@ -171,7 +189,17 @@ GET_ADJACENT_CASES: list[GetAdjacentCase] = [
         ],
     ),
     GetAdjacentCase(
-        "ids",
+        "one_ids",
+        "domesticated hunters",
+        edges={
+            IdEdge("cat"),
+        },
+        expected=[
+            "cat",
+        ],
+    ),
+    GetAdjacentCase(
+        "many_ids",
         "domesticated hunters",
         edges={
             IdEdge("cat"),
@@ -185,6 +213,8 @@ GET_ADJACENT_CASES: list[GetAdjacentCase] = [
             "crab",
         ],
     ),
+    # Add test for IDs when filtered out.
+    # Add test for ID edges and metadata edges combined.
 ]
 
 
@@ -273,7 +303,11 @@ class AdapterComplianceSuite(abc.ABC):
             k=get_adjacent_case.adjacent_k,
             filter=get_adjacent_case.filter,
         )
-        assert_ids_any_order(results, get_adjacent_case.expected)
+        assert_ids_any_order(
+            results,
+            get_adjacent_case.expected,
+            min_intersection=get_adjacent_case.adjacent_k,
+        )
 
     async def test_aget_adjacent(
         self, adapter: Adapter, get_adjacent_case: GetAdjacentCase
@@ -286,4 +320,8 @@ class AdapterComplianceSuite(abc.ABC):
             k=get_adjacent_case.adjacent_k,
             filter=get_adjacent_case.filter,
         )
-        assert_ids_any_order(results, get_adjacent_case.expected)
+        assert_ids_any_order(
+            results,
+            get_adjacent_case.expected,
+            min_intersection=get_adjacent_case.adjacent_k,
+        )
