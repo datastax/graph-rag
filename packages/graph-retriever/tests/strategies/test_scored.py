@@ -1,14 +1,16 @@
 from graph_retriever.adapters.base import Adapter
 from graph_retriever.strategies.scored import Scored
 from graph_retriever.types import Node
+
 from tests.testing.adapters import (
-    ANIMALS_DEPTH_0_EXPECTED,
     ANIMALS_QUERY,
 )
 from tests.testing.invoker import SyncOrAsync
 
+
 def score_animals(node: Node) -> float:
     return 20 - len(node.id)
+
 
 async def test_animals_keywords(animals: Adapter, sync_or_async: SyncOrAsync):
     """Test traversing a bi-directional field with lists."""
@@ -16,7 +18,7 @@ async def test_animals_keywords(animals: Adapter, sync_or_async: SyncOrAsync):
         store=animals,
         query=ANIMALS_QUERY,
         edges=[("keywords", "keywords")],
-        strategy=Scored(scorer = score_animals, start_k=2),
+        strategy=Scored(scorer=score_animals, start_k=2),
     )
 
     # start_k=2 => 2 closest matches to the query

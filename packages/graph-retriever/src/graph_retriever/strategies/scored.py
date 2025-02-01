@@ -1,8 +1,11 @@
 import heapq
-from typing import Callable, Iterable
+from collections.abc import Callable, Iterable
+
+from typing_extensions import override
+
 from graph_retriever.strategies.base import Strategy
 from graph_retriever.types import Node
-from typing_extensions import override
+
 
 class _ScoredNode:
     def __init__(self, score: float, node: Node) -> None:
@@ -11,6 +14,7 @@ class _ScoredNode:
 
     def __lt__(self, other) -> bool:
         return other.score < self.score
+
 
 class Scored(Strategy):
     """Strategy selecing nodes using a scoring function."""
