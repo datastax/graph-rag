@@ -49,7 +49,18 @@ dependencies = [
 ]
 
 [tool.deptry.package_module_name_map]
+astrapy = "astrapy"
+backoff = "backoff"
+httpx = "httpx"
+langchain-core = "langchain_core"
+mypy = "mypy"
+networkx-stubs = "networkx_stubs"
+pytest = "pytest"
+pytest-asyncio = "pytest_asyncio"
+pytest-cov = "pytest_cov"
 python-dotenv = "dotenv"
+simsimd = "simsimd"
+tqdm = "tqdm"
 
 [tool.deptry.per_rule_ignores]
 DEP001 = ["google"]

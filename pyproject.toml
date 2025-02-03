@@ -91,7 +91,7 @@ help = "Install dependencies from all packages and all extras"
 cmd = "uv sync --all-packages --all-extras"
 
 [tool.poe.tasks.install-docs-deps]
-help = "Install dependencies from all packages and all extras"
+help = "Install dependencies from all packages, all extras, and docs"
 cmd = "uv sync --all-packages --all-extras --group docs"
 
 [tool.poe.tasks.lock-check]

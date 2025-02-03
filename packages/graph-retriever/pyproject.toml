@@ -58,6 +58,13 @@ testing = [
     "pytest>=8.3.4",
 ]
 
+[tool.deptry.package_module_name_map]
+numpy = "numpy"
+pydantic = "pydantic"
+pytest = "pytest"
+simsimd = "simsimd"
+typing-extensions = "typing_extensions"
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 pythonpath = ["."]
