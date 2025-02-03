@@ -1,5 +1,5 @@
-from .animals import Animals
+from .animals import fetch_animal_documents
 
 __all__ = [
-    "Animals",
+    "fetch_animal_documents",
 ]
