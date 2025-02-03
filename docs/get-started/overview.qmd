@@ -74,9 +74,11 @@ with open("../../data/animals.jsonl", "r") as file:
 ## Populating the Vector Store
 
 ```{python}
+from dotenv import load_dotenv
 from langchain_astradb import AstraDBVectorStore
 from langchain_openai import OpenAIEmbeddings
 
+load_dotenv()
 vector_store = AstraDBVectorStore.from_documents(
     collection_name="animals",
     documents=animals,
@@ -89,8 +91,8 @@ vector_store = AstraDBVectorStore.from_documents(
 For our first retrieval and graph traversal, we're going to start with a single animal best matching the query, and then traverse to other animals with the same `habitat` and/or `origin`.
 
 ```{python}
-from langchain_graph_retriever import GraphRetriever
 from graph_retriever.strategies import Eager
+from langchain_graph_retriever import GraphRetriever
 
 simple = GraphRetriever(
     # Adapt AstraDBVectorStore for use with Graph Retrievers.
@@ -101,7 +103,7 @@ simple = GraphRetriever(
 )
 ```
 
-The above creates a graph traversing retriever that starts with the nearest animal (`start_k=1`), retrieves 10 documents (`k=10`) and limits the search to docuemnts that are at most 2 steps away from the first animal (`depth=2`).
+The above creates a graph traversing retriever that starts with the nearest animal (`start_k=1`), retrieves 10 documents (`k=10`) and limits the search to documents that are at most 2 steps away from the first animal (`depth=2`).
 
 The edges define how metadata values can be used for traversal. In this case, every animal is connected to other animals with the same habitat and/or same origin.
 
