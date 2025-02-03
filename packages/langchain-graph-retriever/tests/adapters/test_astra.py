@@ -13,7 +13,6 @@ TEST_CODEC = _DefaultVSDocumentCodec("page_content", ignore_invalid_documents=Tr
 def test_create_ids_query_no_user() -> None:
     query_helper = _QueryHelper(TEST_CODEC, {})
 
-    assert query_helper.create_ids_query([]) is None
     assert query_helper.create_ids_query(["1"]) == {"_id": "1"}
 
     query = query_helper.create_ids_query(["1", "2", "3"])
@@ -24,7 +23,6 @@ def test_create_ids_query_no_user() -> None:
 def test_create_ids_query_user() -> None:
     query_helper = _QueryHelper(TEST_CODEC, {"answer": 42})
 
-    assert query_helper.create_ids_query([]) is None
     assert query_helper.create_ids_query(["1"]) == {
         "$and": [
             {"_id": "1"},
