@@ -8,7 +8,10 @@ class Environment(Enum):
     """Enumeration of supported environments for examples."""
 
     CASSIO = auto()
+    """Environment variables for connecting to AstraDB via CassIO"""
+
     ASTRAPY = auto()
+    """Environment variables for connecting to AstraDB via AstraPy"""
 
     def required_envvars(self) -> list[str]:
         """
@@ -16,7 +19,7 @@ class Environment(Enum):
 
         Returns
         -------
-        list[str]
+        :
             The environment variables required in this environment.
 
         Raises
@@ -95,10 +98,19 @@ def initialize_environment(env: Environment = Environment.CASSIO):
     """
     Initialize the environment variables.
 
-    This uses the following:
-    1. If a `.env` file is found, load environment variables from that.
-    2. If not, and running in colab, set necessary environment variables from secrets.
-    3. If necessary variables aren't set by the above, then prompts the user.
+    Parameters
+    ----------
+    env : Environment, default Environment.CASSIO
+        The environment to initialize
+
+    Notes
+    -----
+        This uses the following:
+
+        1. If a `.env` file is found, load environment variables from that.
+        2. If not, and running in colab, set necessary environment variables from
+            secrets.
+        3. If necessary variables aren't set by the above, then prompts the user.
     """
     # 1. If a `.env` file is found, load environment variables from that.
     if (dotenv_path := find_dotenv()) is not None:

@@ -28,7 +28,7 @@ def doc_to_content(doc: Document, *, embedding: list[float] | None = None) -> Co
 
     Returns
     -------
-    Content
+    :
         The converted content.
     """
     assert doc.id is not None

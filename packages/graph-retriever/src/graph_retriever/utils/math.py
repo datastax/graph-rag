@@ -24,7 +24,7 @@ def cosine_similarity(X: Matrix, Y: Matrix) -> np.ndarray:
 
     Returns
     -------
-    np.ndarray
+    :
         A matrix of shape (m, p) containing the cosine similarity scores
         between each row of `X` and each row of `Y`.
 

@@ -18,17 +18,18 @@ from langchain_graph_retriever.adapters.langchain import DenormalizedAdapter
 
 class CassandraAdapter(DenormalizedAdapter[Cassandra]):
     """
-    Adapter for Cassandra vector store.
+    Adapter for the [Apache Cassandra](https://cassandra.apache.org/) vector store.
 
-    This class integrates the Cassandra vector store with the graph retriever system,
-    providing functionality for similarity search and document retrieval.
+    This class integrates the LangChain Cassandra vector store with the graph
+    retriever system, providing functionality for similarity search and document
+    retrieval.
 
     Parameters
     ----------
     vector_store : Cassandra
         The Cassandra vector store instance.
-    metadata_denormalizer: MetadataDenormalizer | None
-        (Optional) An instance of the MetadataDenormalizer used for doc insertion.
+    metadata_denormalizer: MetadataDenormalizer, optional
+        An instance of the MetadataDenormalizer used for doc insertion.
         If not passed then a default instance of MetadataDenormalizer is used.
     """
 

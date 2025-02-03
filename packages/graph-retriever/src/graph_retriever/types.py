@@ -15,10 +15,10 @@ class Node:
     """
     Represents a node in the traversal graph.
 
-    The `Node` class contains information about a document during graph traversal,
-    including its depth, embedding, edges, and metadata.
+    The [](`~graph_retriever.Node`) class contains information about a document
+    during graph traversal, including its depth, embedding, edges, and metadata.
 
-    Attributes
+    Parameters
     ----------
     id : str
         The unique identifier of the document represented by this node.
@@ -28,7 +28,7 @@ class Node:
         The depth (number of edges) through which this node was discovered. This
         depth may not reflect the true depth in the full graph if only a subset
         of edges is retrieved.
-    embedding : list[float])
+    embedding : list[float]
         The embedding vector of the document, used for similarity calculations.
     metadata : dict[str, Any]
         Metadata from the original document. This is a reference to the original
@@ -66,10 +66,12 @@ class MetadataEdge(Edge):
     """
     Link to nodes with specific metadata.
 
-    A `MetadataEdge` defines nodes with `node.metadata[field] == value` or
-    `node.metadata[field] CONTAINS value` (if the metadata is a collection).
+    A [](`~graph_retriever.MetadataEdge`) defines nodes with either:
 
-    Attributes
+    - `node.metadata[field] == value`
+    - `node.metadata[field] CONTAINS value` (if the metadata is a collection).
+
+    Parameters
     ----------
     incoming_field : str
         The name of the metadata field storing incoming edges.
@@ -86,7 +88,7 @@ class IdEdge(Edge):
     """
     Nodes with `node.id == id`.
 
-    Attributes
+    Parameters
     ----------
     id : str
         The ID of the node to link to.
@@ -100,7 +102,7 @@ class Edges:
     """
     Information about the incoming and outgoing edges.
 
-    Attributes
+    Parameters
     ----------
     incoming : set[Edge]
         Incoming edges that link to this node.

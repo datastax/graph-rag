@@ -6,7 +6,8 @@ from typing import (
     Any,
 )
 
-from graph_retriever import Adapter, EdgeFunction, EdgeSpec, atraverse, traverse
+from graph_retriever import EdgeFunction, EdgeSpec, atraverse, traverse
+from graph_retriever.adapters import Adapter
 from graph_retriever.strategies import Eager, Strategy
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
@@ -23,32 +24,36 @@ class GraphRetriever(BaseRetriever):
     """
     Retriever combining vector search and graph traversal.
 
-    The `GraphRetriever` class performs retrieval by first using vector search to find
-    relevant documents, and then applying graph traversal to explore connected
-    documents. It supports multiple traversal strategies and integrates seamlessly
-    with LangChain's retriever framework.
+    The [](`~langchain_graph_retriever.GraphRetriever`) class retrieves documents
+    by first performing a vector search to identify relevant documents, followed by
+    graph traversal to explore their connections. It supports multiple traversal
+    strategies and integrates seamlessly with LangChain's retriever framework.
 
     Parameters
     ----------
     store : Adapter | VectorStore
-        The vector store or adapter used for document retrieval.
+        The adapter or vector store used for document retrieval.
     edges : list[EdgeSpec] | EdgeFunction, default []
-        Function to use for extracting edges from nodes. May be passed a list of
-        arguments to construct a `MetadataEdgeFunction` from, or an
-        `EdgeFunction`.
-    strategy : Strategy, default Eager()
+        A list of [](`~graph_retriever.EdgeSpec`) for use in creating a
+        [](`~graph_retriever.edges.metadata.MetadataEdgeFunction`),
+        or an [](`~graph_retriever.EdgeFunction`).
+    strategy : Strategy, default Eager
         The traversal strategy to use.
-        Defaults to an `Eager` (breadth-first) strategy which explores
-        the top `adjacent_k` for each edge.
+        Defaults to an [](`~graph_retriever.strategies.Eager`) (breadth-first)
+        strategy which explores the top `adjacent_k` for each edge.
 
     Attributes
     ----------
     store : Adapter | VectorStore
-        The vector store or adapter used for document retrieval.
-    edges : list[str | tuple[str, str | Id]] | EdgeFunction
-        Definitions of edges used for graph traversal.
+        The adapter or vector store used for document retrieval.
+    edges : list[EdgeSpec] | EdgeFunction
+        A list of [](`~graph_retriever.EdgeSpec`) for use in creating a
+        [](`~graph_retriever.edges.metadata.MetadataEdgeFunction`),
+        or an [](`~graph_retriever.EdgeFunction`).
     strategy : Strategy
         The traversal strategy to use.
+    adapter: Adapter
+        The adapter to use during traversals
     """
 
     store: Adapter | VectorStore
@@ -62,16 +67,16 @@ class GraphRetriever(BaseRetriever):
     @model_validator(mode="after")
     def apply_extra(self) -> Self:
         """
-        Apply extra configuration to the traversal strpategy.
+        Apply extra configuration to the traversal strategy.
 
-        This method captures additional fields provided in `model_extra` and applies
-        them to the current traversal strategy. Any extra fields are cleared after
-        they are applied.
+        This method captures additional fields provided in the `model_extra` argument
+        and applies them to the current traversal strategy. Any extra fields are
+        cleared after they are applied.
 
         Returns
         -------
-        Self
-            The updated `GraphRetriever` instance.
+        : GraphRetriever
+            The updated GraphRetriever instance.
         """
         if self.model_extra:
             self.strategy = self.strategy.model_validate(
@@ -102,12 +107,16 @@ class GraphRetriever(BaseRetriever):
         This method first retrieves documents based on similarity to the query, and
         then applies a traversal strategy to explore connected nodes in the graph.
 
+        Notes
+        -----
+        You can execute this method by calling `.invoke()` on the retriever.
+
         Parameters
         ----------
         query : str
             The query string to search for.
         edges : list[EdgeSpec] | EdgeFunction, optional
-            Optional edge definitions for this retrieval.
+            Override edge definitions for this invocation.
         initial_roots : Sequence[str]
             Document IDs to use as initial roots. The top `adjacent_k` nodes
             connected to each root are included in the initial candidates.
@@ -115,12 +124,12 @@ class GraphRetriever(BaseRetriever):
             Optional metadata filter to apply.
         store_kwargs : dict[str, Any], optional
             Additional keyword arguments for the store.
-        **kwargs : Any
+        kwargs : dict, optional
             Additional arguments for configuring the traversal strategy.
 
         Returns
         -------
-        list[Document]
+        :
             The retrieved documents.
 
         Raises
@@ -159,6 +168,10 @@ class GraphRetriever(BaseRetriever):
         This method first retrieves documents based on similarity to the query, and
         then applies a traversal strategy to explore connected nodes in the graph.
 
+        Notes
+        -----
+        You can execute this method by calling `.ainvoke()` on the retriever.
+
         Parameters
         ----------
         query : str
@@ -172,12 +185,12 @@ class GraphRetriever(BaseRetriever):
             Optional metadata filter to apply.
         store_kwargs : dict[str, Any], optional
             Additional keyword arguments for the store.
-        **kwargs : Any
+        kwargs : dict, optional
             Additional arguments for configuring the traversal strategy.
 
         Returns
         -------
-        list[Document]
+        :
             The retrieved documents.
 
         Raises

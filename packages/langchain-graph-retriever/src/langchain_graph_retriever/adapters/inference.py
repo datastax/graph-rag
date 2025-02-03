@@ -2,7 +2,7 @@
 
 import importlib
 
-from graph_retriever import Adapter
+from graph_retriever.adapters import Adapter
 from langchain_core.vectorstores import VectorStore
 
 ADAPTERS_PKG = "langchain_graph_retriever.adapters"
@@ -80,7 +80,7 @@ def infer_adapter(store: Adapter | VectorStore) -> Adapter:
 
     Returns
     -------
-    Any
+    :
         The initialized adapter for the given vector store.
     """
     if isinstance(store, Adapter):

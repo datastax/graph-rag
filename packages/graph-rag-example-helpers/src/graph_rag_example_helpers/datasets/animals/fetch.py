@@ -6,7 +6,7 @@ from langchain_core.documents import Document
 ANIMALS_JSONL_URL = "https://raw.githubusercontent.com/datastax/graph-rag/refs/heads/main/data/animals.jsonl"
 
 
-def fetch_animal_documents() -> list[Document]:
+def fetch_documents() -> list[Document]:
     """
     Download and parse a list of Documents for use with Graph Retriever.
 
@@ -18,8 +18,8 @@ def fetch_animal_documents() -> list[Document]:
 
     Returns
     -------
-    list[Document]
-        The fetched animal documetns.
+    :
+        The fetched animal documents.
     """
     response = requests.get(ANIMALS_JSONL_URL)
     response.raise_for_status()  # Ensure we got a valid response

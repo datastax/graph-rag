@@ -1,13 +1,14 @@
 quartodoc:
   package: null
+  parser: numpy
   style: pkgdown
   render_interlinks: true
   renderer:
     style: markdown
     table_style: description-list
-  rewrite_all_pages: true
   options:
     include_attributes: true
+    signature_name: full
   title: 'API Reference'
   sidebar:
     file: "reference/_sidebar.yml"
@@ -18,41 +19,73 @@ quartodoc:
     contents:
       - "{{ contents }}"
   sections:
+
   - title: graph_retriever
     desc: |
       Base package providing traversal functionality.
     package: graph_retriever
     contents:
-    - name: traverse
-    - name: atraverse
+    - kind: page
+      path: traversal
+      summary:
+        name: Traversal
+        desc: "Methods to perform Graph Traversal"
+      flatten: true
+      contents:
+      - atraverse
+      - traverse
     - name: Adapter
+      package: graph_retriever.adapters
     - name: Content
-    - name: Edge
-    - name: Edges
-    - name: EdgeSpec
-    - name: EdgeFunction
-    - name: Id
-    - name: IdEdge
-    - name: MetadataEdge
-    - name: Node
-  - subtitle: 'edges'
-    contents:
-    - name: MetadataEdgeFunction
-      package: 'graph_retriever.edges:metadata'
+    - kind: page
+      path: node_types
+      summary:
+        name: Node types
+        desc: "Types related to working with Nodes"
+      flatten: true
+      contents:
+      - Node
+      - Edge
+      - MetadataEdge
+      - IdEdge
+      - Edges
+      - EdgeFunction
+    - kind: page
+      path: edge_types
+      summary:
+        name: Edge types
+        desc: "Types related to defining Edges"
+      flatten: true
+      contents:
+      - EdgeSpec
+      - Id
+      - name: MetadataEdgeFunction
+        package: 'graph_retriever.edges:metadata'
   - subtitle: 'strategies'
+    package: 'graph_retriever.strategies'
     contents:
     - name: Eager
-      package: 'graph_retriever.strategies:eager'
     - name: Mmr
-      package: 'graph_retriever.strategies:mmr'
+    - name: Scored
     - name: Strategy
-      package: 'graph_retriever.strategies'
+
   - title: langchain_graph_retriever
     desc: |
-      Traversal functionality integrated as a LangChain retriever supporting a variety of LangChain `VectorStore`s.
+      Traversal integrated as a LangChain Retriever supporting various VectorStores.
     package: langchain_graph_retriever
     contents:
-    - name: GraphRetriever
+    - kind: page
+      path: GraphRetriever
+      summary:
+        name: GraphRetriever
+        desc: "Provides a graph-based retriever combining vector search and graph traversal"
+      flatten: true
+      contents:
+      - name: GraphRetriever
+        exclude:
+        - apply_extra
+      - GraphRetriever._aget_relevant_documents
+      - GraphRetriever._get_relevant_documents
     - name: document_graph
   - subtitle: 'document_transformers'
     contents:
@@ -70,10 +103,6 @@ quartodoc:
       package: 'langchain_graph_retriever.document_transformers:spacy'
   - subtitle: 'adapters'
     contents:
-    - name: LangchainAdapter
-      package: 'langchain_graph_retriever.adapters:langchain'
-    - name: DenormalizedAdapter
-      package: 'langchain_graph_retriever.adapters:langchain'
     - name: AstraAdapter
       package: 'langchain_graph_retriever.adapters:astra'
     - name: CassandraAdapter
@@ -84,21 +113,36 @@ quartodoc:
       package: 'langchain_graph_retriever.adapters:in_memory'
     - name: OpenSearchAdapter
       package: 'langchain_graph_retriever.adapters:open_search'
+    - name: LangchainAdapter
+      package: 'langchain_graph_retriever.adapters:langchain'
+    - name: DenormalizedAdapter
+      package: 'langchain_graph_retriever.adapters:langchain'
     - name: 'inference'
       package: 'langchain_graph_retriever.adapters'
       members:
         - infer_adapter
+
   - title: graph_rag_example_helpers
     desc: |
       Helpers used in various examples and notebooks.
     package: graph_rag_example_helpers
     contents:
-    - name: initialize_environment
-    - name: Environment
+    - kind: page
+      path: environment
+      summary:
+        name: Environment
+        desc: "Helpers to setup the environment"
+      flatten: true
+      contents:
+      - initialize_environment
+      - Environment
   - subtitle: datasets
+    package: 'graph_rag_example_helpers.datasets'
     contents:
-    - name: aload_2wikimultihop
-      package: 'graph_rag_example_helpers.datasets.wikimultihop:load'
-
-
-
+    - name: animals
+      members:
+        - fetch_documents
+    - name: wikimultihop
+      members:
+        - aload_2wikimultihop
+        - BatchPreparer

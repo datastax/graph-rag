@@ -31,7 +31,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
 
     Parameters
     ----------
-    vector_store : T
+    vector_store : VectorStore
         The vector store instance.
     """
 
@@ -39,14 +39,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
         self,
         vector_store: StoreT,
     ):
-        """
-        Initialize the base adapter.
-
-        Parameters
-        ----------
-        vector_store : T
-            The vector store instance.
-        """
+        """Initialize the base adapter."""
         self.vector_store = vector_store
 
     @property
@@ -73,7 +66,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
 
         Returns
         -------
-        dict[str, Any] | None
+        :
             The updated filter on the metadata to apply.
         """
         return filter
@@ -89,7 +82,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
 
         Returns
         -------
-        list[Content]
+        :
             The formatted content.
         """
         return [doc_to_content(doc) for doc in docs]
@@ -113,12 +106,12 @@ class LangchainAdapter(Generic[StoreT], Adapter):
             Number of Documents to return.
         filter : dict[str, str], optional
             Filter on the metadata to apply.
-        **kwargs : Any
+        kwargs : dict, optional
             Additional keyword arguments.
 
         Returns
         -------
-        list[Document]
+        :
             List of Documents most similar to the query vector.
 
             Documents should have their embedding added to the
@@ -144,12 +137,12 @@ class LangchainAdapter(Generic[StoreT], Adapter):
             Number of Documents to return.
         filter : dict[str, str], optional
             Filter on the metadata to apply.
-        **kwargs : Any
+        kwargs : dict, optional
             Additional keyword arguments.
 
         Returns
         -------
-        list[Content]
+        :
             List of Contents most similar to the query vector.
         """
         docs = self._similarity_search_with_embedding_by_vector(
@@ -178,12 +171,12 @@ class LangchainAdapter(Generic[StoreT], Adapter):
             Number of Documents to return.
         filter : dict[str, str], optional
             Filter on the metadata to apply.
-        **kwargs : Any
+        kwargs : dict, optional
             Additional keyword arguments.
 
         Returns
         -------
-        list[Document]
+        :
             List of Documents most similar to the query vector.
 
             Documents should have their embedding added to the
@@ -225,7 +218,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
 
         Returns
         -------
-        Sequence[str]
+        :
             List of IDs with duplicates removed
         """
         return list({k: True for k in ids}.keys())
@@ -248,7 +241,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
         **kwargs: Any,
     ) -> list[Document]:
         """
-        Get documents by id.
+        Get documents by ID.
 
         Fewer documents may be returned than requested if some IDs are not found
         or if there are duplicated IDs. This method should **NOT** raise
@@ -264,12 +257,12 @@ class LangchainAdapter(Generic[StoreT], Adapter):
             List of IDs to get.
         filter : dict[str, Any], optional
             Filter to apply to the recrods.
-        **kwargs : Any
+        kwargs : dict, optional
             Additional keyword arguments. These are up to the implementation.
 
         Returns
         -------
-        list[Document]
+        :
             List of documents that were found.
         """
 
@@ -290,7 +283,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
         **kwargs: Any,
     ) -> list[Document]:
         """
-        Asynchronously get documents by id.
+        Asynchronously get documents by ID.
 
         Fewer documents may be returned than requested if some IDs are not found
         or if there are duplicated IDs. This method should **NOT** raise
@@ -306,12 +299,12 @@ class LangchainAdapter(Generic[StoreT], Adapter):
             List of IDs to get.
         filter : dict[str, Any], optional
             Filter to apply to the documents.
-        **kwargs : Any
+        kwargs : dict, optional
             Additional keyword arguments. These are up to the implementation.
 
         Returns
         -------
-        list[Document]
+        :
             List of documents that were found.
         """
         return await run_in_executor(
@@ -342,7 +335,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
 
         Returns
         -------
-        dict[str, Any]
+        :
             The metadata dictionary to use for the given filter.
         """
         metadata_filter = {**(base_filter or {})}
@@ -364,10 +357,10 @@ class DenormalizedAdapter(LangchainAdapter[StoreT]):
 
     Parameters
     ----------
-    vector_store : T
+    vector_store : VectorStore
         The vector store instance.
-    metadata_denormalizer: MetadataDenormalizer | None
-        (Optional) An instance of the MetadataDenormalizer used for doc insertion.
+    metadata_denormalizer: MetadataDenormalizer, optional
+        An instance of the MetadataDenormalizer used for doc insertion.
         If not passed then a default instance of MetadataDenormalizer is used.
     nested_metadata_fields: set[str]
         The set of metadata fields that contain nested values.
@@ -379,19 +372,7 @@ class DenormalizedAdapter(LangchainAdapter[StoreT]):
         metadata_denormalizer: MetadataDenormalizer | None = None,
         nested_metadata_fields: set[str] = set(),
     ):
-        """
-        Initialize the base adapter.
-
-        Parameters
-        ----------
-        vector_store : T
-            The vector store instance.
-        metadata_denormalizer: MetadataDenormalizer | None
-            (Optional) An instance of the MetadataDenormalizer used for doc insertion.
-            If not passed then a default instance of MetadataDenormalizer is used.
-        nested_metadata_fields: set[str]
-            The set of metadata fields that contain nested values.
-        """
+        """Initialize the base adapter."""
         super().__init__(vector_store=vector_store)
         self.metadata_denormalizer = (
             MetadataDenormalizer()

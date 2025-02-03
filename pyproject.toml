@@ -179,14 +179,6 @@ sequence = [
     {cmd = "quarto preview", cwd="docs"},
 ]
 
-[tool.poe.tasks.coverage]
-help = "Runs tests and reports coverage."
-sequence = [
-    {cmd = "uv run coverage run -m pytest packages/graph-retriever" },
-    {cmd = "uv run coverage run -a -m pytest packages/langchain-graph-retriever --stores=all" },
-    {cmd = "uv run coverage report" },
-]
-
 [tool.poe.tasks.docs-build]
 help = "Builds the docs site in `_site`"
 sequence = [
@@ -196,6 +188,14 @@ sequence = [
     # issues in the wrapper script like https://github.com/quarto-dev/quarto-cli/issues/11296.
     # Instead, install directly from quarto and/or via github action.
     {cmd = "quarto render", cwd="docs"},
+]
+
+[tool.poe.tasks.coverage]
+help = "Runs tests and reports coverage."
+sequence = [
+    {cmd = "uv run coverage run -m pytest packages/graph-retriever" },
+    {cmd = "uv run coverage run -a -m pytest packages/langchain-graph-retriever --stores=all" },
+    {cmd = "uv run coverage report" },
 ]
 
 [tool.poe.tasks.help]

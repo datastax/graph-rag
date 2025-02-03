@@ -50,6 +50,7 @@ EXCEPTIONS_TO_RETRY = (
 MAX_RETRIES = 8
 
 BatchPreparer = Callable[[Iterator[bytes]], Iterator[Document]]
+"""Function to apply to batches of lines to produce the document."""
 
 
 async def aload_2wikimultihop(

@@ -17,7 +17,7 @@ class InMemoryAdapter(LangchainAdapter[InMemoryVectorStore]):
     """
     Adapter for InMemoryVectorStore vector store.
 
-    This adapter integrates the in-memory vector store with the graph
+    This adapter integrates the LangChain In-Memory vector store with the graph
     retriever system, enabling similarity search and document retrieval.
 
     Parameters
@@ -95,7 +95,7 @@ class InMemoryAdapter(LangchainAdapter[InMemoryVectorStore]):
 
         Returns
         -------
-        bool
+        :
             True if and only if `metadata[key] == value` or `metadata[key]` is a
             list containing `value`.
         """
@@ -125,7 +125,7 @@ class InMemoryAdapter(LangchainAdapter[InMemoryVectorStore]):
 
         Returns
         -------
-        Callable[[Document], bool]
+        :
             A function that determines if a document matches the filter criteria.
         """
         if filter_dict is None:

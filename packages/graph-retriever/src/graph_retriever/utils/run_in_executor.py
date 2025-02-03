@@ -26,12 +26,12 @@ async def run_in_executor(
         The function.
     *args : Any
         The positional arguments to the function.
-    **kwargs : Any
+    kwargs : dict, optional
         The keyword arguments to the function.
 
     Returns
     -------
-    output : T
+    :
         The output of the function.
 
     Raises

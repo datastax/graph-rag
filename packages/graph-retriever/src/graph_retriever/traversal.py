@@ -28,8 +28,9 @@ def traverse(
     query : str
         The query string for the traversal.
     edges : list[EdgeSpec] | EdgeFunction
-        An `EdgeFunction` or the edge specifications to use for creating a
-        `MetadataEdgeFunction`.
+        A list of [](`~graph_retriever.EdgeSpec`) for use in creating a
+        [](`~graph_retriever.edges.metadata.MetadataEdgeFunction`),
+        or an [](`~graph_retriever.EdgeFunction`).
     strategy : Strategy
         The traversal strategy that defines how nodes are discovered, selected,
         and finalized.
@@ -45,7 +46,7 @@ def traverse(
 
     Returns
     -------
-    list[Node]
+    :
         Nodes returned by the traversal.
     """
     traversal = _Traversal(
@@ -71,15 +72,16 @@ async def atraverse(
     store_kwargs: dict[str, Any] = {},
 ) -> list[Node]:
     """
-    Perform a graph traversal to retrieve nodes for a specific query.
+    Asynchronously perform a graph traversal to retrieve nodes for a specific query.
 
     Parameters
     ----------
     query : str
         The query string for the traversal.
     edges : list[EdgeSpec] | EdgeFunction
-        An `EdgeFunction` or the edge specifications to use for creating a
-        `MetadataEdgeFunction`.
+        A list of [](`~graph_retriever.EdgeSpec`) for use in creating a
+        [](`~graph_retriever.edges.metadata.MetadataEdgeFunction`),
+        or an [](`~graph_retriever.EdgeFunction`).
     strategy : Strategy
         The traversal strategy that defines how nodes are discovered, selected,
         and finalized.
@@ -95,7 +97,7 @@ async def atraverse(
 
     Returns
     -------
-    list[Node]
+    :
         Nodes returned by the traversal.
     """
     traversal = _Traversal(
@@ -114,7 +116,7 @@ class _Traversal:
     """
     Handles a single traversal operation for a graph-based retrieval system.
 
-    The `Traversal` class manages the process of discovering, visiting, and selecting
+    The `_Traversal` class manages the process of discovering, visiting, and selecting
     nodes within a graph, based on a query and a traversal strategy. It supports
     synchronous and asynchronous traversal, enabling retrieval of documents in a
     controlled, iterative manner.
@@ -168,7 +170,7 @@ class _Traversal:
 
         Returns
         -------
-        list[Node]
+        :
             The final set of nodes resulting from the traversal.
         """
         self._check_first_use()
@@ -202,7 +204,7 @@ class _Traversal:
 
         Returns
         -------
-        list[Node]
+        :
             The final set of nodes resulting from the traversal.
         """
         self._check_first_use()
@@ -233,7 +235,7 @@ class _Traversal:
 
         Returns
         -------
-        list[Content]
+        :
             The initial content retrieved via similarity search.
         """
         query_embedding, docs = self.store.similarity_search_with_embedding(
@@ -265,7 +267,7 @@ class _Traversal:
 
         Returns
         -------
-        Iterable[Content]
+        :
             The set of contents adjacent to the initial root nodes.
         """
         neighborhood_docs = self.store.get(self.initial_root_ids)
@@ -290,7 +292,7 @@ class _Traversal:
 
         Returns
         -------
-        Iterable[Content]
+        :
             The set of contents adjacent to the initial root nodes.
         """
         neighborhood_docs = await self.store.aget(self.initial_root_ids)
@@ -317,7 +319,7 @@ class _Traversal:
 
         Returns
         -------
-        Iterable[Content]
+        :
             The set of content adjacent to the specified edges.
         """
         return self.store.get_adjacent(
@@ -342,7 +344,7 @@ class _Traversal:
 
         Returns
         -------
-        Iterable[DocuContentment]
+        :
             The set of content adjacent to the specified edges.
         """
         return await self.store.aget_adjacent(
@@ -373,7 +375,7 @@ class _Traversal:
 
         Returns
         -------
-        Node | None:
+        :
             The newly created node, or None if the document has already been
             processed.
         """
@@ -427,7 +429,7 @@ class _Traversal:
 
         Returns
         -------
-        dict[str, Node]
+        :
             A dictionary of node IDs to the newly created nodes.
         """
         # Record the depth of new nodes.
@@ -458,7 +460,7 @@ class _Traversal:
 
         Returns
         -------
-        set[Edge]
+        :
             The set of new outgoing edges that need to be explored.
 
         Notes
@@ -493,7 +495,7 @@ class _Traversal:
 
         Returns
         -------
-        set[Edge] | None
+        :
             The set of new edges to explore, or None if the traversal is
             complete.
         """
@@ -523,7 +525,7 @@ class _Traversal:
 
         Returns
         -------
-        list[Node]
+        :
             The final set of nodes resulting from the traversal.
         """
         return list(self.strategy.finalize_nodes(self._selected_nodes.values()))

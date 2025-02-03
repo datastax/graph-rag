@@ -1,7 +1,6 @@
 """Utilities for creating and analyzing a graph of documents."""
 
-from collections.abc import Iterable, Sequence
-from typing import Any
+from collections.abc import Sequence
 
 import networkx as nx
 from graph_retriever import Edge, EdgeFunction
@@ -24,7 +23,7 @@ def _best_communities(graph: nx.DiGraph) -> list[list[str]]:
 
     Returns
     -------
-    list[list[str]]
+    :
         A list of communities, where each community is a list of node IDs.
     """
     # TODO: Also continue running until the size of communities is below
@@ -47,39 +46,6 @@ def _best_communities(graph: nx.DiGraph) -> list[list[str]]:
     return best_communities
 
 
-def _get_md_values(metadata: dict[str, Any], field: str) -> Iterable[Any]:
-    """
-    Retrieve metadata values for a specific field.
-
-    This function extracts values from the metadata dictionary for the given field,
-    handling cases where the value is a single string, a list, or another iterable.
-
-    Parameters
-    ----------
-    metadata : dict[str, Any]
-        The metadata dictionary.
-    field : str
-        The field to extract values from.
-
-    Returns
-    -------
-    Iterable[Any]
-        A list of values for the specified field. If no values are found, an
-        empty list is returned.
-    """
-    value = metadata.get(field, None)
-    if value is None:
-        return []
-    if isinstance(value, str):
-        return [value]
-    if field not in metadata:
-        return []
-    try:
-        return list(value)
-    except TypeError as _:
-        return [value]
-
-
 def create_graph(
     documents: Sequence[Document],
     *,
@@ -100,7 +66,7 @@ def create_graph(
 
     Returns
     -------
-    nx.DiGraph
+    :
         The created directed graph with documents as nodes and metadata
         relationships as edges.
 
@@ -165,7 +131,7 @@ def group_by_community(graph: nx.DiGraph) -> list[list[Document]]:
 
     Returns
     -------
-    list[list[Document]]
+    :
         A list of communities, where each community is a list of documents.
     """
     # Find communities and output documents grouped by community.

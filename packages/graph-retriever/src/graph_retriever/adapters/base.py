@@ -34,7 +34,7 @@ class Adapter(abc.ABC):
         **kwargs: Any,
     ) -> tuple[list[float], list[Content]]:
         """
-        Return content most similar to the query.
+        Return content items most similar to the query.
 
         Also returns the embedded query vector.
 
@@ -43,18 +43,18 @@ class Adapter(abc.ABC):
         query : str
             Input text.
         k : int, default 4
-            Number of `Content` items to return.
+            Number of content items to return.
         filter : dict[str, Any], optional
             Filter on the metadata to apply.
-        **kwargs : Any
+        kwargs : dict, optional
             Additional keyword arguments.
 
         Returns
         -------
         query_embedding : list[float]
-            The embedded query vector
+            The query embedding used for selecting the most relevant content.
         contents : list[Content]
-            List of up to `k` `Content` most similar to the query vector.
+            List of up to `k` content items most similar to the query vector.
         """
         query_embedding = self.embed_query(query)
         docs = self.similarity_search_with_embedding_by_vector(
@@ -73,7 +73,7 @@ class Adapter(abc.ABC):
         **kwargs: Any,
     ) -> tuple[list[float], list[Content]]:
         """
-        Asynchronously return content most similar to the query.
+        Asynchronously return content items most similar to the query.
 
         Also returns the embedded query vector.
 
@@ -82,18 +82,18 @@ class Adapter(abc.ABC):
         query : str
             Input text.
         k : int, default 4
-            Number of `Content` items to return.
+            Number of content items to return.
         filter : dict[str, Any], optional
             Filter on the metadata to apply.
-        **kwargs : Any
+        kwargs : dict, optional
             Additional keyword arguments.
 
         Returns
         -------
         query_embedding : list[float]
-            The embedded query vector
+            The query embedding used for selecting the most relevant content.
         contents : list[Content]
-            List of up to `k` `Content` most similar to the query
+            List of up to `k` content items most similar to the query
             vector.
         """
         return await run_in_executor(
@@ -109,23 +109,23 @@ class Adapter(abc.ABC):
         **kwargs: Any,
     ) -> list[Content]:
         """
-        Return content most similar to the query vector.
+        Return content items most similar to the query vector.
 
         Parameters
         ----------
         embedding : list[float]
-            Embedding to look up documents similar to.
+            The query embedding used for selecting the most relevant content.
         k : int, default 4
-            Number of Documents to return.
+            Number of content items to return.
         filter : dict[str, Any], optional
             Filter on the metadata to apply.
-        **kwargs : Any
+        kwargs : dict, optional
             Additional keyword arguments.
 
         Returns
         -------
-        list[Content]
-            List of `Content` most similar to the query vector.
+        :
+            List of content items most similar to the query vector.
         """
         ...
 
@@ -137,23 +137,23 @@ class Adapter(abc.ABC):
         **kwargs: Any,
     ) -> list[Content]:
         """
-        Asynchronously return content most similar to the query vector.
+        Asynchronously return content items most similar to the query vector.
 
         Parameters
         ----------
         embedding : list[float]
-            Embedding to look up documents similar to.
+            The query embedding used for selecting the most relevant content.
         k : int, default 4
-            Number of Documents to return.
+            Number of content items to return.
         filter : dict[str, Any], optional
             Filter on the metadata to apply.
-        **kwargs : Any
+        kwargs : dict, optional
             Additional keyword arguments.
 
         Returns
         -------
-        list[Content]
-            List of contetn most similar to the query vector.
+        :
+            List of content items most similar to the query vector.
         """
         return await run_in_executor(
             None,
@@ -172,15 +172,15 @@ class Adapter(abc.ABC):
         **kwargs: Any,
     ) -> list[Content]:
         """
-        Get content by id.
+        Get content items by ID.
 
-        Fewer documents may be returned than requested if some IDs are not found
-        or if there are duplicated IDs. This method should **NOT** raise
-        exceptions if no documents are found for some IDs.
+        Fewer content items may be returned than requested if some IDs are
+        not found or if there are duplicated IDs. This method should **NOT**
+        raise exceptions if no content items are found for some IDs.
 
-        Users should not assume that the order of the returned documents matches
-        the order of the input IDs. Instead, users should rely on the ID field
-        of the returned documents.
+        Users should not assume that the order of the returned content items
+        matches  the order of the input IDs. Instead, users should rely on
+        the ID field of the returned content items.
 
         Parameters
         ----------
@@ -188,13 +188,13 @@ class Adapter(abc.ABC):
             List of IDs to get.
         filter : dict[str, Any], optional
             Filter on the metadata to apply.
-        **kwargs : Any
+        kwargs : dict, optional
             Additional keyword arguments. These are up to the implementation.
 
         Returns
         -------
-        list[Content]
-            List of content that was found.
+        :
+            List of content items that were found.
         """
         ...
 
@@ -205,15 +205,15 @@ class Adapter(abc.ABC):
         **kwargs: Any,
     ) -> list[Content]:
         """
-        Asynchronously get content by id.
+        Asynchronously get content items by ID.
 
-        Fewer documents may be returned than requested if some IDs are not found
-        or if there are duplicated IDs. This method should **NOT** raise
-        exceptions if no documents are found for some IDs.
+        Fewer content items may be returned than requested if some IDs are
+        not found or if there are duplicated IDs. This method should **NOT**
+        raise exceptions if no content items are found for some IDs.
 
-        Users should not assume that the order of the returned documents matches
-        the order of the input IDs. Instead, users should rely on the ID field
-        of the returned documents.
+        Users should not assume that the order of the returned content items
+        matches  the order of the input IDs. Instead, users should rely on
+        the ID field of the returned content items.
 
         Parameters
         ----------
@@ -221,13 +221,13 @@ class Adapter(abc.ABC):
             List of IDs to get.
         filter : dict[str, Any], optional
             Filter on the metadata to apply.
-        **kwargs : Any
+        kwargs : dict, optional
             Additional keyword arguments. These are up to the implementation.
 
         Returns
         -------
-        list[Content]
-            List of content that were found.
+        :
+            List of content items that were found.
         """
         return await run_in_executor(
             None,
@@ -246,27 +246,25 @@ class Adapter(abc.ABC):
         **kwargs: Any,
     ) -> Iterable[Content]:
         """
-        Return the content with at least one matching incoming edge.
+        Return the content items with at least one matching incoming edge.
 
         Parameters
         ----------
         edges : set[Edge]
             The edges to look for.
         query_embedding : list[float]
-            The query embedding used for selecting the most relevant nodes.
+            The query embedding used for selecting the most relevant content.
         k : int
             The number of relevant content items to select.
-        strategy : Strategy
-            The traversal strategy being used.
         filter : dict[str, Any], optional
             Optional metadata to filter the results.
-        **kwargs : Any
+        kwargs : dict, optional
             Keyword arguments to pass to the similarity search.
 
         Returns
         -------
-        Iterable[Content]
-            Iterable of adjacent content.
+        :
+            Iterable of adjacent content items.
 
         Raises
         ------
@@ -303,25 +301,25 @@ class Adapter(abc.ABC):
         **kwargs: Any,
     ) -> Iterable[Content]:
         """
-        Asynchronously return the content with at least one matching edge.
+        Asynchronously return the content items with at least one matching edge.
 
         Parameters
         ----------
         edges : set[Edge]
             The edges to look for.
         query_embedding : list[float]
-            The query embedding used for selecting the most relevant nodes.
+            The query embedding used for selecting the most relevant content.
         k : int
             The number of relevant content items to select for the edges.
         filter : dict[str, Any], optional
             Optional metadata to filter the results.
-        **kwargs : Any
+        kwargs : dict, optional
             Keyword arguments to pass to the similarity search.
 
         Returns
         -------
-        Iterable[Content]
-            Iterable of adjacent contents.
+        :
+            Iterable of adjacent content items.
 
         Raises
         ------
@@ -374,7 +372,7 @@ class Adapter(abc.ABC):
 
         Returns
         -------
-        dict[str, Any]
+        :
             The metadata dictionary to use for the given filter.
         """
         metadata_filter = {**(base_filter or {})}

@@ -95,19 +95,17 @@ class _QueryHelper:
 
 class AstraAdapter(Adapter):
     """
-    Adapter for AstraDBVectorStore.
+    Adapter for the [AstraDB](https://www.datastax.com/products/datastax-astra) vector store.
 
-    This adapter provides DataStax AstraDB support for the graph retriever
-    system, enabling similarity search and document retrieval.
-
-    It supports normalized metadata (collections of values) without
-    denormalization.
+    This class integrates the LangChain AstraDB vector store with the graph
+    retriever system, providing functionality for similarity search and document
+    retrieval.
 
     Parameters
     ----------
     vector_store : AstraDBVectorStore
         The AstraDB vector store instance.
-    """
+    """  # noqa: E501
 
     def __init__(self, vector_store: AstraDBVectorStore) -> None:
         self.vector_store = vector_store

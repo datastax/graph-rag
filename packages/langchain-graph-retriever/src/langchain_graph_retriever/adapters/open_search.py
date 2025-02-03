@@ -21,12 +21,19 @@ class OpenSearchAdapter(LangchainAdapter[OpenSearchVectorSearch]):
     Adapter to traverse OpenSearch vector stores.
 
     This adapter enables similarity search and document retrieval using an
-    OpenSearch vector store. It supports both "lucene" and "faiss" engines.
+    OpenSearch vector store.
 
     Parameters
     ----------
     vector_store  : OpenSearchVectorSearch
         The OpenSearch vector store instance.
+
+    Notes
+    -----
+    Graph Traversal is only supported when using either the `"lucene"` or
+    `"faiss"` engine.
+
+    For more info, see the [OpenSearch Documentation](https://opensearch.org/docs/latest/search-plugins/knn/knn-index#method-definitions)
     """
 
     def __init__(self, vector_store: OpenSearchVectorSearch):
@@ -57,7 +64,7 @@ class OpenSearchAdapter(LangchainAdapter[OpenSearchVectorSearch]):
 
         Returns
         -------
-        list[dict[str, Any]] | None
+        :
             Filter query for OpenSearch.
         """
         if filter is None:

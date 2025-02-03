@@ -14,7 +14,7 @@ def angular_2d_embedding(text: str) -> list[float]:
 
     Returns
     -------
-    list[float]
+    :
         If the text is a number, use it as the angle for the unit vector in
         units of pi.
 

@@ -18,17 +18,17 @@ except (ImportError, ModuleNotFoundError):
 
 class ChromaAdapter(DenormalizedAdapter[Chroma]):
     """
-    Adapter for Chroma vector store.
+    Adapter for [Chroma](https://www.trychroma.com/) vector store.
 
-    This adapter integrates the Chroma vector store with the graph retriever system,
-    allowing for similarity search and document retrieval.
+    This adapter integrates the LangChain Chroma vector store with the
+    graph retriever system, allowing for similarity search and document retrieval.
 
     Parameters
     ----------
     vector_store : Chroma
         The Chroma vector store instance.
-    metadata_denormalizer: MetadataDenormalizer | None
-        (Optional) An instance of the MetadataDenormalizer used for doc insertion.
+    metadata_denormalizer: MetadataDenormalizer, optional
+        An instance of the MetadataDenormalizer used for doc insertion.
         If not passed then a default instance of MetadataDenormalizer is used.
     """
 

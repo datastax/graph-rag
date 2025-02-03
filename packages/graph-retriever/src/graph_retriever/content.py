@@ -10,7 +10,7 @@ class Content(BaseModel):
     """
     Model representing retrieved content.
 
-    Attributes
+    Parameters
     ----------
     id : str
         The ID of the content.
@@ -58,7 +58,7 @@ class Content(BaseModel):
 
         Returns
         -------
-        Content
+        :
             The created content.
         """
         return Content(

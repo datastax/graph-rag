@@ -82,7 +82,7 @@ class Strategy(BaseModel, abc.ABC):
 
         Returns
         -------
-        Iterable[Node]
+        :
             Selected nodes for the next iteration. Traversal ends if this is empty.
         """
         ...
@@ -100,7 +100,7 @@ class Strategy(BaseModel, abc.ABC):
 
         Returns
         -------
-        Iterable[Node]
+        :
             Finalized nodes.
         """
         return nodes
@@ -120,12 +120,12 @@ class Strategy(BaseModel, abc.ABC):
         ----------
         base_strategy : Strategy
             The base strategy to start with.
-        **kwargs : Any
+        kwargs : dict, optional
             Additional configuration options for the strategy.
 
         Returns
         -------
-        Strategy
+        :
             A configured strategy instance.
 
         Raises
@@ -180,7 +180,7 @@ def _invalid_keys(model: BaseModel, dict: dict[str, Any]) -> str | None:
 
     Returns
     -------
-    str | None
+    :
         A comma-separated string of invalid keys, if any.
     """
     invalid_keys = set(dict.keys()) - set(model.model_fields.keys())

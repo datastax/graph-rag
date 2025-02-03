@@ -73,7 +73,7 @@ class PersistentIteration(Generic[T]):
 
         Returns
         -------
-        Iterator[T]
+        :
         """
         return self
 
@@ -91,7 +91,7 @@ class PersistentIteration(Generic[T]):
 
         Returns
         -------
-        int
+        :
             The numebr of pending elements.
         """
         self._write_journal.write(f"{offset.index}\n")
@@ -107,7 +107,7 @@ class PersistentIteration(Generic[T]):
 
         Returns
         -------
-        int
+        :
             The number of pending elements.
         """
         return len(self.pending)
@@ -118,7 +118,7 @@ class PersistentIteration(Generic[T]):
 
         Returns
         -------
-        int
+        :
             The number of completed elements.
         """
         return len(self._completed)

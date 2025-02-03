@@ -21,6 +21,22 @@ class Id:
 
 
 EdgeSpec: TypeAlias = tuple[str | Id, str | Id]
+"""
+The definition of an edge for traversal, represented as a pair of fields
+representing the source and target of the edge. Each may be:
+
+- A string, `key`, indicating `doc.metadata[key]` as the value.
+- The placeholder [](`~graph_retriever.Id`), indicating `doc.id` as the value.
+
+Examples
+--------
+```
+url_to_href_edge          = ("url", "href")
+keywords_to_keywords_edge = ("keywords", "keywords")
+mentions_to_id_edge       = ("mentions", Id())
+id_to_mentions_edge       = (Id(), "mentions)
+```
+"""
 
 
 class MetadataEdgeFunction:
@@ -35,16 +51,13 @@ class MetadataEdgeFunction:
     ----------
     edges : list[EdgeSpec]
         Definitions of edges for traversal, represented as a pair of fields
-        representing the source and target of the edges. Each may be:
-
-        - A string, `key`, indicating `doc.metadata[key]` as the value.
-        - The placeholder `Id()`, indicating `doc.id` as the value.
+        representing the source and target of the edges.
 
     Attributes
     ----------
     edges : list[EdgeSpec]
-        Definitions of edges for traversal, represented as pairs of incoming
-        and outgoing keys.
+        Definitions of edges for traversal, represented as a pair of fields
+        representing the source and target of the edges.
 
     Raises
     ------
@@ -82,7 +95,7 @@ class MetadataEdgeFunction:
 
         Returns
         -------
-        set[Edge]
+        :
             A set of edges extracted from the metadata.
 
         Notes
@@ -136,7 +149,7 @@ class MetadataEdgeFunction:
 
         Returns
         -------
-        Edges
+        :
             the incoming and outgoing edges of the node
         """
         outgoing_edges = self._edges_from_dict(content.id, content.metadata)
