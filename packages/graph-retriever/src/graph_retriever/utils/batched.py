@@ -1,3 +1,5 @@
+from collections.abc import Iterable
+
 try:
     # Try importing the function from itertools (Python 3.12+)
     from itertools import batched  # type: ignore[attr-defined]
@@ -11,7 +13,7 @@ except ImportError:
     T = TypeVar("T")
 
     # This is equivalent to `itertools.batched`, but that is only available in 3.12
-    def batched(iterable: Iterator[T], n: int) -> Iterator[Iterator[T]]:  # type: ignore[no-redef]
+    def batched(iterable: Iterable[T], n: int) -> Iterator[tuple[T, ...]]:  # type: ignore[no-redef]
         """
         Equivalent of itertools.batched for pre 3.12.
 
@@ -34,6 +36,7 @@ except ImportError:
         """
         if n < 1:
             raise ValueError("n must be at least one")
-        it = iterable
-        while batch := tuple(islice(it, n)):
-            yield iter(batch)
+
+        iterator = iter(iterable)
+        while batch := tuple(islice(iterator, n)):
+            yield batch
