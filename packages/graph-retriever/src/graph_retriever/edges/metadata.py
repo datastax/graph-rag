@@ -33,18 +33,18 @@ class MetadataEdgeFunction:
 
     Parameters
     ----------
-        edges : list[EdgeSpec]
-            Definitions of edges for traversal, represented as a pair of fields
-            representing the source and target of the edges. Each may be:
+    edges : list[EdgeSpec]
+        Definitions of edges for traversal, represented as a pair of fields
+        representing the source and target of the edges. Each may be:
 
-            - A string, `key`, indicating `doc.metadata[key]` as the value.
-            - The placeholder `Id()`, indicating `doc.id` as the value.
+        - A string, `key`, indicating `doc.metadata[key]` as the value.
+        - The placeholder `Id()`, indicating `doc.id` as the value.
 
     Attributes
     ----------
-        edges : list[EdgeSpec]
-            Definitions of edges for traversal, represented as pairs of incoming
-            and outgoing keys.
+    edges : list[EdgeSpec]
+        Definitions of edges for traversal, represented as pairs of incoming
+        and outgoing keys.
 
     Raises
     ------

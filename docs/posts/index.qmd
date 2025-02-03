@@ -1,5 +1,5 @@
 ---
-title: "Blog Posts"
+title: "Blog"
 listing:
   sort: "date desc"
   type: default
