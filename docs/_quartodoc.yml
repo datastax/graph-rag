@@ -1,5 +1,5 @@
 quartodoc:
-  package: graph_rag
+  package: null
   style: pkgdown
   render_interlinks: true
   renderer:
@@ -92,4 +92,13 @@ quartodoc:
     desc: |
       Helpers used in various examples and notebooks.
     package: graph_rag_example_helpers
+    contents:
+    - name: initialize_environment
+    - name: Environment
+  - subtitle: datasets
+    contents:
+    - name: aload_2wikimultihop
+      package: 'graph_rag_example_helpers.datasets.wikimultihop:load'
+
+
 
