@@ -1,26 +1,52 @@
 quartodoc:
+  package: graph_rag
   style: pkgdown
-  dir: reference/langchain_graph_retriever
-  css: css/_styles-quartodoc.css
-  package: langchain_graph_retriever
   render_interlinks: true
   rewrite_all_pages: true
   options:
     include_attributes: true
   title: 'API Reference'
   sidebar:
-    file: "reference/langchain_graph_retriever/_sidebar.yml"
+    file: "reference/_sidebar.yml"
     style: docked
     search: true
-    collapse-level: 3
-    id: "reference.langchain_graph_retriever"
+    collapse-level: 4
+    id: "reference"
     contents:
       - text: "API Reference"
         href: reference/index.qmd
         contents:
           - "{{ contents }}"
   sections:
+  - title: graph_retriever
+    package: graph_retriever
+    contents:
+    - name: traverse
+    - name: atraverse
+    - name: Adapter
+    - name: Content
+    - name: Edge
+    - name: Edges
+    - name: EdgeSpec
+    - name: EdgeFunction
+    - name: Id
+    - name: IdEdge
+    - name: MetadataEdge
+    - name: Node
+  - subtitle: 'edges'
+    contents:
+    - name: MetadataEdgeFunction
+      package: 'graph_retriever.edges:metadata'
+  - subtitle: 'strategies'
+    contents:
+    - name: Eager
+      package: 'graph_retriever.strategies:eager'
+    - name: Mmr
+      package: 'graph_retriever.strategies:mmr'
+    - name: Strategy
+      package: 'graph_retriever.strategies'
   - title: langchain_graph_retriever
+    package: langchain_graph_retriever
     contents:
     - name: GraphRetriever
     - name: document_graph
@@ -58,4 +84,6 @@ quartodoc:
       package: 'langchain_graph_retriever.adapters'
       members:
         - infer_adapter
+  - title: graph_rag_example_helpers
+    package: graph_rag_example_helpers
 

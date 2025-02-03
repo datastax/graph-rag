@@ -2,10 +2,7 @@ project:
   type: website
 
 metadata-files:
-  - reference/langchain_graph_retriever/_sidebar.yml
-  - reference/graph_retriever/_sidebar.yml
-  - reference/graph_rag_example_helpers/_sidebar.yml
-
+  - reference/_sidebar.yml
 
 website:
   title: Graph RAG
