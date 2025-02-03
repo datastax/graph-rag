@@ -2,6 +2,9 @@ quartodoc:
   package: graph_rag
   style: pkgdown
   render_interlinks: true
+  renderer:
+    style: markdown
+    table_style: description-list
   rewrite_all_pages: true
   options:
     include_attributes: true
@@ -13,12 +16,11 @@ quartodoc:
     collapse-level: 4
     id: "reference"
     contents:
-      - text: "API Reference"
-        href: reference/index.qmd
-        contents:
-          - "{{ contents }}"
+      - "{{ contents }}"
   sections:
   - title: graph_retriever
+    desc: |
+      Base package providing traversal functionality.
     package: graph_retriever
     contents:
     - name: traverse
@@ -46,6 +48,8 @@ quartodoc:
     - name: Strategy
       package: 'graph_retriever.strategies'
   - title: langchain_graph_retriever
+    desc: |
+      Traversal functionality integrated as a LangChain retriever supporting a variety of LangChain `VectorStore`s.
     package: langchain_graph_retriever
     contents:
     - name: GraphRetriever
@@ -85,5 +89,7 @@ quartodoc:
       members:
         - infer_adapter
   - title: graph_rag_example_helpers
+    desc: |
+      Helpers used in various examples and notebooks.
     package: graph_rag_example_helpers
 

@@ -1,5 +1,5 @@
 ---
-title: "Getting Started"
+title: Overview
 jupyter: python3
 lightbox: auto
 ---
@@ -8,7 +8,7 @@ This page is an executable notebook demonstrating how to combine Graph Traversal
 
 ## Pre-requisites
 
-We assume you already have a working `langchain` installation, including an LLM and embedding model as well as a [supported vector store](/reference/langchain_graph_retriever/Adapter.qmd).
+We assume you already have a working `langchain` installation, including an LLM and embedding model as well as a [supported vector store](/reference/Adapter.qmd).
 
 In that case, you only need to install `langchain-graph-retriever`:
 
@@ -90,7 +90,7 @@ For our first retrieval and graph traversal, we're going to start with a single 
 
 ```{python}
 from langchain_graph_retriever import GraphRetriever
-from langchain_graph_retriever.strategies import Eager
+from graph_retriever.strategies import Eager
 
 simple = GraphRetriever(
     # Adapt AstraDBVectorStore for use with Graph Retrievers.
