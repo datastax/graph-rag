@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Iterable, Sequence
-from itertools import batched
 from typing import Any, cast
 
 import backoff
 from graph_retriever.content import Content
 from graph_retriever.types import Edge, IdEdge, MetadataEdge
+from graph_retriever.utils.batched import batched
 from typing_extensions import override
 
 try:

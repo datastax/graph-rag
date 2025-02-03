@@ -12,7 +12,7 @@ from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 from tqdm import tqdm  # type: ignore[import-untyped]
 
-from graph_rag_example_helpers.batched import batched
+from graph_retriever.utils.batched import batched
 from graph_rag_example_helpers.persistent_iteration import PersistentIteration
 
 LINES_IN_FILE = 5989847

@@ -41,6 +41,7 @@ classifiers = [
 dependencies = [
     "astrapy>=1.5.2",
     "backoff>=2.2.1",
+    "graph-retriever",
     "httpx>=0.28.1",
     "langchain-core>=0.3.29",
     "python-dotenv>=1.0.1",
@@ -65,6 +66,9 @@ tqdm = "tqdm"
 [tool.deptry.per_rule_ignores]
 DEP001 = ["google"]
 DEP002 = ["simsimd"]
+
+[tool.uv.sources]
+graph-retriever = { workspace = true }
 
 [project.urls]
 "Homepage" = "https://datastax.github.io/graph-rag"

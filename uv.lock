@@ -1304,6 +1304,7 @@ source = { editable = "packages/graph-rag-example-helpers" }
 dependencies = [
     { name = "astrapy" },
     { name = "backoff" },
+    { name = "graph-retriever" },
     { name = "httpx" },
     { name = "langchain-core" },
     { name = "python-dotenv" },
@@ -1324,6 +1325,7 @@ dev = [
 requires-dist = [
     { name = "astrapy", specifier = ">=1.5.2" },
     { name = "backoff", specifier = ">=2.2.1" },
+    { name = "graph-retriever", editable = "packages/graph-retriever" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "langchain-core", specifier = ">=0.3.29" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
