@@ -39,6 +39,11 @@ class OpenSearchAdapter(LangchainAdapter[OpenSearchVectorSearch]):
             raise ValueError(msg)
         super().__init__(vector_store)
 
+        if vector_store.is_aoss:
+            self._id_filed = "id"
+        else:
+            self._id_field = "_id"
+
     def _build_filter(
         self, filter: dict[str, str] | None = None
     ) -> list[dict[str, Any]] | None:
@@ -111,32 +116,45 @@ class OpenSearchAdapter(LangchainAdapter[OpenSearchVectorSearch]):
         ]
 
     @override
-    def _get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
+    def _get(
+        self, ids: Sequence[str], filter: dict[str, Any] | None = None, **kwargs: Any
+    ) -> list[Document]:
         try:
             from opensearchpy.exceptions import NotFoundError
         except (ImportError, ModuleNotFoundError):
             msg = "please `pip install opensearch-py`."
             raise ImportError(msg)
 
-        docs: list[Document] = []
-        for id in ids:
-            try:
-                hit = self.vector_store.client.get(
-                    index=self.vector_store.index_name,
-                    id=id,
-                    _source_includes=["text", "metadata", "vector_field"],
-                    **kwargs,
-                )
-                docs.append(
-                    Document(
-                        page_content=hit["_source"]["text"],
-                        metadata={
-                            METADATA_EMBEDDING_KEY: hit["_source"]["vector_field"],
-                            **hit["_source"]["metadata"],
-                        },
-                        id=hit["_id"],
-                    )
-                )
-            except NotFoundError:
-                pass
-        return docs
+        query = {
+            "ids": { "values": ids }
+        }
+
+        if filter:
+            query = {
+                "bool": {
+                    "must": [
+                        query,
+                        *self._build_filter(filter=filter)
+                    ]
+                }
+            }
+
+        response = self.vector_store.client.search(
+            body= {
+                "query": query,
+            },
+            index=self.vector_store.index_name,
+            _source_includes=["text", "metadata", "vector_field"],
+            **kwargs
+        )
+
+        return [Document(
+                page_content=hit["_source"]["text"],
+                metadata={
+                    METADATA_EMBEDDING_KEY: hit["_source"]["vector_field"],
+                    **hit["_source"]["metadata"],
+                },
+                id=hit["_id"],
+            )
+            for hit in response["hits"]["hits"]
+        ]

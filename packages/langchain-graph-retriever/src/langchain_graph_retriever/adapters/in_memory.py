@@ -27,21 +27,28 @@ class InMemoryAdapter(LangchainAdapter[InMemoryVectorStore]):
     """
 
     @override
-    def _get(self, ids: Sequence[str], /, **kwargs) -> list[Document]:
+    def _get(
+        self, ids: Sequence[str], filter: dict[str, Any] | None = None, **kwargs
+    ) -> list[Document]:
         docs: list[Document] = []
 
+        filter_method=self._filter_method(filter)
         for doc_id in ids:
             doc = self.vector_store.store.get(doc_id)
             if doc:
                 metadata = doc["metadata"]
                 metadata[METADATA_EMBEDDING_KEY] = doc["vector"]
-                docs.append(
-                    Document(
-                        id=doc["id"],
-                        page_content=doc["text"],
-                        metadata=metadata,
-                    )
+
+                doc = Document(
+                    id=doc["id"],
+                    page_content=doc["text"],
+                    metadata=metadata,
                 )
+
+                if not filter_method(doc):
+                    continue
+
+                docs.append(doc)
         return docs
 
     @override
@@ -55,7 +62,7 @@ class InMemoryAdapter(LangchainAdapter[InMemoryVectorStore]):
         results = self.vector_store._similarity_search_with_score_by_vector(
             embedding=embedding,
             k=k,
-            filter=self._filter_method(filter_dict=filter),
+            filter=self._filter_method(filter),
             **kwargs,
         )
         docs = [

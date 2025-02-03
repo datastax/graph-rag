@@ -41,7 +41,7 @@ class InMemoryBase(Adapter, abc.ABC):
         self,
         embedding: list[float],
         k: int = 4,
-        filter: dict[str, str] | None = None,
+        filter: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> list[Content]:
         # get all docs with fixed order in list
@@ -60,18 +60,28 @@ class InMemoryBase(Adapter, abc.ABC):
         return [candidates[idx] for idx in top_k_idx]
 
     @override
-    def get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Content]:
-        return [c for id in ids if (c := self.store[id])]
+    def get(
+        self, ids: Sequence[str], filter: dict[str, Any] | None = None, **kwargs: Any
+    ) -> list[Content]:
+        return [
+            c
+            for id in ids
+            if (c := self.store.get(id, None))
+            if self._matches(filter, c)
+        ]
 
-    def _matching_content(self, filter: dict[str, str] | None = None) -> list[Content]:
+    def _matching_content(self, filter: dict[str, Any] | None = None) -> list[Content]:
         """Return a list of content matching the given filters."""
         if filter:
             return [c for c in self.store.values() if self._matches(filter, c)]
         else:
             return list(self.store.values())
 
-    def _matches(self, filter: dict[str, str], content: Content) -> bool:
+    def _matches(self, filter: dict[str, Any] | None, content: Content) -> bool:
         """Return whether `content` matches the given `filter`."""
+        if not filter:
+            return True
+
         for key, filter_value in filter.items():
             content_value = content.metadata.get(key, SENTINEL)
             if not self._value_matches(filter_value, content_value):

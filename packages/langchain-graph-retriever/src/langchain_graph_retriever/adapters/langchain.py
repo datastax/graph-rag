@@ -234,17 +234,17 @@ class LangchainAdapter(Generic[StoreT], Adapter):
     def get(
         self,
         ids: Sequence[str],
-        /,
+        filter: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> list[Content]:
-        docs = self._get(self._remove_duplicates(ids), **kwargs)
+        docs = self._get(self._remove_duplicates(ids), filter, **kwargs)
         return self.format_documents_hook(docs)
 
     @abc.abstractmethod
     def _get(
         self,
         ids: Sequence[str],
-        /,
+        filter: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> list[Document]:
         """
@@ -262,6 +262,8 @@ class LangchainAdapter(Generic[StoreT], Adapter):
         ----------
         ids : Sequence[str]
             List of IDs to get.
+        filter : dict[str, Any], optional
+            Filter to apply to the recrods.
         **kwargs : Any
             Additional keyword arguments. These are up to the implementation.
 
@@ -275,16 +277,16 @@ class LangchainAdapter(Generic[StoreT], Adapter):
     async def aget(
         self,
         ids: Sequence[str],
-        /,
+        filter: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> list[Content]:
-        docs = await self._aget(self._remove_duplicates(ids), **kwargs)
+        docs = await self._aget(self._remove_duplicates(ids), filter, **kwargs)
         return self.format_documents_hook(docs)
 
     async def _aget(
         self,
         ids: Sequence[str],
-        /,
+        filter: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> list[Document]:
         """
@@ -302,6 +304,8 @@ class LangchainAdapter(Generic[StoreT], Adapter):
         ----------
         ids : Sequence[str]
             List of IDs to get.
+        filter : dict[str, Any], optional
+            Filter to apply to the documents.
         **kwargs : Any
             Additional keyword arguments. These are up to the implementation.
 
@@ -314,6 +318,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
             None,
             self._get,
             ids,
+            filter,
             **kwargs,
         )
 

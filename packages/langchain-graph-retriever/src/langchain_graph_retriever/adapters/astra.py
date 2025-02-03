@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+from email import contentmanager
 import warnings
 from collections.abc import Iterable, Sequence
 from typing import Any, cast
@@ -212,85 +214,39 @@ class AstraAdapter(Adapter):
         return self._build_contents(docs_with_embeddings)
 
     @override
-    def get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Content]:
-        contents: list[Content] = []
-        for id in set(ids):
-            content = self._get_by_id_with_embedding(id)
-            if content is not None:
-                contents.append(content)
-        return contents
+    def get(
+        self, ids: Sequence[str], filter: dict[str, Any] | None = None, **kwargs: Any
+    ) -> list[Content]:
+        helper = _QueryHelper(self.vector_store.document_codec, filter)
 
-    def _hit_to_content(self, hit: dict[str, Any] | None) -> Content | None:
-        if hit is None:
-            return None
-        doc = self.vector_store.document_codec.decode(hit)
-        if doc is None:
-            return None
-        assert doc.id is not None
-        embedding = self.vector_store.document_codec.decode_vector(hit)
-        assert embedding is not None
-        return Content(
-            id=doc.id,
-            content=doc.page_content,
-            metadata=doc.metadata,
-            embedding=embedding,
-        )
-
-    @backoff.on_exception(backoff.expo, _EXCEPTIONS_TO_RETRY, max_tries=_MAX_RETRIES)
-    def _get_by_id_with_embedding(self, document_id: str) -> Content | None:
-        """
-        Retrieve a document by its ID, including its embedding.
-
-        Parameters
-        ----------
-        document_id : str
-            The document ID.
-
-        Returns
-        -------
-        Content | None
-            The retrieved document with embedding, or `None` if not found.
-        """
-        self.vector_store.astra_env.ensure_db_setup()
-
-        hit = self.vector_store.astra_env.collection.find_one(
-            {"_id": document_id},
-            projection=self.vector_store.document_codec.full_projection,
-        )
-        return self._hit_to_content(hit)
+        results = []
+        for batch in batched(set(ids), 100):
+            query = helper.create_ids_query(list(batch))
+            results.extend(self._execute_query(query=query))
+        return results
 
     @override
-    async def aget(self, ids: Sequence[str], /, **kwargs: Any) -> list[Content]:
-        contents: list[Content] = []
-        # TODO: Do this asynchronously?
-        for id in set(ids):
-            content = await self._aget_by_id_with_embedding(id)
-            if content is not None:
-                contents.append(content)
-        return contents
+    async def aget(
+        self, ids: Sequence[str], filter: dict[str, Any] | None = None, **kwargs: Any
+    ) -> list[Content]:
+        helper = _QueryHelper(self.vector_store.document_codec, filter)
 
-    @backoff.on_exception(backoff.expo, _EXCEPTIONS_TO_RETRY, max_tries=_MAX_RETRIES)
-    async def _aget_by_id_with_embedding(self, document_id: str) -> Content | None:
-        """
-        Asynchronously retrieve a document by its ID, including its embedding.
+        tasks = set()
+        for batch in batched(set(ids), 100):
+            query = helper.create_ids_query(list(batch))
+            tasks.add(asyncio.create_task(self._aexecute_query(query=query)))
 
-        Parameters
-        ----------
-        document_id : str
-            The document ID.
+        results = {}
+        while tasks:
+            done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+            tasks = pending
 
-        Returns
-        -------
-        Content | None
-            The retrieved document with embedding, or `None` if not found.
-        """
-        await self.vector_store.astra_env.aensure_db_setup()
+            # TODO: Consider deduplicating before decoding?
+            for contents in done:
+                for content in await contents:
+                    results.setdefault(content.id, content)
 
-        hit = await self.vector_store.astra_env.async_collection.find_one(
-            {"_id": document_id},
-            projection=self.vector_store.document_codec.full_projection,
-        )
-        return self._hit_to_content(hit)
+        return list(results.values())
 
     def _prepare_edge_query_parts(
         self, edges: set[Edge]
@@ -341,12 +297,14 @@ class AstraAdapter(Adapter):
         query_helper = _QueryHelper(self.vector_store.document_codec, filter)
         metadata, ids = self._prepare_edge_query_parts(edges)
 
+        sort = self.vector_store.document_codec.encode_vector_sort(query_embedding)
+
         results = []
         if (metadata_query := query_helper.create_metadata_query(metadata)) is not None:
             results.extend(
                 self._execute_query(
-                    k=k,
-                    query_embedding=query_embedding,
+                    limit=k,
+                    sort=sort,
                     query=metadata_query,
                 )
             )
@@ -355,8 +313,8 @@ class AstraAdapter(Adapter):
         for id_batch in batched(ids, 100):
             results.extend(
                 self._execute_query(
-                    k=k,
-                    query_embedding=query_embedding,
+                    limit=k,
+                    sort=sort,
                     query=query_helper.create_ids_query(list(id_batch)),
                 )
             )
@@ -375,12 +333,14 @@ class AstraAdapter(Adapter):
         query_helper = _QueryHelper(self.vector_store.document_codec, filter)
         metadata, ids = self._prepare_edge_query_parts(edges)
 
+        sort = self.vector_store.document_codec.encode_vector_sort(query_embedding)
+
         results = []
         if (metadata_query := query_helper.create_metadata_query(metadata)) is not None:
             results.extend(
                 await self._aexecute_query(
-                    k=k,
-                    query_embedding=query_embedding,
+                    limit=k,
+                    sort=sort,
                     query=metadata_query,
                 )
             )
@@ -393,8 +353,8 @@ class AstraAdapter(Adapter):
             # this query.
             results.extend(
                 await self._aexecute_query(
-                    k=k,
-                    query_embedding=query_embedding,
+                    limit=k,
+                    sort=sort,
                     query=query_helper.create_ids_query(list(id_batch)),
                 )
             )
@@ -402,7 +362,10 @@ class AstraAdapter(Adapter):
         return results
 
     def _execute_query(
-        self, k: int, query_embedding: list[float], query: dict[str, Any]
+        self,
+        query: dict[str, Any] | None = None,
+        limit: int | None = None,
+        sort: dict[str, Any] | None = None
     ) -> list[Content]:
         astra_env = self.vector_store.astra_env
         astra_env.ensure_db_setup()
@@ -410,15 +373,18 @@ class AstraAdapter(Adapter):
         hits = astra_env.collection.find(
             filter=query,
             projection=self.vector_store.document_codec.full_projection,
-            limit=k,
+            limit=limit,
             include_sort_vector=True,
-            sort={"$vector": query_embedding},
+            sort=sort
         )
 
         return [content for hit in hits if (content := self._decode_hit(hit))]
 
     async def _aexecute_query(
-        self, k: int, query_embedding: list[float], query: dict[str, Any]
+        self,
+        query: dict[str, Any] | None = None,
+        limit: int | None = None,
+        sort: dict[str, Any] | None = None,
     ) -> list[Content]:
         astra_env = self.vector_store.astra_env
         await astra_env.aensure_db_setup()
@@ -426,9 +392,9 @@ class AstraAdapter(Adapter):
         hits = astra_env.async_collection.find(
             filter=query,
             projection=self.vector_store.document_codec.full_projection,
-            limit=k,
+            limit=limit,
             include_sort_vector=True,
-            sort={"$vector": query_embedding},
+            sort=sort,
         )
 
         return [content async for hit in hits if (content := self._decode_hit(hit))]

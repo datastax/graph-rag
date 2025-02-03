@@ -30,7 +30,7 @@ class Adapter(abc.ABC):
         self,
         query: str,
         k: int = 4,
-        filter: dict[str, str] | None = None,
+        filter: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> tuple[list[float], list[Content]]:
         """
@@ -44,7 +44,7 @@ class Adapter(abc.ABC):
             Input text.
         k : int, default 4
             Number of `Content` items to return.
-        filter : dict[str, str], optional
+        filter : dict[str, Any], optional
             Filter on the metadata to apply.
         **kwargs : Any
             Additional keyword arguments.
@@ -69,7 +69,7 @@ class Adapter(abc.ABC):
         self,
         query: str,
         k: int = 4,
-        filter: dict[str, str] | None = None,
+        filter: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> tuple[list[float], list[Content]]:
         """
@@ -83,7 +83,7 @@ class Adapter(abc.ABC):
             Input text.
         k : int, default 4
             Number of `Content` items to return.
-        filter : dict[str, str], optional
+        filter : dict[str, Any], optional
             Filter on the metadata to apply.
         **kwargs : Any
             Additional keyword arguments.
@@ -105,7 +105,7 @@ class Adapter(abc.ABC):
         self,
         embedding: list[float],
         k: int = 4,
-        filter: dict[str, str] | None = None,
+        filter: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> list[Content]:
         """
@@ -117,7 +117,7 @@ class Adapter(abc.ABC):
             Embedding to look up documents similar to.
         k : int, default 4
             Number of Documents to return.
-        filter : dict[str, str], optional
+        filter : dict[str, Any], optional
             Filter on the metadata to apply.
         **kwargs : Any
             Additional keyword arguments.
@@ -133,7 +133,7 @@ class Adapter(abc.ABC):
         self,
         embedding: list[float],
         k: int = 4,
-        filter: dict[str, str] | None = None,
+        filter: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> list[Content]:
         """
@@ -145,7 +145,7 @@ class Adapter(abc.ABC):
             Embedding to look up documents similar to.
         k : int, default 4
             Number of Documents to return.
-        filter : dict[str, str], optional
+        filter : dict[str, Any], optional
             Filter on the metadata to apply.
         **kwargs : Any
             Additional keyword arguments.
@@ -168,7 +168,7 @@ class Adapter(abc.ABC):
     def get(
         self,
         ids: Sequence[str],
-        /,
+        filter: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> list[Content]:
         """
@@ -186,6 +186,8 @@ class Adapter(abc.ABC):
         ----------
         ids : Sequence[str]
             List of IDs to get.
+        filter : dict[str, Any], optional
+            Filter on the metadata to apply.
         **kwargs : Any
             Additional keyword arguments. These are up to the implementation.
 
@@ -199,7 +201,7 @@ class Adapter(abc.ABC):
     async def aget(
         self,
         ids: Sequence[str],
-        /,
+        filter: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> list[Content]:
         """
@@ -217,6 +219,8 @@ class Adapter(abc.ABC):
         ----------
         ids : Sequence[str]
             List of IDs to get.
+        filter : dict[str, Any], optional
+            Filter on the metadata to apply.
         **kwargs : Any
             Additional keyword arguments. These are up to the implementation.
 
@@ -229,6 +233,7 @@ class Adapter(abc.ABC):
             None,
             self.get,
             ids,
+            filter,
             **kwargs,
         )
 
@@ -286,7 +291,7 @@ class Adapter(abc.ABC):
                 raise ValueError(f"Unsupported edge: {edge}")
 
         if ids:
-            results.extend(self.get(ids))
+            results.extend(self.get(ids, filter=filter))
         return results
 
     async def aget_adjacent(
@@ -341,7 +346,7 @@ class Adapter(abc.ABC):
                 raise ValueError(f"Unsupported edge: {edge}")
 
         if ids:
-            tasks.append(self.aget(ids))
+            tasks.append(self.aget(ids, filter))
 
         results: list[Content] = []
         for completed_task in asyncio.as_completed(tasks):

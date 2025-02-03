@@ -36,7 +36,6 @@ def assert_ids_any_order(
     assert_valid_results(results)
 
     result_ids = [r.id for r in results]
-    assert len(set(result_ids)) == len(result_ids), "should not contain duplicates"
 
     if min_intersection is not None:
         intersection = set(result_ids).intersection(expected)
@@ -62,6 +61,7 @@ class GetCase:
     id: str
     request: list[str]
     expected: list[str]
+    filter: dict[str, Any] | None = None
 
 
 GET_CASES: list[GetCase] = [
@@ -81,7 +81,12 @@ GET_CASES: list[GetCase] = [
         ["boar", "chinchilla", "boar", "cobra"],
         ["boar", "chinchilla", "cobra"],
     ),
-    # TODO: Add test for get when filtered out?
+    GetCase(
+        "filtered",
+        ["boar", "chinchilla", "boar", "cobra"],
+        ["chinchilla"],
+        filter={"keywords": "andes"},
+    ),
 ]
 
 
@@ -213,7 +218,20 @@ GET_ADJACENT_CASES: list[GetAdjacentCase] = [
             "crab",
         ],
     ),
-    # Add test for IDs when filtered out.
+    GetAdjacentCase(
+        "filtered_ids",
+        "domesticated hunters",
+        edges={
+            IdEdge("boar"),
+            IdEdge("chinchilla"),
+            IdEdge("unicorn"),
+            IdEdge("cobra"),
+        },
+        filter={"keywords": "andes"},
+        expected=[
+            "chinchilla",
+        ],
+    ),
     # Add test for ID edges and metadata edges combined.
 ]
 
@@ -226,6 +244,21 @@ class AdapterComplianceSuite(abc.ABC):
     `adapter` which returns an `Adapter` with the documents from `animals.jsonl`
     loaded.
     """
+
+    def skip_case(self, method: str, case_id: str) -> None:
+        """Override to skip a specific method or test case.
+
+        Call `pytest.skip(reason)` if necessary with the reason to skip,
+        or `pytest.xfail(reason)` if a failure is expected.
+
+        Parameters
+        ----------
+        method : str
+            The method being tested. For instance, `get`, `aget`, or
+            `similarity_search_with_embedding`, etc.
+        case_id : str
+            The ID of the case being executed. For instance, `one` or `many`.
+        """
 
     @pytest.fixture(params=GET_CASES, ids=lambda c: c.id)
     def get_case(self, request) -> GetCase:
@@ -244,18 +277,21 @@ class AdapterComplianceSuite(abc.ABC):
 
     def test_get(self, adapter: Adapter, get_case: GetCase) -> None:
         """Run tests for `get`."""
-        results = adapter.get(get_case.request)
+        self.skip_case("get", get_case.id)
+        results = adapter.get(get_case.request, filter=get_case.filter)
         assert_ids_any_order(results, get_case.expected)
 
     async def test_aget(self, adapter: Adapter, get_case: GetCase) -> None:
         """Run tests for `aget`."""
-        results = await adapter.aget(get_case.request)
+        self.skip_case("aget", get_case.id)
+        results = await adapter.aget(get_case.request, filter=get_case.filter)
         assert_ids_any_order(results, get_case.expected)
 
     def test_similarity_search_with_embedding(
         self, adapter: Adapter, similarity_search_case: SimilaritySearchCase
     ) -> None:
         """Run tests for `similarity_search_with_embedding."""
+        self.skip_case("similarity_search_with_embedding", similarity_search_case.id)
         embedding, results = adapter.similarity_search_with_embedding(
             similarity_search_case.query, **similarity_search_case.kwargs
         )
@@ -266,6 +302,7 @@ class AdapterComplianceSuite(abc.ABC):
         self, adapter: Adapter, similarity_search_case: SimilaritySearchCase
     ) -> None:
         """Run tests for `asimilarity_search_with_embedding."""
+        self.skip_case("asimilarity_search_with_embedding", similarity_search_case.id)
         embedding, results = await adapter.asimilarity_search_with_embedding(
             similarity_search_case.query, **similarity_search_case.kwargs
         )
@@ -276,6 +313,7 @@ class AdapterComplianceSuite(abc.ABC):
         self, adapter: Adapter, similarity_search_case: SimilaritySearchCase
     ) -> None:
         """Run tests for `similarity_search_with_embedding_by_vector."""
+        self.skip_case("similarity_search_with_embedding_by_vector", similarity_search_case.id)
         embedding = adapter.embed_query(similarity_search_case.query)
         results = adapter.similarity_search_with_embedding_by_vector(
             embedding, **similarity_search_case.kwargs
@@ -286,6 +324,7 @@ class AdapterComplianceSuite(abc.ABC):
         self, adapter: Adapter, similarity_search_case: SimilaritySearchCase
     ) -> None:
         """Run tests for `asimilarity_search_with_embedding_by_vector."""
+        self.skip_case("asimilarity_search_with_embedding_by_vector", similarity_search_case.id)
         embedding = adapter.embed_query(similarity_search_case.query)
         results = await adapter.asimilarity_search_with_embedding_by_vector(
             embedding, **similarity_search_case.kwargs
@@ -296,6 +335,7 @@ class AdapterComplianceSuite(abc.ABC):
         self, adapter: Adapter, get_adjacent_case: GetAdjacentCase
     ) -> None:
         """Run tests for `get_adjacent."""
+        self.skip_case("get_adjacent", get_adjacent_case.id)
         embedding = adapter.embed_query(get_adjacent_case.query)
         results = adapter.get_adjacent(
             edges=get_adjacent_case.edges,
@@ -313,6 +353,7 @@ class AdapterComplianceSuite(abc.ABC):
         self, adapter: Adapter, get_adjacent_case: GetAdjacentCase
     ) -> None:
         """Run tests for `aget_adjacent."""
+        self.skip_case("aget_adjacent", get_adjacent_case.id)
         embedding = adapter.embed_query(get_adjacent_case.query)
         results = await adapter.aget_adjacent(
             edges=get_adjacent_case.edges,

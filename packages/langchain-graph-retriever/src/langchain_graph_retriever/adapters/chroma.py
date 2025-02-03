@@ -95,10 +95,13 @@ class ChromaAdapter(DenormalizedAdapter[Chroma]):
         return docs
 
     @override
-    def _get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
+    def _get(
+        self, ids: Sequence[str], filter: dict[str, Any] | None = None, **kwargs: Any
+    ) -> list[Document]:
         results = self.vector_store.get(
             ids=list(ids),
             include=["embeddings", "metadatas", "documents"],
+            where=self.update_filter_hook(filter),
             **kwargs,
         )
         docs = [

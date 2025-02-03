@@ -100,19 +100,31 @@ class CassandraAdapter(DenormalizedAdapter[Cassandra]):
         return docs
 
     @override
-    def _get(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
+    def _get(
+        self, ids: Sequence[str], filter: dict[str, Any] | None = None, **kwargs: Any
+    ) -> list[Document]:
+        filter = self.update_filter_hook(filter)
         docs: list[Document] = []
         for id in ids:
-            row = self.vector_store.table.get(row_id=id)
+            args = {"row_id": id}
+            if filter:
+                args["metadata"] = filter
+            row = self.vector_store.table.get(**args)
             if row is not None:
                 docs.append(self._row_to_doc(row))
         return docs
 
     @override
-    async def _aget(self, ids: Sequence[str], /, **kwargs: Any) -> list[Document]:
+    async def _aget(
+        self, ids: Sequence[str], filter: dict[str, Any] | None = None, **kwargs: Any
+    ) -> list[Document]:
+        filter = self.update_filter_hook(filter)
         docs: list[Document] = []
         for id in ids:
-            row = await self.vector_store.table.aget(row_id=id)
+            args = {"row_id": id}
+            if filter:
+                args["metadata"] = filter
+            row = await self.vector_store.table.aget(**args)
             if row is not None:
                 docs.append(self._row_to_doc(row))
         return docs
