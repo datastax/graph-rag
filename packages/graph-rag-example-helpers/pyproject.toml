@@ -60,8 +60,10 @@ pytest = "pytest"
 pytest-asyncio = "pytest_asyncio"
 pytest-cov = "pytest_cov"
 python-dotenv = "dotenv"
+requests = "requests"
 simsimd = "simsimd"
 tqdm = "tqdm"
+types-requests = "types_requests"
 
 [tool.deptry.per_rule_ignores]
 DEP001 = ["google"]
@@ -83,5 +85,6 @@ dev = [
     "pytest>=8.3.4",
     "pytest-cov>=4.0.0",
     "pytest-asyncio>=0.25.2",
+    "types-requests>=2.32.0.20241016",
 ]
 
