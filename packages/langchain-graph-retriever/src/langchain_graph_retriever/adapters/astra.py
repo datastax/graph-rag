@@ -311,11 +311,11 @@ class AstraAdapter(Adapter):
                 sort=sort,
                 query=metadata_query,
             )
-            results.append(batch)
+            results.extend(batch)
             ids.difference_update({c.id for c in batch})
 
         for id_batch in batched(ids, 100):
-            results.append(
+            results.extend(
                 self._execute_query(
                     limit=k,
                     sort=sort,
@@ -323,7 +323,7 @@ class AstraAdapter(Adapter):
                 )
             )
 
-        return top_k(results, embedding=query_embedding, k=k, are_batches_sorted=True)
+        return top_k(results, embedding=query_embedding, k=k)
 
     @override
     async def aget_adjacent(
@@ -346,7 +346,7 @@ class AstraAdapter(Adapter):
                 sort=sort,
                 query=metadata_query,
             )
-            results.append(batch)
+            results.extend(batch)
             ids.difference_update({c.id for c in batch})
 
         for id_batch in batched(ids, 100):
@@ -359,9 +359,9 @@ class AstraAdapter(Adapter):
                 sort=sort,
                 query=query_helper.create_ids_query(list(id_batch)),
             )
-            results.append(result_batch)
+            results.extend(result_batch)
 
-        return top_k(results, embedding=query_embedding, k=k, are_batches_sorted=True)
+        return top_k(results, embedding=query_embedding, k=k)
 
     def _execute_query(
         self,
@@ -374,10 +374,11 @@ class AstraAdapter(Adapter):
 
         # Similarity can only be included if we are sorting by vector.
         # Ideally, we could request the `$similarity` projection even
-        # without vector sort.
-        include_similarity = sort is not None and (
-            "$vector" in sort or "$vectorize" in sort
-        )
+        # without vector sort. And it can't be `False`. It needs to be
+        # `None` or it will cause an assertion error.
+        include_similarity=None
+        if not (sort or {}).keys().isdisjoint({"$vector", "$vectorize"}):
+            include_similarity=True
         hits = astra_env.collection.find(
             filter=query,
             projection=self.vector_store.document_codec.full_projection,
@@ -400,10 +401,11 @@ class AstraAdapter(Adapter):
 
         # Similarity can only be included if we are sorting by vector.
         # Ideally, we could request the `$similarity` projection even
-        # without vector sort.
-        include_similarity = sort is not None and (
-            "$vector" in sort or "$vectorize" in sort
-        )
+        # without vector sort. And it can't be `False`. It needs to be
+        # `None` or it will cause an assertion error.
+        include_similarity=None
+        if not (sort or {}).keys().isdisjoint({"$vector", "$vectorize"}):
+            include_similarity=True
         hits = astra_env.async_collection.find(
             filter=query,
             projection=self.vector_store.document_codec.full_projection,

@@ -203,7 +203,7 @@ GET_ADJACENT_CASES: list[GetAdjacentCase] = [
             IdEdge("cat"),
             IdEdge("dog"),
             IdEdge("unicorn"),
-            IdEdge("goat"),
+            IdEdge("antelope"),
         },
         k=2,
         expected=[
@@ -218,7 +218,7 @@ GET_ADJACENT_CASES: list[GetAdjacentCase] = [
             IdEdge("boar"),
             IdEdge("chinchilla"),
             IdEdge("unicorn"),
-            IdEdge("cobra"),
+            IdEdge("griaffe"),
         },
         filter={"keywords": "andes"},
         expected=[

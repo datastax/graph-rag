@@ -7,7 +7,7 @@ from typing import Any
 
 from graph_retriever.content import Content
 from graph_retriever.types import Edge, IdEdge, MetadataEdge
-from graph_retriever.utils import top_k
+from graph_retriever.utils.top_k import top_k
 from graph_retriever.utils.run_in_executor import run_in_executor
 
 
@@ -274,7 +274,7 @@ class Adapter(abc.ABC):
         ValueError
             If unsupported edge types are encountered.
         """
-        results: list[list[Content]] = []
+        results: list[Content] = []
 
         ids = []
         for edge in edges:
@@ -285,20 +285,19 @@ class Adapter(abc.ABC):
                     filter=self._get_metadata_filter(base_filter=filter, edge=edge),
                     **kwargs,
                 )
-                results.append(docs)
+                results.extend(docs)
             elif isinstance(edge, IdEdge):
                 ids.append(edge.id)
             else:
                 raise ValueError(f"Unsupported edge: {edge}")
 
         if ids:
-            results.append(self.get(ids, filter=filter))
+            results.extend(self.get(ids, filter=filter))
 
-        return top_k.top_k(
+        return top_k(
             results,
             embedding=query_embedding,
             k=k,
-            are_batches_sorted=self.are_batches_sorted(),
         )
 
     async def aget_adjacent(
@@ -355,20 +354,17 @@ class Adapter(abc.ABC):
         if ids:
             tasks.append(self.aget(ids, filter))
 
-        results: list[list[Content]] = [
-            await completed_task for completed_task in asyncio.as_completed(tasks)
+        results: list[Content] = [
+            c
+            for completed_task in asyncio.as_completed(tasks)
+            for c in await completed_task
         ]
 
-        return top_k.top_k(
+        return top_k(
             results,
             embedding=query_embedding,
             k=k,
-            are_batches_sorted=self.are_batches_sorted(),
         )
-
-    def are_batches_sorted(self) -> bool:
-        """Return true if all batches returned will be sorted by score."""
-        return False
 
     def _get_metadata_filter(
         self,
