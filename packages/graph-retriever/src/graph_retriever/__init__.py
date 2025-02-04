@@ -1,19 +1,17 @@
-from .adapters import Adapter
+"""
+Provides retrieval functions combining vector and graph traversal.
+
+The main methods are [`traverse`][graph_retriever.traverse] and
+[`atraverse`][graph_retriever.atraverse] which provide synchronous and
+asynchronous traversals.
+"""
+
 from .content import Content
-from .edges.metadata import EdgeSpec, Id
 from .traversal import atraverse, traverse
-from .types import Edge, EdgeFunction, Edges, IdEdge, MetadataEdge, Node
+from .types import Node
 
 __all__ = [
-    "Adapter",
     "Content",
-    "Edge",
-    "EdgeFunction",
-    "Edges",
-    "EdgeSpec",
-    "Id",
-    "IdEdge",
-    "MetadataEdge",
     "Node",
     "traverse",
     "atraverse",

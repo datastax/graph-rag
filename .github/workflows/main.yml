@@ -162,42 +162,38 @@ jobs:
       - name: Set up the environment
         uses: ./.github/actions/setup-python-env
 
-      - name: Set up Quarto
-        uses: quarto-dev/quarto-actions/setup@v2
-
       - name: Sync Docs Dependencies
         run: uv sync --all-packages --group=docs --all-extras
 
       - name: Check if documentation can be built
-        run: uv run poe docs-build
+        run: uv run mkdocs build
         id: build
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
           ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
 
-      - name: Upload docs
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # Automatically uploads an artifact from the './_site' directory by default
-          path: ${{ github.workspace }}/docs/_site
-
   docs-deploy:
     # Deploy docs on push to main.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    # Deployment job
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-      # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
-    permissions:
-      pages: write      # to deploy to Pages
-      id-token: write   # to verify the deployment originates from an appropriate source
-
     runs-on: ubuntu-latest
-    needs: [build-docs]
+
+    permissions:
+      contents: write   # to write to the `gh-pages` branch
+
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up the environment
+        uses: ./.github/actions/setup-python-env
+
+      - name: Sync Docs Dependencies
+        run: uv sync --all-packages --group=docs --all-extras
+
+      - name: Deploy Docs to gh-pages
+        run: uv run mkdocs gh-deploy --force
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+          ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}

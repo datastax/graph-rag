@@ -6,7 +6,7 @@ from typing import Any
 from typing_extensions import override
 
 try:
-    from langchain_community.vectorstores import Cassandra
+    from langchain_community.vectorstores.cassandra import Cassandra
 except (ImportError, ModuleNotFoundError):
     raise ImportError("please `pip install langchain-community cassio`")
 

@@ -1,0 +1,96 @@
+site_name: GraphRAG
+site_url: https://datastax.github.io/graph-rag
+repo_url: https://github.com/datastax/graph-rag
+edit_uri: edit/main/docs/
+site_description:
+
+extra:
+  analytics:
+    provider: google
+    property: "G-7DS0D7NZML"
+
+plugins:
+# Default social cards (see below to override)
+# https://squidfunk.github.io/mkdocs-material/setup/setting-up-social-cards/
+- social
+- mkdocs-jupyter:
+    remove_tag_config:
+      remove_input_tags: ["hide_code"]
+      remove_cell_tags: ["hide_cell"]
+      remove_all_outputs_tags: ["hide_output"]
+- mkdocstrings:
+    default_handler: python
+    handlers:
+      python:
+        inventories:
+          - https://python.langchain.com/api_reference/objects.inv
+          - https://networkx.org/documentation/stable/objects.inv
+          - https://numpy.org/doc/stable/objects.inv
+          - https://docs.python.org/3/objects.inv
+
+        options:
+          docstring_section_style: spacy
+          docstring_style: numpy
+          merge_init_into_class: true
+          show_symbol_type_toc: true
+          separate_signature: true
+          show_signature_annotations: true
+          signature_crossrefs: true
+          group_by_category: true
+          inherited_members: true
+          extensions:
+          - griffe_inherited_docstrings
+          - griffe_pydantic:
+              schema: true
+          filters: ["!^_[^_]"]
+        paths:
+        - packages/graph-retriever/src/
+        - packages/langchain-graph-retriever/src/
+        - packages/graph-rag-example-helpers/src/
+- search
+- blog
+
+markdown_extensions:
+  - toc:
+      title: On this page
+      permalink: true
+  - attr_list
+
+theme:
+  name: material
+  features:
+    # - navigation.indexes
+    - navigation.instant
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.tracking
+    - navigation.path
+    - toc.follow
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+
+nav:
+    - Home: index.md
+    - Get Started:
+        - get-started/index.md
+        - get-started/adapters.md
+    - Examples:
+        - examples/index.md
+        - examples/lazy-graph-rag.ipynb
+    - Reference:
+        - reference/index.md
+        - graph-retriever:
+            - reference/graph_retriever/index.md
+            - reference/graph_retriever/edges.md
+            - reference/graph_retriever/strategies.md
+            - reference/graph_retriever/adapters.md
+            - reference/graph_retriever/utils.md
+        - langchain-graph-retriever:
+            - reference/langchain_graph_retriever/index.md
+            - reference/langchain_graph_retriever/adapters.md
+        - graph-rag-example-helpers:
+            - reference/graph_rag_example_helpers/index.md
+    - Blog:
+        - blog/index.md

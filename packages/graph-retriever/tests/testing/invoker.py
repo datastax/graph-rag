@@ -5,7 +5,9 @@ from collections.abc import Callable, Sequence
 from typing import Any, Generic, TypeVar
 
 import pytest
-from graph_retriever import Adapter, EdgeFunction, EdgeSpec, Node, atraverse, traverse
+from graph_retriever import Node, atraverse, traverse
+from graph_retriever.adapters import Adapter
+from graph_retriever.edges import EdgeFunction, EdgeSpec
 from graph_retriever.strategies import Strategy
 
 

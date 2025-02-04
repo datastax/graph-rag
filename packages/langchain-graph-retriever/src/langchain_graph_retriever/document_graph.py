@@ -3,9 +3,8 @@
 from collections.abc import Sequence
 
 import networkx as nx
-from graph_retriever import Edge, EdgeFunction
-from graph_retriever.content import Content
-from graph_retriever.edges.metadata import EdgeSpec, MetadataEdgeFunction
+from graph_retriever import Content
+from graph_retriever.edges import Edge, EdgeFunction, EdgeSpec, MetadataEdgeFunction
 from langchain_core.documents import Document
 
 

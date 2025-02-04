@@ -3,7 +3,7 @@
 import importlib
 
 from graph_retriever.adapters import Adapter
-from langchain_core.vectorstores import VectorStore
+from langchain_core.vectorstores.base import VectorStore
 
 ADAPTERS_PKG = "langchain_graph_retriever.adapters"
 _KNOWN_STORES = {

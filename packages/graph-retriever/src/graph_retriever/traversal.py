@@ -5,9 +5,9 @@ from typing import Any
 
 from graph_retriever.adapters import Adapter
 from graph_retriever.content import Content
-from graph_retriever.edges.metadata import EdgeSpec, MetadataEdgeFunction
+from graph_retriever.edges import Edge, EdgeFunction, EdgeSpec, MetadataEdgeFunction
 from graph_retriever.strategies import Strategy
-from graph_retriever.types import Edge, EdgeFunction, Node
+from graph_retriever.types import Node
 
 
 def traverse(
@@ -28,9 +28,9 @@ def traverse(
     query : str
         The query string for the traversal.
     edges : list[EdgeSpec] | EdgeFunction
-        A list of [](`~graph_retriever.EdgeSpec`) for use in creating a
-        [](`~graph_retriever.edges.metadata.MetadataEdgeFunction`),
-        or an [](`~graph_retriever.EdgeFunction`).
+        A list of [EdgeSpec][graph_retriever.edges.EdgeSpec] for use in creating a
+        [MetadataEdgeFunction][graph_retriever.edges.MetadataEdgeFunction],
+        or an [EdgeFunction][graph_retriever.edges.EdgeFunction].
     strategy : Strategy
         The traversal strategy that defines how nodes are discovered, selected,
         and finalized.
@@ -79,9 +79,9 @@ async def atraverse(
     query : str
         The query string for the traversal.
     edges : list[EdgeSpec] | EdgeFunction
-        A list of [](`~graph_retriever.EdgeSpec`) for use in creating a
-        [](`~graph_retriever.edges.metadata.MetadataEdgeFunction`),
-        or an [](`~graph_retriever.EdgeFunction`).
+        A list of [EdgeSpec][graph_retriever.edges.EdgeSpec] for use in creating a
+        [MetadataEdgeFunction][graph_retriever.edges.MetadataEdgeFunction],
+        or an [EdgeFunction][graph_retriever.edges.EdgeFunction].
     strategy : Strategy
         The traversal strategy that defines how nodes are discovered, selected,
         and finalized.

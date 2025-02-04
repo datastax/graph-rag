@@ -1,8 +1,8 @@
 from typing import Any
 
 import pytest
-from graph_retriever.edges.metadata import Id, MetadataEdgeFunction
-from graph_retriever.types import Edges, IdEdge, MetadataEdge, Node
+from graph_retriever import Node
+from graph_retriever.edges import Edges, Id, IdEdge, MetadataEdge, MetadataEdgeFunction
 
 
 def mk_node(metadata: dict[str, Any]) -> Node:

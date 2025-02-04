@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 
 import pytest
-from graph_retriever import Adapter
+from graph_retriever.adapters import Adapter
 from graph_retriever.testing.adapter_tests import AdapterComplianceSuite
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings

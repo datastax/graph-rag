@@ -1,14 +1,10 @@
----
-title: Overview
-jupyter: python3
-lightbox: auto
----
+# Get Started
 
 This page is an executable notebook demonstrating how to combine Graph Traversal and Vector Search using `langchain-graph-retriever` with `langchain`.
 
 ## Pre-requisites
 
-We assume you already have a working `langchain` installation, including an LLM and embedding model as well as a [supported vector store](/reference/Adapter.qmd).
+We assume you already have a working `langchain` installation, including an LLM and embedding model as well as a [supported vector store](./adapters.md).
 
 In that case, you only need to install `langchain-graph-retriever`:
 

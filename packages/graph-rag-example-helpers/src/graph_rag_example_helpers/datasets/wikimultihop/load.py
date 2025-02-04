@@ -10,7 +10,7 @@ import backoff
 import httpx
 from graph_retriever.utils.batched import batched
 from langchain_core.documents import Document
-from langchain_core.vectorstores import VectorStore
+from langchain_core.vectorstores.base import VectorStore
 from tqdm import tqdm  # type: ignore[import-untyped]
 
 from graph_rag_example_helpers.persistent_iteration import PersistentIteration

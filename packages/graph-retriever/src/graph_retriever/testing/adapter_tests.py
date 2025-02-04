@@ -6,8 +6,9 @@ from typing import Any
 
 import pytest
 
-from graph_retriever import Adapter, Edge, IdEdge, MetadataEdge
-from graph_retriever.content import Content
+from graph_retriever import Content
+from graph_retriever.adapters import Adapter
+from graph_retriever.edges import Edge, IdEdge, MetadataEdge
 
 
 def assert_valid_result(content: Content):

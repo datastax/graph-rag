@@ -12,7 +12,7 @@ from langchain_community.vectorstores.opensearch_vector_search import (
 )
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings, FakeEmbeddings
-from langchain_core.vectorstores import InMemoryVectorStore, VectorStore
+from langchain_core.vectorstores.in_memory import InMemoryVectorStore, VectorStore
 from langchain_graph_retriever.adapters.astra import AstraAdapter
 from langchain_graph_retriever.adapters.cassandra import CassandraAdapter
 from langchain_graph_retriever.adapters.chroma import ChromaAdapter

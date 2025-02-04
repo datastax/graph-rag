@@ -55,17 +55,20 @@ dev = [
 ]
 
 docs = [
-    "quartodoc>=0.9.1",
-    "nbformat>=5.10.4",
-    "nbclient>=0.10.2",
-    "langchain-openai>=0.3.1",
+    "graph-rag-example-helpers",
+    "griffe-inherited-docstrings>=1.1.1",
+    "griffe-pydantic>=1.1.0",
+    "griffe>=1.5.5",
     "ipykernel>=6.29.5",
     "langchain-astradb>=0.5.3",
-    "langchain-graph-retriever>=0.1.0",
+    "langchain-graph-retriever",
+    "langchain-openai>=0.3.1",
     "matplotlib>=3.10.0",
-    "jupyterlab>=4.3.4",
+    "mkdocs-jupyter>=0.25.1",
+    "mkdocs-material[imaging]>=9.6.2",
+    "mkdocs>=1.6.1",
+    "mkdocstrings[python]>=0.28.0",
     "pip>=25.0",
-    "graph-rag-example-helpers",
 ]
 
 [tool.coverage.report]
@@ -89,10 +92,6 @@ DEPTRY = "deptry@0.22.0"
 [tool.poe.tasks.install-deps]
 help = "Install dependencies from all packages and all extras"
 cmd = "uv sync --all-packages --all-extras"
-
-[tool.poe.tasks.install-docs-deps]
-help = "Install dependencies from all packages, all extras, and docs"
-cmd = "uv sync --all-packages --all-extras --group docs"
 
 [tool.poe.tasks.lock-check]
 help = "Runs `uv lock --locked` to check uv.lock file consistency (fix with `lock-fix`)"
@@ -160,34 +159,20 @@ sequence = [
     {cmd = "uv build --all-packages"},
 ]
 
-[tool.poe.tasks.docs-api]
-help = "Generates the API docs"
-sequence = [
-    {cmd = "uv run quartodoc interlinks", cwd="docs"},
-    {cmd = "uv run scripts/langchain-interlinks.py"},
-    {cmd = "uv run quartodoc build --config _quartodoc.yml", cwd="docs"},
-]
-
 [tool.poe.tasks.docs-preview]
 help = "Starts a live preview of the docs site"
 sequence = [
-    "docs-api",
-    # DO NOT USE `uv run quarto`.
-    # We install quarto directly (rather than via PyPi) to avoid
-    # issues in the wrapper script like https://github.com/quarto-dev/quarto-cli/issues/11296.
-    # Instead, install directly from quarto and/or via github action.
-    {cmd = "quarto preview", cwd="docs"},
+    {cmd = "uv sync --all-packages --group=docs"},
+    # Make strict
+    {cmd = "uv run mkdocs serve -o"},
 ]
 
-[tool.poe.tasks.docs-build]
-help = "Builds the docs site in `_site`"
+[tool.poe.tasks.docs-buld]
+help = "Build the docs"
 sequence = [
-    "docs-api",
-    # DO NOT USE `uv run quarto`.
-    # We install quarto directly (rather than via PyPi) to avoid
-    # issues in the wrapper script like https://github.com/quarto-dev/quarto-cli/issues/11296.
-    # Instead, install directly from quarto and/or via github action.
-    {cmd = "quarto render", cwd="docs"},
+    {cmd = "uv sync --all-packages --group=docs"},
+    # TODO: Make this `--strict`
+    {cmd = "uv run mkdocs build"},
 ]
 
 [tool.poe.tasks.coverage]

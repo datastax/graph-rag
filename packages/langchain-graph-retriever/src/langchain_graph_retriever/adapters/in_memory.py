@@ -4,7 +4,7 @@ from collections.abc import Callable, Iterable, Sequence
 from typing import Any
 
 from langchain_core.documents import Document
-from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_core.vectorstores.in_memory import InMemoryVectorStore
 from typing_extensions import override
 
 from langchain_graph_retriever._conversion import METADATA_EMBEDDING_KEY

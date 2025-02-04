@@ -1,6 +1,7 @@
-from graph_retriever import Content, Edges, Id, MetadataEdge
+from graph_retriever import Content
 from graph_retriever.adapters import Adapter
 from graph_retriever.adapters.in_memory import InMemory
+from graph_retriever.edges import Edges, Id, MetadataEdge
 from graph_retriever.strategies import (
     Eager,
 )

@@ -1,5 +1,5 @@
 from graph_retriever.testing.embeddings import AnimalEmbeddings
-from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_core.vectorstores.in_memory import InMemoryVectorStore
 from langchain_graph_retriever import GraphRetriever
 from langchain_tests.integration_tests import RetrieversIntegrationTests
 

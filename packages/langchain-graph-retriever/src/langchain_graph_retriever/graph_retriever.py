@@ -6,12 +6,13 @@ from typing import (
     Any,
 )
 
-from graph_retriever import EdgeFunction, EdgeSpec, atraverse, traverse
+from graph_retriever import atraverse, traverse
 from graph_retriever.adapters import Adapter
+from graph_retriever.edges import EdgeFunction, EdgeSpec
 from graph_retriever.strategies import Eager, Strategy
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
-from langchain_core.vectorstores import VectorStore
+from langchain_core.vectorstores.base import VectorStore
 from pydantic import ConfigDict, computed_field, model_validator
 from typing_extensions import Self
 
@@ -24,22 +25,23 @@ class GraphRetriever(BaseRetriever):
     """
     Retriever combining vector search and graph traversal.
 
-    The [](`~langchain_graph_retriever.GraphRetriever`) class retrieves documents
-    by first performing a vector search to identify relevant documents, followed by
-    graph traversal to explore their connections. It supports multiple traversal
-    strategies and integrates seamlessly with LangChain's retriever framework.
+    The [GraphRetriever][langchain_graph_retriever.GraphRetriever] class
+    retrieves documents by first performing a vector search to identify relevant
+    documents, followed by graph traversal to explore their connections. It
+    supports multiple traversal strategies and integrates seamlessly with
+    LangChain's retriever framework.
 
     Parameters
     ----------
     store : Adapter | VectorStore
         The adapter or vector store used for document retrieval.
     edges : list[EdgeSpec] | EdgeFunction, default []
-        A list of [](`~graph_retriever.EdgeSpec`) for use in creating a
-        [](`~graph_retriever.edges.metadata.MetadataEdgeFunction`),
-        or an [](`~graph_retriever.EdgeFunction`).
+        A list of [EdgeSpec][graph_retriever.edges.EdgeSpec] for use in creating a
+        [MetadataEdgeFunction][graph_retriever.edges.MetadataEdgeFunction],
+        or an [EdgeFunction][graph_retriever.edges.EdgeFunction].
     strategy : Strategy, default Eager
         The traversal strategy to use.
-        Defaults to an [](`~graph_retriever.strategies.Eager`) (breadth-first)
+        Defaults to an [Eager][graph_retriever.strategies.Eager] (breadth-first)
         strategy which explores the top `adjacent_k` for each edge.
 
     Attributes
@@ -47,9 +49,9 @@ class GraphRetriever(BaseRetriever):
     store : Adapter | VectorStore
         The adapter or vector store used for document retrieval.
     edges : list[EdgeSpec] | EdgeFunction
-        A list of [](`~graph_retriever.EdgeSpec`) for use in creating a
-        [](`~graph_retriever.edges.metadata.MetadataEdgeFunction`),
-        or an [](`~graph_retriever.EdgeFunction`).
+        A list of [EdgeSpec][graph_retriever.edges.EdgeSpec] for use in creating a
+        [MetadataEdgeFunction][graph_retriever.edges.MetadataEdgeFunction],
+        or an [EdgeFunction][graph_retriever.edges.EdgeFunction].
     strategy : Strategy
         The traversal strategy to use.
     adapter: Adapter

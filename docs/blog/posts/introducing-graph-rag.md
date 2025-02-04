@@ -2,7 +2,7 @@
 title: "Introducing Graph Retrievers: Smarter, Simpler Document Graphs for Vector Stores"
 description: "Announcing the first release of Graph Retrievers, a powerful graph traversal retriever for your vector store!"
 author: "Ben Chambers"
-date: "1/31/2025"
+date: 2025-01-31
 categories:
     - langchain
     - news

@@ -4,12 +4,13 @@ import abc
 from collections.abc import Sequence
 from typing import Any, Generic, TypeVar
 
-from graph_retriever import Adapter, Edge, MetadataEdge
-from graph_retriever.content import Content
+from graph_retriever import Content
+from graph_retriever.adapters import Adapter
+from graph_retriever.edges import Edge, MetadataEdge
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.runnables import run_in_executor
-from langchain_core.vectorstores import VectorStore
+from langchain_core.vectorstores.base import VectorStore
 from typing_extensions import (
     override,
 )

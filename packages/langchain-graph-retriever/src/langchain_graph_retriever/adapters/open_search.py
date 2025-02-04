@@ -6,7 +6,9 @@ from typing import Any
 from typing_extensions import override
 
 try:
-    from langchain_community.vectorstores import OpenSearchVectorSearch
+    from langchain_community.vectorstores.opensearch_vector_search import (
+        OpenSearchVectorSearch,
+    )
 except (ImportError, ModuleNotFoundError):
     raise ImportError("please `pip install langchain-community opensearch-py`")
 

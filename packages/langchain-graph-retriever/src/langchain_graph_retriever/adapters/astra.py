@@ -8,8 +8,8 @@ from collections.abc import Iterable, Sequence
 from typing import Any, cast
 
 import backoff
-from graph_retriever.content import Content
-from graph_retriever.types import Edge, IdEdge, MetadataEdge
+from graph_retriever import Content
+from graph_retriever.edges import Edge, IdEdge, MetadataEdge
 from graph_retriever.utils.batched import batched
 from graph_retriever.utils.top_k import top_k
 from typing_extensions import override

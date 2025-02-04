@@ -4,7 +4,9 @@ import warnings
 from collections.abc import Iterable
 from typing import Any, TypeAlias
 
-from graph_retriever.types import Content, Edge, Edges, IdEdge, MetadataEdge
+from graph_retriever.content import Content
+
+from ._base import Edge, Edges, IdEdge, MetadataEdge
 
 BASIC_TYPES = (str, bool, int, float, complex, bytes)
 
@@ -26,7 +28,7 @@ The definition of an edge for traversal, represented as a pair of fields
 representing the source and target of the edge. Each may be:
 
 - A string, `key`, indicating `doc.metadata[key]` as the value.
-- The placeholder [](`~graph_retriever.Id`), indicating `doc.id` as the value.
+- The placeholder [Id][graph_retriever.edges.Id], indicating `doc.id` as the value.
 
 Examples
 --------

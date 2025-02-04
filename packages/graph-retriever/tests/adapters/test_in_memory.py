@@ -1,5 +1,5 @@
 import pytest
-from graph_retriever import Adapter
+from graph_retriever.adapters import Adapter
 from graph_retriever.adapters.in_memory import InMemory
 from graph_retriever.testing.adapter_tests import AdapterComplianceSuite
 
