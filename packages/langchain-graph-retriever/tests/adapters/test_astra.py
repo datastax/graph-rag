@@ -1,9 +1,5 @@
 from collections.abc import Iterator
-from time import sleep
 
-from graph_retriever.adapters.base import Adapter
-from graph_retriever.types import IdEdge
-from graph_retriever.utils.math import cosine_similarity
 import pytest
 from graph_retriever.testing.adapter_tests import AdapterComplianceSuite
 from langchain_astradb.utils.vector_store_codecs import _DefaultVSDocumentCodec

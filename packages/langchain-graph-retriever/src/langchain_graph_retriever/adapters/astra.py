@@ -376,9 +376,9 @@ class AstraAdapter(Adapter):
         # Ideally, we could request the `$similarity` projection even
         # without vector sort. And it can't be `False`. It needs to be
         # `None` or it will cause an assertion error.
-        include_similarity=None
+        include_similarity = None
         if not (sort or {}).keys().isdisjoint({"$vector", "$vectorize"}):
-            include_similarity=True
+            include_similarity = True
         hits = astra_env.collection.find(
             filter=query,
             projection=self.vector_store.document_codec.full_projection,
@@ -403,9 +403,9 @@ class AstraAdapter(Adapter):
         # Ideally, we could request the `$similarity` projection even
         # without vector sort. And it can't be `False`. It needs to be
         # `None` or it will cause an assertion error.
-        include_similarity=None
+        include_similarity = None
         if not (sort or {}).keys().isdisjoint({"$vector", "$vectorize"}):
-            include_similarity=True
+            include_similarity = True
         hits = astra_env.async_collection.find(
             filter=query,
             projection=self.vector_store.document_codec.full_projection,

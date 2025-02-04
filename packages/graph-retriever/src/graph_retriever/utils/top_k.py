@@ -1,4 +1,3 @@
-import heapq
 from collections.abc import Iterable
 from typing import cast
 
@@ -38,7 +37,9 @@ def top_k(
     unscored = {c.id: c for c in contents if c.score is None if c.id not in scored}
 
     if unscored:
-        top_unscored = _similarity_sort_top_k(list(unscored.values()), embedding=embedding, k=k)
+        top_unscored = _similarity_sort_top_k(
+            list(unscored.values()), embedding=embedding, k=k
+        )
         scored.update(top_unscored)
 
     sorted = list(scored.values())

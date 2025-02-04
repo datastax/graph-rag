@@ -7,8 +7,8 @@ from typing import Any
 
 from graph_retriever.content import Content
 from graph_retriever.types import Edge, IdEdge, MetadataEdge
-from graph_retriever.utils.top_k import top_k
 from graph_retriever.utils.run_in_executor import run_in_executor
+from graph_retriever.utils.top_k import top_k
 
 
 class Adapter(abc.ABC):
