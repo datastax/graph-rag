@@ -1,0 +1,113 @@
+---
+title: Supported Vector Stores
+---
+
+Graph Retriever uses an Adapter pattern to support different [LangChain Vector Stores](https://python.langchain.com/docs/integrations/vectorstores/).
+
+Currently supported stores include:
+
+* [AstraDB](https://python.langchain.com/docs/integrations/vectorstores/astradb/)
+
+* [Apache Cassandra](https://python.langchain.com/docs/integrations/vectorstores/cassandra/)
+
+* [Chroma](https://python.langchain.com/docs/integrations/vectorstores/chroma/)
+
+* [OpenSearch](https://python.langchain.com/docs/integrations/vectorstores/opensearch/)
+
+* [InMemory](https://python.langchain.com/api_reference/core/vectorstores/langchain_core.vectorstores.in_memory.InMemoryVectorStore.html)
+
+## Pre-requisites
+
+All the following examples use the following initial setup and sample documents:
+
+```{python}
+#| code-fold: true
+import json
+from dotenv import load_dotenv
+from langchain_openai import OpenAIEmbeddings
+from langchain_core.documents import Document
+from langchain_graph_retriever import GraphRetriever
+
+load_dotenv()
+animals = []
+with open("../../data/animals.jsonl", "r") as file:
+    for line in file:
+        data = json.loads(line.strip())
+        animals.append(Document(
+            id=data["id"],
+            page_content=data["text"],
+            metadata=data["metadata"],
+        ))
+```
+
+## AstraDB Example
+
+```{python}
+#| eval: False
+from langchain_astradb import AstraDBVectorStore
+store = AstraDBVectorStore.from_documents(
+    collection_name="animals",
+    documents=animals,
+
+    embedding=OpenAIEmbeddings(),
+)
+retriever = GraphRetriever(
+    store = store,
+    edges = [("keywords", "keywords")],
+)
+retriever.invoke("where is Santa Clara?")
+```
+
+### Apache Cassandra
+
+```{python}
+#| eval: False
+from langchain_community.vectorstores import Cassandra
+store = Cassandra.from_documents(
+    table_name="animals",
+    documents=animals,
+    embedding=OpenAIEmbeddings(),
+)
+retriever = GraphRetriever(
+    store = store,
+    edges = [("keywords", "keywords")],
+)
+retriever.invoke("where is Santa Clara?")
+```
+
+### Chroma
+
+```{python}
+#| eval: False
+from langchain_chroma.vectorstores import Chroma
+from langchain_graph_retriever.document_transformers.metadata_denormalizer import (
+    MetadataDenormalizer,
+)
+store = Cassandra.from_documents(
+    documents=list(MetadataDenormalizer().transform_documents(animals)),
+    embedding=OpenAIEmbeddings(),
+)
+retriever = GraphRetriever(
+    store = store,
+    edges = [("keywords", "keywords")],
+)
+retriever.invoke("where is Santa Clara?")
+```
+
+### OpenSearch
+
+```{python}
+#| eval: False
+from langchain_community.vectorstores import OpenSearchVectorSearch
+store = OpenSearchVectorSearch.from_documents(
+    documents=list(MetadataDenormalizer().transform_documents(animals)),
+    embedding=OpenAIEmbeddings(),
+)
+retriever = GraphRetriever(
+    store = store,
+    edges = [("keywords", "keywords")],
+)
+retriever.invoke("where is Santa Clara?")
+```
+
+To add support for a new vector store, implement the [Adapter](/reference/Adapter.qmd) interface and register the new adapter with the `GraphRetriever`.

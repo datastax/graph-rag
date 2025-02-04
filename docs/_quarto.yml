@@ -43,6 +43,9 @@ website:
       align: left
       contents:
         - get-started/overview.qmd
+        - section: "Basic Use"
+          contents:
+            - get-started/supported-stores.qmd
   page-footer:
     border: true
     left: "© Copyright 2025, Graph RAG Contributors."
