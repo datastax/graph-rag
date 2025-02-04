@@ -30,28 +30,14 @@ def assert_valid_results(docs: Iterable[Content]):
 
 
 def assert_ids_any_order(
-    results: Iterable[Content], expected: list[str], min_intersection: int | None = None
+    results: Iterable[Content],
+    expected: list[str],
 ) -> None:
     """Assert the results are valid and match the IDs."""
     assert_valid_results(results)
 
     result_ids = [r.id for r in results]
-
-    if min_intersection is not None:
-        intersection = set(result_ids).intersection(expected)
-        min_intersection = min(min_intersection, len(expected))
-        assert len(intersection) >= min_intersection, (
-            f"{result_ids} should contain at least {min_intersection} "
-            f"from {expected} was {intersection}"
-        )
-
-        unexpected = set(result_ids) - set(expected)
-        assert not unexpected, (
-            f"{result_ids} should contain only elements of {expected}"
-            f", but had {unexpected}"
-        )
-    else:
-        assert set(result_ids) == set(expected), "should contain exactly expected IDs"
+    assert set(result_ids) == set(expected), "should contain exactly expected IDs"
 
 
 @dataclass
@@ -160,7 +146,7 @@ class GetAdjacentCase:
     edges: set[Edge]
     expected: list[str]
 
-    adjacent_k: int = 4
+    k: int = 4
     filter: dict[str, Any] | None = None
 
 
@@ -171,12 +157,6 @@ GET_ADJACENT_CASES: list[GetAdjacentCase] = [
         edges={MetadataEdge("type", "mammal")},
         expected=["horse", "llama", "dog", "cat"],
     ),
-    # Note: Currently, all stores implement get adjacent by performing a
-    # separate search for each edge. This means that it returns up to
-    # `adjacent_k * len(outgoing_edges)` results. This will not be true if some
-    # stores (eg., OpenSearch) implement get adjacent more efficiently. We may
-    # wish to have `get_adjacent` select the top `adjacent_k` by sorting by
-    # similarity internally to better reflect this.
     GetAdjacentCase(
         "two_edges_same_field",
         "domesticated hunters",
@@ -186,11 +166,9 @@ GET_ADJACENT_CASES: list[GetAdjacentCase] = [
         },
         expected=[
             "cat",
-            "crab",
             "dog",
             "horse",
             "llama",
-            "lobster",
         ],
     ),
     GetAdjacentCase(
@@ -219,6 +197,21 @@ GET_ADJACENT_CASES: list[GetAdjacentCase] = [
         ],
     ),
     GetAdjacentCase(
+        "ids_limit_k",
+        "domesticated hunters",
+        edges={
+            IdEdge("cat"),
+            IdEdge("dog"),
+            IdEdge("unicorn"),
+            IdEdge("goat"),
+        },
+        k=2,
+        expected=[
+            "cat",
+            "dog",
+        ],
+    ),
+    GetAdjacentCase(
         "filtered_ids",
         "domesticated hunters",
         edges={
@@ -232,7 +225,23 @@ GET_ADJACENT_CASES: list[GetAdjacentCase] = [
             "chinchilla",
         ],
     ),
-    # Add test for ID edges and metadata edges combined.
+    GetAdjacentCase(
+        "metadata_and_id",
+        "domesticated hunters",
+        edges={
+            IdEdge("cat"),
+            MetadataEdge("type", "reptile"),
+        },
+        k=6,
+        expected=[
+            "alligator",  # reptile
+            "crocodile",  # reptile
+            "cat",  # by ID
+            "chameleon",  # reptile
+            "gecko",  # reptile
+            "komodo dragon",  # reptile
+        ],
+    ),
 ]
 
 
@@ -345,14 +354,10 @@ class AdapterComplianceSuite(abc.ABC):
         results = adapter.get_adjacent(
             edges=get_adjacent_case.edges,
             query_embedding=embedding,
-            k=get_adjacent_case.adjacent_k,
+            k=get_adjacent_case.k,
             filter=get_adjacent_case.filter,
         )
-        assert_ids_any_order(
-            results,
-            get_adjacent_case.expected,
-            min_intersection=get_adjacent_case.adjacent_k,
-        )
+        assert_ids_any_order(results, get_adjacent_case.expected)
 
     async def test_aget_adjacent(
         self, adapter: Adapter, get_adjacent_case: GetAdjacentCase
@@ -363,11 +368,7 @@ class AdapterComplianceSuite(abc.ABC):
         results = await adapter.aget_adjacent(
             edges=get_adjacent_case.edges,
             query_embedding=embedding,
-            k=get_adjacent_case.adjacent_k,
+            k=get_adjacent_case.k,
             filter=get_adjacent_case.filter,
         )
-        assert_ids_any_order(
-            results,
-            get_adjacent_case.expected,
-            min_intersection=get_adjacent_case.adjacent_k,
-        )
+        assert_ids_any_order(results, get_adjacent_case.expected)

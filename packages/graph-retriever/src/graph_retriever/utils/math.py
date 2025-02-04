@@ -69,3 +69,46 @@ def cosine_similarity(X: Matrix, Y: Matrix) -> np.ndarray:
             similarity = np.dot(X, Y.T) / np.outer(X_norm, Y_norm)
         similarity[np.isnan(similarity) | np.isinf(similarity)] = 0.0
         return similarity
+
+
+def cosine_similarity_top_k(
+    X: Matrix,
+    Y: Matrix,
+    top_k: int | None,
+    score_threshold: float | None = None,
+) -> tuple[list[tuple[int, int]], list[float]]:
+    """
+    Row-wise cosine similarity with optional top-k and score threshold filtering.
+
+    Parameters
+    ----------
+    X : Matrix
+        A matrix of shape (m, n), where `m` is the number of rows and `n` is the
+        number of columns (features).
+    Y : Matrix
+        A matrix of shape (p, n), where `p` is the number of rows and `n` is the
+        number of columns (features).
+    top_k : int, optional
+        Max number of results to return.
+    score_threshold:
+        Minimum score to return.
+
+    Returns
+    -------
+    list[tuple[int, int]]
+        Two-tuples of indices `(X_idx, Y_idx)` indicating the respective rows in
+        `X` and `Y`.
+    list[float]
+        The corresponding cosine similarities.
+    """
+    if len(X) == 0 or len(Y) == 0:
+        return [], []
+    score_array = cosine_similarity(X, Y)
+    score_threshold = score_threshold or -1.0
+    score_array[score_array < score_threshold] = 0
+    top_k = min(top_k or len(score_array), np.count_nonzero(score_array))
+    top_k_idxs = np.argpartition(score_array, -top_k, axis=None)[-top_k:]
+    top_k_idxs = top_k_idxs[np.argsort(score_array.ravel()[top_k_idxs])][::-1]
+    ret_idxs = np.unravel_index(top_k_idxs, score_array.shape)
+    scores = score_array.ravel()[top_k_idxs].tolist()
+    return list(zip(*ret_idxs)), scores  # type: ignore

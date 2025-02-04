@@ -11,6 +11,7 @@ import backoff
 from graph_retriever.content import Content
 from graph_retriever.types import Edge, IdEdge, MetadataEdge
 from graph_retriever.utils.batched import batched
+from graph_retriever.utils.top_k import top_k
 from typing_extensions import override
 
 try:
@@ -305,17 +306,16 @@ class AstraAdapter(Adapter):
 
         results = []
         if (metadata_query := query_helper.create_metadata_query(metadata)) is not None:
-            results.extend(
-                self._execute_query(
-                    limit=k,
-                    sort=sort,
-                    query=metadata_query,
-                )
+            batch = self._execute_query(
+                limit=k,
+                sort=sort,
+                query=metadata_query,
             )
-            ids.difference_update({c.id for c in results})
+            results.append(batch)
+            ids.difference_update({c.id for c in batch})
 
         for id_batch in batched(ids, 100):
-            results.extend(
+            results.append(
                 self._execute_query(
                     limit=k,
                     sort=sort,
@@ -323,7 +323,7 @@ class AstraAdapter(Adapter):
                 )
             )
 
-        return results
+        return top_k(results, embedding=query_embedding, k=k, are_batches_sorted=True)
 
     @override
     async def aget_adjacent(
@@ -341,29 +341,27 @@ class AstraAdapter(Adapter):
 
         results = []
         if (metadata_query := query_helper.create_metadata_query(metadata)) is not None:
-            results.extend(
-                await self._aexecute_query(
-                    limit=k,
-                    sort=sort,
-                    query=metadata_query,
-                )
+            batch = await self._aexecute_query(
+                limit=k,
+                sort=sort,
+                query=metadata_query,
             )
-            ids.difference_update({c.id for c in results})
+            results.append(batch)
+            ids.difference_update({c.id for c in batch})
 
         for id_batch in batched(ids, 100):
             # I have tested (in the lazy graph rag example) doing these
             # two queries concurrently, but it hurt perfomance. Likely this
             # would depend on how many IDs the previous query eliminates from
             # this query.
-            results.extend(
-                await self._aexecute_query(
-                    limit=k,
-                    sort=sort,
-                    query=query_helper.create_ids_query(list(id_batch)),
-                )
+            result_batch = await self._aexecute_query(
+                limit=k,
+                sort=sort,
+                query=query_helper.create_ids_query(list(id_batch)),
             )
+            results.append(result_batch)
 
-        return results
+        return top_k(results, embedding=query_embedding, k=k, are_batches_sorted=True)
 
     def _execute_query(
         self,
@@ -374,11 +372,18 @@ class AstraAdapter(Adapter):
         astra_env = self.vector_store.astra_env
         astra_env.ensure_db_setup()
 
+        # Similarity can only be included if we are sorting by vector.
+        # Ideally, we could request the `$similarity` projection even
+        # without vector sort.
+        include_similarity = sort is not None and (
+            "$vector" in sort or "$vectorize" in sort
+        )
         hits = astra_env.collection.find(
             filter=query,
             projection=self.vector_store.document_codec.full_projection,
             limit=limit,
             include_sort_vector=True,
+            include_similarity=include_similarity,
             sort=sort,
         )
 
@@ -393,11 +398,18 @@ class AstraAdapter(Adapter):
         astra_env = self.vector_store.astra_env
         await astra_env.aensure_db_setup()
 
+        # Similarity can only be included if we are sorting by vector.
+        # Ideally, we could request the `$similarity` projection even
+        # without vector sort.
+        include_similarity = sort is not None and (
+            "$vector" in sort or "$vectorize" in sort
+        )
         hits = astra_env.async_collection.find(
             filter=query,
             projection=self.vector_store.document_codec.full_projection,
             limit=limit,
             include_sort_vector=True,
+            include_similarity=include_similarity,
             sort=sort,
         )
 
@@ -418,4 +430,6 @@ class AstraAdapter(Adapter):
             content=hit[codec.content_field],
             embedding=embedding,
             metadata=hit["metadata"],
+            # We may not have `$similarity` depending on the query.
+            score=hit.get("$similarity", None),
         )

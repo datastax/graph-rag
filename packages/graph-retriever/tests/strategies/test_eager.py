@@ -79,11 +79,7 @@ async def test_animals_keywords(animals: Adapter, sync_or_async: SyncOrAsync):
         "alpaca",
         "bison",
         "cat",
-        "chicken",
-        "cockroach",
         "coyote",
-        "crow",
-        "dingo",
         "dog",
         "fox",
         "gazelle",
@@ -92,7 +88,6 @@ async def test_animals_keywords(animals: Adapter, sync_or_async: SyncOrAsync):
         "jackal",
         "llama",
         "mongoose",
-        "ostrich",
     ]
 
 
@@ -181,7 +176,6 @@ async def test_animals_initial_roots(animals: Adapter, sync_or_async: SyncOrAsyn
         "kangaroo",
         "leopard",
         "moose",
-        "ostrich",
     ]
 
 
