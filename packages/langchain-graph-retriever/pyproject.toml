@@ -94,7 +94,7 @@ graph-retriever = { workspace = true }
 astra = [
     "astrapy>=1.5.2",
     "httpx>=0.28.1",
-    "langchain-astradb>=0.5.2",
+    "langchain-astradb>=0.5.3",
 ]
 beautifulsoup4 = [
     "beautifulsoup4>=4.12.3",
@@ -127,7 +127,7 @@ build-backend = "hatchling.build"
 [dependency-groups]
 dev = [
     "cassio>=0.1.10",
-    "langchain-astradb>=0.5.2",
+    "langchain-astradb>=0.5.3",
     "langchain-chroma>=0.2.0",
     "langchain-community>=0.3.14",
     "langchain-opensearch>=0.0.2",

@@ -109,7 +109,7 @@ class AstraAdapter(Adapter):
     """  # noqa: E501
 
     def __init__(self, vector_store: AstraDBVectorStore) -> None:
-        self.vector_store = vector_store
+        self.vector_store = vector_store.copy(component_name="langchain_graph_retriever")
 
     @override
     def embed_query(self, query: str) -> list[float]:
