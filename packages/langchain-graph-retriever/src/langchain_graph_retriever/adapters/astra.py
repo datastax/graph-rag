@@ -136,7 +136,7 @@ class AstraAdapter(Adapter):
 
     @override
     @backoff.on_exception(backoff.expo, _EXCEPTIONS_TO_RETRY, max_tries=_MAX_RETRIES)
-    def similarity_search_with_embedding(
+    def search_with_embedding(
         self,
         query: str,
         k: int = 4,
@@ -155,7 +155,7 @@ class AstraAdapter(Adapter):
 
     @override
     @backoff.on_exception(backoff.expo, _EXCEPTIONS_TO_RETRY, max_tries=_MAX_RETRIES)
-    async def asimilarity_search_with_embedding(
+    async def asearch_with_embedding(
         self,
         query: str,
         k: int = 4,
@@ -175,7 +175,7 @@ class AstraAdapter(Adapter):
 
     @override
     @backoff.on_exception(backoff.expo, _EXCEPTIONS_TO_RETRY, max_tries=_MAX_RETRIES)
-    def similarity_search_with_embedding_by_vector(
+    def search(
         self,
         embedding: list[float],
         k: int = 4,
@@ -194,7 +194,7 @@ class AstraAdapter(Adapter):
 
     @override
     @backoff.on_exception(backoff.expo, _EXCEPTIONS_TO_RETRY, max_tries=_MAX_RETRIES)
-    async def asimilarity_search_with_embedding_by_vector(
+    async def asearch(
         self,
         embedding: list[float],
         k: int = 4,
@@ -289,7 +289,7 @@ class AstraAdapter(Adapter):
         return (cast(dict[str, Iterable[Any]], metadata_in), ids)
 
     @override
-    def get_adjacent(
+    def adjacent(
         self,
         edges: set[Edge],
         query_embedding: list[float],
@@ -324,7 +324,7 @@ class AstraAdapter(Adapter):
         return top_k(results, embedding=query_embedding, k=k)
 
     @override
-    async def aget_adjacent(
+    async def aadjacent(
         self,
         edges: set[Edge],
         query_embedding: list[float],

@@ -52,7 +52,7 @@ class InMemoryAdapter(LangchainAdapter[InMemoryVectorStore]):
         return docs
 
     @override
-    def _similarity_search_with_embedding_by_vector(
+    def _search(
         self,
         embedding: list[float],
         k: int = 4,

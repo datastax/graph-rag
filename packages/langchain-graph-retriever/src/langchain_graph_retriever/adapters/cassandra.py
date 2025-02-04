@@ -34,7 +34,7 @@ class CassandraAdapter(DenormalizedAdapter[Cassandra]):
     """
 
     @override
-    def _similarity_search_with_embedding_by_vector(  # type: ignore
+    def _search(  # type: ignore
         self,
         embedding: list[float],
         k: int = 4,
@@ -85,7 +85,7 @@ class CassandraAdapter(DenormalizedAdapter[Cassandra]):
         ]
 
     @override
-    async def _asimilarity_search_with_embedding_by_vector(  # type: ignore
+    async def _asearch(  # type: ignore
         self, **kwargs: Any
     ) -> list[Document]:
         results = (

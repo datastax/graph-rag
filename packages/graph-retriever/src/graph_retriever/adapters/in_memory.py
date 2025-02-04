@@ -37,7 +37,7 @@ class InMemoryBase(Adapter, abc.ABC):
         return self.embedding(query)
 
     @override
-    def similarity_search_with_embedding_by_vector(
+    def search(
         self,
         embedding: list[float],
         k: int = 4,

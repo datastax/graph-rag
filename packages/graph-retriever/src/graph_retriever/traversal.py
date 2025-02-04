@@ -238,7 +238,7 @@ class _Traversal:
         :
             The initial content retrieved via similarity search.
         """
-        query_embedding, docs = self.store.similarity_search_with_embedding(
+        query_embedding, docs = self.store.search_with_embedding(
             query=self.query,
             k=self.strategy.start_k,
             filter=self.metadata_filter,
@@ -248,7 +248,7 @@ class _Traversal:
         return docs
 
     async def _afetch_initial_candidates(self) -> list[Content]:
-        query_embedding, docs = await self.store.asimilarity_search_with_embedding(
+        query_embedding, docs = await self.store.asearch_with_embedding(
             query=self.query,
             k=self.strategy.start_k,
             filter=self.metadata_filter,
@@ -322,7 +322,7 @@ class _Traversal:
         :
             The set of content adjacent to the specified edges.
         """
-        return self.store.get_adjacent(
+        return self.store.adjacent(
             edges=edges,
             query_embedding=self.strategy._query_embedding,
             k=self.strategy.adjacent_k,
@@ -347,7 +347,7 @@ class _Traversal:
         :
             The set of content adjacent to the specified edges.
         """
-        return await self.store.aget_adjacent(
+        return await self.store.aadjacent(
             edges=edges,
             query_embedding=self.strategy._query_embedding,
             k=self.strategy.adjacent_k,

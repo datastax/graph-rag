@@ -88,7 +88,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
         return [doc_to_content(doc) for doc in docs]
 
     @abc.abstractmethod
-    def _similarity_search_with_embedding_by_vector(
+    def _search(
         self,
         embedding: list[float],
         k: int = 4,
@@ -119,7 +119,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
         """
 
     @override
-    def similarity_search_with_embedding_by_vector(
+    def search(
         self,
         embedding: list[float],
         k: int = 4,
@@ -145,7 +145,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
         :
             List of Contents most similar to the query vector.
         """
-        docs = self._similarity_search_with_embedding_by_vector(
+        docs = self._search(
             embedding=embedding,
             k=k,
             filter=self.update_filter_hook(filter),
@@ -153,7 +153,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
         )
         return self.format_documents_hook(docs)
 
-    async def _asimilarity_search_with_embedding_by_vector(
+    async def _asearch(
         self,
         embedding: list[float],
         k: int = 4,
@@ -184,7 +184,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
         """
         return await run_in_executor(
             None,
-            self._similarity_search_with_embedding_by_vector,
+            self._search,
             embedding,
             k,
             filter,
@@ -192,14 +192,14 @@ class LangchainAdapter(Generic[StoreT], Adapter):
         )
 
     @override
-    async def asimilarity_search_with_embedding_by_vector(
+    async def asearch(
         self,
         embedding: list[float],
         k: int = 4,
         filter: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> list[Content]:
-        docs = await self._asimilarity_search_with_embedding_by_vector(
+        docs = await self._asearch(
             embedding=embedding,
             k=k,
             filter=self.update_filter_hook(filter),
@@ -315,7 +315,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
             **kwargs,
         )
 
-    def _get_metadata_filter(
+    def _metadata_filter(
         self,
         base_filter: dict[str, Any] | None = None,
         edge: Edge | None = None,

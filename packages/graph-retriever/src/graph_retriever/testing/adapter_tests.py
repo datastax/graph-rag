@@ -77,7 +77,7 @@ GET_CASES: list[GetCase] = [
 
 
 @dataclass
-class SimilaritySearchCase:
+class SearchCase:
     """A test case for `similarity_search_*` and `asimilarity_search_*` methods."""
 
     id: str
@@ -99,27 +99,25 @@ class SimilaritySearchCase:
         return kwargs
 
 
-SIMILARITY_SEARCH_CASES: list[SimilaritySearchCase] = [
-    SimilaritySearchCase(
-        "basic", "domesticated hunters", ["cat", "horse", "chicken", "llama"]
-    ),
-    SimilaritySearchCase("k2", "domesticated hunters", k=2, expected=["cat", "horse"]),
+SEARCH_CASES: list[SearchCase] = [
+    SearchCase("basic", "domesticated hunters", ["cat", "horse", "chicken", "llama"]),
+    SearchCase("k2", "domesticated hunters", k=2, expected=["cat", "horse"]),
     # Many stores fail in this case. Generally it doesn't happen in the code, since
     # no IDs means we don't need to make the call. Not currently part of the contract.
     # SimilaritySearchCase("k0", "domesticated hunters", k=0, expected=[]),
-    SimilaritySearchCase(
+    SearchCase(
         "value_filter",
         "domesticated hunters",
         filter={"type": "mammal"},
         expected=["cat", "dog", "horse", "llama"],
     ),
-    SimilaritySearchCase(
+    SearchCase(
         "list_filter",
         "domesticated hunters",
         filter={"keywords": "hunting"},
         expected=["cat"],
     ),
-    SimilaritySearchCase(
+    SearchCase(
         "two_filters",
         "domesticated hunters",
         filter={"type": "mammal", "diet": "carnivorous"},
@@ -138,7 +136,7 @@ SIMILARITY_SEARCH_CASES: list[SimilaritySearchCase] = [
 
 
 @dataclass
-class GetAdjacentCase:
+class AdjacentCase:
     """A test case for `get_adjacent` and `aget_adjacent`."""
 
     id: str
@@ -150,14 +148,14 @@ class GetAdjacentCase:
     filter: dict[str, Any] | None = None
 
 
-GET_ADJACENT_CASES: list[GetAdjacentCase] = [
-    GetAdjacentCase(
+ADJACENT_CASES: list[AdjacentCase] = [
+    AdjacentCase(
         "one_edge",
         "domesticated hunters",
         edges={MetadataEdge("type", "mammal")},
         expected=["horse", "llama", "dog", "cat"],
     ),
-    GetAdjacentCase(
+    AdjacentCase(
         "two_edges_same_field",
         "domesticated hunters",
         edges={
@@ -171,7 +169,7 @@ GET_ADJACENT_CASES: list[GetAdjacentCase] = [
             "llama",
         ],
     ),
-    GetAdjacentCase(
+    AdjacentCase(
         "one_ids",
         "domesticated hunters",
         edges={
@@ -181,7 +179,7 @@ GET_ADJACENT_CASES: list[GetAdjacentCase] = [
             "cat",
         ],
     ),
-    GetAdjacentCase(
+    AdjacentCase(
         "many_ids",
         "domesticated hunters",
         edges={
@@ -196,7 +194,7 @@ GET_ADJACENT_CASES: list[GetAdjacentCase] = [
             "crab",
         ],
     ),
-    GetAdjacentCase(
+    AdjacentCase(
         "ids_limit_k",
         "domesticated hunters",
         edges={
@@ -211,7 +209,7 @@ GET_ADJACENT_CASES: list[GetAdjacentCase] = [
             "dog",
         ],
     ),
-    GetAdjacentCase(
+    AdjacentCase(
         "filtered_ids",
         "domesticated hunters",
         edges={
@@ -225,7 +223,7 @@ GET_ADJACENT_CASES: list[GetAdjacentCase] = [
             "chinchilla",
         ],
     ),
-    GetAdjacentCase(
+    AdjacentCase(
         "metadata_and_id",
         "domesticated hunters",
         edges={
@@ -275,13 +273,13 @@ class AdapterComplianceSuite(abc.ABC):
         """Fixture providing the `get` and `aget` test cases."""
         return request.param
 
-    @pytest.fixture(params=GET_ADJACENT_CASES, ids=lambda c: c.id)
-    def get_adjacent_case(self, request) -> GetAdjacentCase:
+    @pytest.fixture(params=ADJACENT_CASES, ids=lambda c: c.id)
+    def adjacent_case(self, request) -> AdjacentCase:
         """Fixture providing the `get_adjacent` and `aget_adjacent` test cases."""
         return request.param
 
-    @pytest.fixture(params=SIMILARITY_SEARCH_CASES, ids=lambda c: c.id)
-    def similarity_search_case(self, request) -> SimilaritySearchCase:
+    @pytest.fixture(params=SEARCH_CASES, ids=lambda c: c.id)
+    def search_case(self, request) -> SearchCase:
         """Fixture providing the `(a)?similarity_search_*` test cases."""
         return request.param
 
@@ -297,78 +295,66 @@ class AdapterComplianceSuite(abc.ABC):
         results = await adapter.aget(get_case.request, filter=get_case.filter)
         assert_ids_any_order(results, get_case.expected)
 
-    def test_similarity_search_with_embedding(
-        self, adapter: Adapter, similarity_search_case: SimilaritySearchCase
+    def test_search_with_embedding(
+        self, adapter: Adapter, search_case: SearchCase
     ) -> None:
-        """Run tests for `similarity_search_with_embedding."""
-        self.skip_case("similarity_search_with_embedding", similarity_search_case.id)
-        embedding, results = adapter.similarity_search_with_embedding(
-            similarity_search_case.query, **similarity_search_case.kwargs
+        """Run tests for `search_with_embedding`."""
+        self.skip_case("search_with_embedding", search_case.id)
+        embedding, results = adapter.search_with_embedding(
+            search_case.query, **search_case.kwargs
         )
         assert_is_embedding(embedding)
-        assert_ids_any_order(results, similarity_search_case.expected)
+        assert_ids_any_order(results, search_case.expected)
 
-    async def test_asimilarity_search_with_embedding(
-        self, adapter: Adapter, similarity_search_case: SimilaritySearchCase
+    async def test_asearch_with_embedding(
+        self, adapter: Adapter, search_case: SearchCase
     ) -> None:
-        """Run tests for `asimilarity_search_with_embedding."""
-        self.skip_case("asimilarity_search_with_embedding", similarity_search_case.id)
-        embedding, results = await adapter.asimilarity_search_with_embedding(
-            similarity_search_case.query, **similarity_search_case.kwargs
+        """Run tests for `asearch_with_embedding`."""
+        self.skip_case("asearch_with_embedding", search_case.id)
+        embedding, results = await adapter.asearch_with_embedding(
+            search_case.query, **search_case.kwargs
         )
         assert_is_embedding(embedding)
-        assert_ids_any_order(results, similarity_search_case.expected)
+        assert_ids_any_order(results, search_case.expected)
 
-    def test_similarity_search_with_embedding_by_vector(
-        self, adapter: Adapter, similarity_search_case: SimilaritySearchCase
-    ) -> None:
-        """Run tests for `similarity_search_with_embedding_by_vector."""
-        self.skip_case(
-            "similarity_search_with_embedding_by_vector", similarity_search_case.id
-        )
-        embedding = adapter.embed_query(similarity_search_case.query)
-        results = adapter.similarity_search_with_embedding_by_vector(
-            embedding, **similarity_search_case.kwargs
-        )
-        assert_ids_any_order(results, similarity_search_case.expected)
+    def test_search(self, adapter: Adapter, search_case: SearchCase) -> None:
+        """Run tests for `search`."""
+        self.skip_case("search", search_case.id)
+        embedding = adapter.embed_query(search_case.query)
+        results = adapter.search(embedding, **search_case.kwargs)
+        assert_ids_any_order(results, search_case.expected)
 
-    async def test_asimilarity_search_with_embedding_by_vector(
-        self, adapter: Adapter, similarity_search_case: SimilaritySearchCase
-    ) -> None:
-        """Run tests for `asimilarity_search_with_embedding_by_vector."""
-        self.skip_case(
-            "asimilarity_search_with_embedding_by_vector", similarity_search_case.id
-        )
-        embedding = adapter.embed_query(similarity_search_case.query)
-        results = await adapter.asimilarity_search_with_embedding_by_vector(
-            embedding, **similarity_search_case.kwargs
-        )
-        assert_ids_any_order(results, similarity_search_case.expected)
+    async def test_asearch(self, adapter: Adapter, search_case: SearchCase) -> None:
+        """Run tests for `asearch`."""
+        self.skip_case("asearch", search_case.id)
+        embedding = adapter.embed_query(search_case.query)
+        results = await adapter.asearch(embedding, **search_case.kwargs)
+        assert_ids_any_order(results, search_case.expected)
 
-    async def test_get_adjacent(
-        self, adapter: Adapter, get_adjacent_case: GetAdjacentCase
+    async def test_adjacent(
+        self, adapter: Adapter, adjacent_case: AdjacentCase
     ) -> None:
-        """Run tests for `get_adjacent."""
-        self.skip_case("get_adjacent", get_adjacent_case.id)
-        embedding = adapter.embed_query(get_adjacent_case.query)
-        results = adapter.get_adjacent(
-            edges=get_adjacent_case.edges,
+        """Run tests for `adjacent."""
+        self.skip_case("adjacent", adjacent_case.id)
+        embedding = adapter.embed_query(adjacent_case.query)
+        results = adapter.adjacent(
+            edges=adjacent_case.edges,
             query_embedding=embedding,
-            k=get_adjacent_case.k,
-            filter=get_adjacent_case.filter,
+            k=adjacent_case.k,
+            filter=adjacent_case.filter,
         )
-        assert_ids_any_order(results, get_adjacent_case.expected)
+        assert_ids_any_order(results, adjacent_case.expected)
 
-    async def test_aget_adjacent(
-        self, adapter: Adapter, get_adjacent_case: GetAdjacentCase
+    async def test_aadjacent(
+        self, adapter: Adapter, adjacent_case: AdjacentCase
     ) -> None:
-        """Run tests for `aget_adjacent."""
-        self.skip_case("aget_adjacent", get_adjacent_case.id)
-        embedding = adapter.embed_query(get_adjacent_case.query)
-        results = await adapter.aget_adjacent(
-            edges=get_adjacent_case.edges,
+        """Run tests for `aadjacent."""
+        self.skip_case("aadjacent", adjacent_case.id)
+        embedding = adapter.embed_query(adjacent_case.query)
+        results = await adapter.aadjacent(
+            edges=adjacent_case.edges,
             query_embedding=embedding,
-            k=get_adjacent_case.k,
-            filter=get_adjacent_case.filter,
+            k=adjacent_case.k,
+            filter=adjacent_case.filter,
         )
-        assert_ids_any_order(results, get_adjacent_case.expected)
+        assert_ids_any_order(results, adjacent_case.expected)

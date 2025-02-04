@@ -27,7 +27,7 @@ class Adapter(abc.ABC):
         """Return the embedding of the query."""
         ...
 
-    def similarity_search_with_embedding(
+    def search_with_embedding(
         self,
         query: str,
         k: int = 4,
@@ -58,7 +58,7 @@ class Adapter(abc.ABC):
             List of up to `k` content items most similar to the query vector.
         """
         query_embedding = self.embed_query(query)
-        docs = self.similarity_search_with_embedding_by_vector(
+        docs = self.search(
             embedding=query_embedding,
             k=k,
             filter=filter,
@@ -66,7 +66,7 @@ class Adapter(abc.ABC):
         )
         return query_embedding, docs
 
-    async def asimilarity_search_with_embedding(
+    async def asearch_with_embedding(
         self,
         query: str,
         k: int = 4,
@@ -98,11 +98,11 @@ class Adapter(abc.ABC):
             vector.
         """
         return await run_in_executor(
-            None, self.similarity_search_with_embedding, query, k, filter, **kwargs
+            None, self.search_with_embedding, query, k, filter, **kwargs
         )
 
     @abc.abstractmethod
-    def similarity_search_with_embedding_by_vector(
+    def search(
         self,
         embedding: list[float],
         k: int = 4,
@@ -130,7 +130,7 @@ class Adapter(abc.ABC):
         """
         ...
 
-    async def asimilarity_search_with_embedding_by_vector(
+    async def asearch(
         self,
         embedding: list[float],
         k: int = 4,
@@ -158,7 +158,7 @@ class Adapter(abc.ABC):
         """
         return await run_in_executor(
             None,
-            self.similarity_search_with_embedding_by_vector,
+            self.search,
             embedding,
             k,
             filter,
@@ -238,7 +238,7 @@ class Adapter(abc.ABC):
             **kwargs,
         )
 
-    def get_adjacent(
+    def adjacent(
         self,
         edges: set[Edge],
         query_embedding: list[float],
@@ -277,10 +277,10 @@ class Adapter(abc.ABC):
         ids = []
         for edge in edges:
             if isinstance(edge, MetadataEdge):
-                docs = self.similarity_search_with_embedding_by_vector(
+                docs = self.search(
                     embedding=query_embedding,
                     k=k,
-                    filter=self._get_metadata_filter(base_filter=filter, edge=edge),
+                    filter=self._metadata_filter(base_filter=filter, edge=edge),
                     **kwargs,
                 )
                 results.extend(docs)
@@ -298,7 +298,7 @@ class Adapter(abc.ABC):
             k=k,
         )
 
-    async def aget_adjacent(
+    async def aadjacent(
         self,
         edges: set[Edge],
         query_embedding: list[float],
@@ -337,10 +337,10 @@ class Adapter(abc.ABC):
         for edge in edges:
             if isinstance(edge, MetadataEdge):
                 tasks.append(
-                    self.asimilarity_search_with_embedding_by_vector(
+                    self.asearch(
                         embedding=query_embedding,
                         k=k,
-                        filter=self._get_metadata_filter(base_filter=filter, edge=edge),
+                        filter=self._metadata_filter(base_filter=filter, edge=edge),
                         **kwargs,
                     )
                 )
@@ -364,7 +364,7 @@ class Adapter(abc.ABC):
             k=k,
         )
 
-    def _get_metadata_filter(
+    def _metadata_filter(
         self,
         base_filter: dict[str, Any] | None = None,
         edge: Edge | None = None,
