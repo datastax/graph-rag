@@ -3,7 +3,7 @@ from collections.abc import Iterable
 try:
     # Try importing the function from itertools (Python 3.12+)
     from itertools import batched  # type: ignore[attr-defined]
-except ImportError: # pragma: no cover
+except ImportError:  # pragma: no cover
     from collections.abc import Iterator
     from itertools import islice
     from typing import TypeVar
