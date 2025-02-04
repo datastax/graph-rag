@@ -119,36 +119,24 @@ class OpenSearchAdapter(LangchainAdapter[OpenSearchVectorSearch]):
     def _get(
         self, ids: Sequence[str], filter: dict[str, Any] | None = None, **kwargs: Any
     ) -> list[Document]:
-        try:
-            from opensearchpy.exceptions import NotFoundError
-        except (ImportError, ModuleNotFoundError):
-            msg = "please `pip install opensearch-py`."
-            raise ImportError(msg)
-
-        query = {
-            "ids": { "values": ids }
-        }
+        query: dict[str, Any] = {"ids": {"values": ids}}
 
         if filter:
             query = {
-                "bool": {
-                    "must": [
-                        query,
-                        *self._build_filter(filter=filter)
-                    ]
-                }
+                "bool": {"must": [query, *(self._build_filter(filter=filter) or [])]}
             }
 
         response = self.vector_store.client.search(
-            body= {
+            body={
                 "query": query,
             },
             index=self.vector_store.index_name,
             _source_includes=["text", "metadata", "vector_field"],
-            **kwargs
+            **kwargs,
         )
 
-        return [Document(
+        return [
+            Document(
                 page_content=hit["_source"]["text"],
                 metadata={
                     METADATA_EMBEDDING_KEY: hit["_source"]["vector_field"],

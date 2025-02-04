@@ -106,7 +106,7 @@ class CassandraAdapter(DenormalizedAdapter[Cassandra]):
         filter = self.update_filter_hook(filter)
         docs: list[Document] = []
         for id in ids:
-            args = {"row_id": id}
+            args: dict[str, Any] = {"row_id": id}
             if filter:
                 args["metadata"] = filter
             row = self.vector_store.table.get(**args)
@@ -121,7 +121,7 @@ class CassandraAdapter(DenormalizedAdapter[Cassandra]):
         filter = self.update_filter_hook(filter)
         docs: list[Document] = []
         for id in ids:
-            args = {"row_id": id}
+            args: dict[str, Any] = {"row_id": id}
             if filter:
                 args["metadata"] = filter
             row = await self.vector_store.table.aget(**args)

@@ -246,7 +246,8 @@ class AdapterComplianceSuite(abc.ABC):
     """
 
     def skip_case(self, method: str, case_id: str) -> None:
-        """Override to skip a specific method or test case.
+        """
+        Override to skip a specific method or test case.
 
         Call `pytest.skip(reason)` if necessary with the reason to skip,
         or `pytest.xfail(reason)` if a failure is expected.
@@ -313,7 +314,9 @@ class AdapterComplianceSuite(abc.ABC):
         self, adapter: Adapter, similarity_search_case: SimilaritySearchCase
     ) -> None:
         """Run tests for `similarity_search_with_embedding_by_vector."""
-        self.skip_case("similarity_search_with_embedding_by_vector", similarity_search_case.id)
+        self.skip_case(
+            "similarity_search_with_embedding_by_vector", similarity_search_case.id
+        )
         embedding = adapter.embed_query(similarity_search_case.query)
         results = adapter.similarity_search_with_embedding_by_vector(
             embedding, **similarity_search_case.kwargs
@@ -324,7 +327,9 @@ class AdapterComplianceSuite(abc.ABC):
         self, adapter: Adapter, similarity_search_case: SimilaritySearchCase
     ) -> None:
         """Run tests for `asimilarity_search_with_embedding_by_vector."""
-        self.skip_case("asimilarity_search_with_embedding_by_vector", similarity_search_case.id)
+        self.skip_case(
+            "asimilarity_search_with_embedding_by_vector", similarity_search_case.id
+        )
         embedding = adapter.embed_query(similarity_search_case.query)
         results = await adapter.asimilarity_search_with_embedding_by_vector(
             embedding, **similarity_search_case.kwargs

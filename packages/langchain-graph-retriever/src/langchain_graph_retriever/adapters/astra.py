@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-from email import contentmanager
 import warnings
 from collections.abc import Iterable, Sequence
 from typing import Any, cast
@@ -219,11 +218,14 @@ class AstraAdapter(Adapter):
     ) -> list[Content]:
         helper = _QueryHelper(self.vector_store.document_codec, filter)
 
-        results = []
+        results: dict[str, Content] = {}
         for batch in batched(set(ids), 100):
             query = helper.create_ids_query(list(batch))
-            results.extend(self._execute_query(query=query))
-        return results
+
+            # TODO: Consider deduplicating before decoding?
+            for content in self._execute_query(query=query):
+                results.setdefault(content.id, content)
+        return list(results.values())
 
     @override
     async def aget(
@@ -236,9 +238,11 @@ class AstraAdapter(Adapter):
             query = helper.create_ids_query(list(batch))
             tasks.add(asyncio.create_task(self._aexecute_query(query=query)))
 
-        results = {}
+        results: dict[str, Content] = {}
         while tasks:
-            done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+            done, pending = await asyncio.wait(
+                tasks, return_when=asyncio.FIRST_COMPLETED
+            )
             tasks = pending
 
             # TODO: Consider deduplicating before decoding?
@@ -365,7 +369,7 @@ class AstraAdapter(Adapter):
         self,
         query: dict[str, Any] | None = None,
         limit: int | None = None,
-        sort: dict[str, Any] | None = None
+        sort: dict[str, Any] | None = None,
     ) -> list[Content]:
         astra_env = self.vector_store.astra_env
         astra_env.ensure_db_setup()
@@ -375,7 +379,7 @@ class AstraAdapter(Adapter):
             projection=self.vector_store.document_codec.full_projection,
             limit=limit,
             include_sort_vector=True,
-            sort=sort
+            sort=sort,
         )
 
         return [content for hit in hits if (content := self._decode_hit(hit))]

@@ -32,16 +32,16 @@ class InMemoryAdapter(LangchainAdapter[InMemoryVectorStore]):
     ) -> list[Document]:
         docs: list[Document] = []
 
-        filter_method=self._filter_method(filter)
+        filter_method = self._filter_method(filter)
         for doc_id in ids:
-            doc = self.vector_store.store.get(doc_id)
-            if doc:
-                metadata = doc["metadata"]
-                metadata[METADATA_EMBEDDING_KEY] = doc["vector"]
+            hit = self.vector_store.store.get(doc_id)
+            if hit:
+                metadata = hit["metadata"]
+                metadata[METADATA_EMBEDDING_KEY] = hit["vector"]
 
                 doc = Document(
-                    id=doc["id"],
-                    page_content=doc["text"],
+                    id=hit["id"],
+                    page_content=hit["text"],
                     metadata=metadata,
                 )
 

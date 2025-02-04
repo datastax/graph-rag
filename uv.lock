@@ -2354,7 +2354,6 @@ keybert = [
 ]
 opensearch = [
     { name = "langchain-community" },
-    { name = "opensearch-py" },
 ]
 spacy = [
     { name = "spacy" },
@@ -2394,7 +2393,6 @@ requires-dist = [
     { name = "langchain-community", marker = "extra == 'opensearch'", specifier = ">=0.3.14" },
     { name = "langchain-core", specifier = ">=0.3.29" },
     { name = "networkx", specifier = ">=3.4.2" },
-    { name = "opensearch-py", marker = "extra == 'opensearch'", specifier = ">=2.8.0" },
     { name = "pydantic", specifier = ">=2.10.4" },
     { name = "spacy", marker = "extra == 'spacy'", specifier = ">=3.8.4" },
     { name = "typing-extensions", specifier = ">=4.12.2" },

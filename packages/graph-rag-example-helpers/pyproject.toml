@@ -53,6 +53,7 @@ dependencies = [
 [tool.deptry.package_module_name_map]
 astrapy = "astrapy"
 backoff = "backoff"
+graph-retriever = "graph_retriever"
 httpx = "httpx"
 langchain-core = "langchain_core"
 mypy = "mypy"

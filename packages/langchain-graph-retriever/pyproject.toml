@@ -73,7 +73,6 @@ mypy = "mypy"
 networkx = "networkx"
 networkx-stubs = "networkx_stubs"
 numpy = "numpy"
-opensearch-py = "opensearchpy"
 pydantic = "pydantic"
 pytest = "pytest"
 pytest-asyncio = "pytest_asyncio"
@@ -116,7 +115,6 @@ keybert = [
 ]
 opensearch = [
    "langchain-community>=0.3.14",
-   "opensearch-py>=2.8.0",
 ]
 spacy = [
     "spacy>=3.8.4",
