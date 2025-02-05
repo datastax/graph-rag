@@ -33,7 +33,7 @@ def test_transform_documents(animal_docs: list[Document]):
     assert "third: is" in transformed_docs[0].metadata["spacey"]
 
     transformer = SpacyNERTransformer(
-        model=fake_model, metadata_key="spacey", include_labels=set("first")
+        model=fake_model, metadata_key="spacey", include_labels=set(["first"])
     )
     transformed_docs = transformer.transform_documents(animal_docs)
     assert "spacey" in transformed_docs[0].metadata
@@ -42,7 +42,7 @@ def test_transform_documents(animal_docs: list[Document]):
     assert "third: is" not in transformed_docs[0].metadata["spacey"]
 
     transformer = SpacyNERTransformer(
-        model=fake_model, metadata_key="spacey", exclude_labels=set("first")
+        model=fake_model, metadata_key="spacey", exclude_labels=set(["first"])
     )
     transformed_docs = transformer.transform_documents(animal_docs)
     assert "spacey" in transformed_docs[0].metadata

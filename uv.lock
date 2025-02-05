@@ -2174,9 +2174,6 @@ astra = [
     { name = "httpx" },
     { name = "langchain-astradb" },
 ]
-beautifulsoup4 = [
-    { name = "beautifulsoup4" },
-]
 cassandra = [
     { name = "cassio" },
     { name = "langchain-community" },
@@ -2187,6 +2184,9 @@ chroma = [
 ]
 gliner = [
     { name = "gliner" },
+]
+html = [
+    { name = "beautifulsoup4" },
 ]
 keybert = [
     { name = "keybert" },
@@ -2220,7 +2220,7 @@ dev = [
 requires-dist = [
     { name = "astrapy", marker = "extra == 'astra'", specifier = ">=1.5.2" },
     { name = "backoff", specifier = ">=2.2.1" },
-    { name = "beautifulsoup4", marker = "extra == 'beautifulsoup4'", specifier = ">=4.12.3" },
+    { name = "beautifulsoup4", marker = "extra == 'html'", specifier = ">=4.12.3" },
     { name = "cassio", marker = "extra == 'cassandra'", specifier = ">=0.1.10" },
     { name = "chromadb", marker = "extra == 'chroma'", specifier = ">=0.5.23" },
     { name = "gliner", marker = "extra == 'gliner'", specifier = "==0.2.13" },
