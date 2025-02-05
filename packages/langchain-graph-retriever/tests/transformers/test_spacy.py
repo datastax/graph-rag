@@ -1,28 +1,29 @@
 import pytest
 from langchain_core.documents import Document
 from langchain_graph_retriever.transformers.spacy import SpacyNERTransformer
-from spacy.language import Language
-from spacy.tokens import Doc, Span
-from spacy.vocab import Vocab
 
 
-class FakeLanguage(Language):
-    def __init__(self):
-        pass
-
-    def __call__(self, text: str | Doc, **kwargs) -> Doc:
-        vocab = Vocab()
-        assert isinstance(text, str)
-        doc = Doc(vocab=vocab, words=text.split())
-        doc.ents = [
-            Span(doc, start=0, end=1, label="first"),
-            Span(doc, start=1, end=2, label="second"),
-            Span(doc, start=2, end=3, label="third"),
-        ]
-        return doc
-
-
+@pytest.mark.extra
 def test_transform_documents(animal_docs: list[Document]):
+    from spacy.language import Language
+    from spacy.tokens import Doc, Span
+    from spacy.vocab import Vocab
+
+    class FakeLanguage(Language):
+        def __init__(self):
+            pass
+
+        def __call__(self, text: str | Doc, **kwargs) -> Doc:
+            vocab = Vocab()
+            assert isinstance(text, str)
+            doc = Doc(vocab=vocab, words=text.split())
+            doc.ents = [
+                Span(doc, start=0, end=1, label="first"),
+                Span(doc, start=1, end=2, label="second"),
+                Span(doc, start=2, end=3, label="third"),
+            ]
+            return doc
+
     fake_model = FakeLanguage()
 
     transformer = SpacyNERTransformer(model=fake_model, metadata_key="spacey")

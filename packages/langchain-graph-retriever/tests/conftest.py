@@ -42,6 +42,25 @@ def pytest_addoption(parser: Parser):
         choices=TESTCONTAINER_STORES + ["none"],
         help="which stores to run testcontainers for (default: 'all')",
     )
+    parser.addoption(
+        "--runextras", action="store_true", default=False, help="run tests for extras"
+    )
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "extra: mark test as requiring an `extra` package"
+    )
+
+
+def pytest_collection_modifyitems(config, items):
+    if config.getoption("--runextras"):
+        # --runextras given in cli: do not skip extras
+        return
+    skip_extras = pytest.mark.skip(reason="need --runextras option to run")
+    for item in items:
+        if "extra" in item.keywords:
+            item.add_marker(skip_extras)
 
 
 @pytest.fixture(scope="session")

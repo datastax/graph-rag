@@ -69,8 +69,14 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install Python dependencies
+      - name: (non-3.13) Install Python dependencies (including all extras)
+        if: ${{ success() && matrix.python-version != '3.13' }}
         run: uv sync --frozen --all-packages --all-extras
+        shell: bash
+
+      - name: (3.13 only) Install Python dependencies (without extras)
+        if: ${{ success() && matrix.python-version == '3.13' }}
+        run: uv sync --frozen --all-packages
         shell: bash
 
       - name: Test graph-retriever
@@ -78,20 +84,25 @@ jobs:
           uv run coverage run -m pytest -vs packages/graph-retriever
               --junitxml=junit/test-results-gr-${{ matrix.python-version }}.xml
 
-      - name: (non-3.12) Test langchain-graph-retriever (In-Memory Stores)
-        if: ${{ success() && matrix.python-version != '3.12' }}
-        run: uv run pytest -vs packages/langchain-graph-retriever
+      - name: (3.10, 3.11) Test langchain-graph-retriever (In-Memory Stores) with extras
+        if: ${{ success() && matrix.python-version == '3.10' || matrix.python-version == '3.11' }}
+        run: uv run pytest -vs --runextras packages/langchain-graph-retriever
                 --junitxml=junit/test-results-lgr-${{ matrix.python-version }}.xml
 
-      - name: (3.12 only) Test langchain-graph-retriever (All Stores)
+      - name: (3.12) Test langchain-graph-retriever (All Stores) with extras
         if: ${{ success() && matrix.python-version == '3.12' }}
         id: test
-        run: uv run coverage run -a -m pytest -vs packages/langchain-graph-retriever --stores=all
+        run: uv run coverage run -a -m pytest -vs --runextras packages/langchain-graph-retriever --stores=all
                 --junitxml=junit/test-results-lgr-${{ matrix.python-version }}.xml
         env:
           ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
           ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
           ASTRA_DB_KEYSPACE: ci_${{ github.run_id }}_${{ strategy.job-index }}_${{ github.run_attempt }}
+
+      - name: (3.13) Test langchain-graph-retriever (In-Memory Stores) without extras
+        if: ${{ success() && matrix.python-version == '3.13' }}
+        run: uv run pytest -vs packages/langchain-graph-retriever
+                --junitxml=junit/test-results-lgr-${{ matrix.python-version }}.xml
 
       - name: Drop Astra Keyspace
         # Even though it seems redundant, the `always() &&` is necessary to signal to

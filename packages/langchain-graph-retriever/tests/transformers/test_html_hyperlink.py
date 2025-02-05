@@ -26,6 +26,7 @@ test_html = """
 """
 
 
+@pytest.mark.extra
 def test_transform_documents():
     doc = Document(
         id="animal_html",
