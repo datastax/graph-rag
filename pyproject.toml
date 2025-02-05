@@ -70,6 +70,7 @@ docs = [
     "mkdocstrings[python]>=0.28.0",
     "pip>=25.0",
     "mkdocs-table-reader-plugin>=3.1.0",
+    "ruff>=0.9.4",
 ]
 
 [tool.coverage.report]
@@ -167,20 +168,18 @@ sequence = [
     {cmd = "uv build --all-packages"},
 ]
 
-[tool.poe.tasks.docs-preview]
+[tool.poe.tasks.docs-serve]
 help = "Starts a live preview of the docs site"
 sequence = [
     {cmd = "uv sync --all-packages --group=docs"},
-    # Make strict
     {cmd = "uv run mkdocs serve -o"},
 ]
 
-[tool.poe.tasks.docs-buld]
+[tool.poe.tasks.docs-build]
 help = "Build the docs"
 sequence = [
     {cmd = "uv sync --all-packages --group=docs"},
-    # TODO: Make this `--strict`
-    {cmd = "uv run mkdocs build"},
+    {cmd = "uv run mkdocs build --strict"},
 ]
 
 [tool.poe.tasks.coverage]

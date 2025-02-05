@@ -199,11 +199,6 @@ jobs:
       - name: Set up the environment
         uses: ./.github/actions/setup-python-env
 
-      # mkdocstrings uses `ruff` to format generated signatures.
-      # It doesn't find the version installed by `uv`
-      - name: Install ruff
-        uses: astral-sh/ruff-action@v3
-
       - name: Sync Docs Dependencies
         run: uv sync --all-packages --group=docs --all-extras
 
