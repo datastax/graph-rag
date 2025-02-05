@@ -3,7 +3,8 @@ site_url: https://datastax.github.io/graph-rag
 repo_url: https://github.com/datastax/graph-rag
 edit_uri: edit/main/docs/
 site_description:
-
+extra_css:
+  - styles.css
 extra:
   analytics:
     provider: google
@@ -13,6 +14,8 @@ plugins:
 # Default social cards (see below to override)
 # https://squidfunk.github.io/mkdocs-material/setup/setting-up-social-cards/
 - social
+- search
+- blog
 - mkdocs-jupyter:
     remove_tag_config:
       remove_input_tags: ["hide_code"]
@@ -33,7 +36,7 @@ plugins:
           docstring_style: numpy
           merge_init_into_class: true
           show_symbol_type_toc: true
-          show_root_full_path: true
+          show_root_toc_entry: false
           separate_signature: true
           show_signature_annotations: true
           signature_crossrefs: true
@@ -48,17 +51,35 @@ plugins:
         - packages/graph-retriever/src/
         - packages/langchain-graph-retriever/src/
         - packages/graph-rag-example-helpers/src/
-- search
-- blog
 
 markdown_extensions:
+  - admonition
+  - tables
+  - attr_list
+  - def_list
   - toc:
       title: On this page
       permalink: true
-  - attr_list
+  - md_in_html
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.tabbed:
+      alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
 
 theme:
   name: material
+  custom_dir: overrides
   features:
     - navigation.indexes
     - navigation.instant
@@ -70,11 +91,18 @@ theme:
     - toc.follow
     - search.suggest
     - search.highlight
+    - content.code.annotate
+    - content.code.copy
+    - content.tooltips
+    - content.tabs.link
 
 nav:
     - Home: index.md
     - Get Started:
         - get-started/index.md
+        - get-started/traversal.md
+        - get-started/edges.md
+        - get-started/strategies.md
         - get-started/adapters.md
     - Examples:
         - examples/index.md
@@ -90,6 +118,7 @@ nav:
         - langchain-graph-retriever:
             - reference/langchain_graph_retriever/index.md
             - reference/langchain_graph_retriever/adapters.md
+            - reference/langchain_graph_retriever/transformers.md
         - graph-rag-example-helpers:
             - reference/graph_rag_example_helpers/index.md
     - Blog:

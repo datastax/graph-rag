@@ -8,9 +8,8 @@ We assume you already have a working `langchain` installation, including an LLM 
 
 In that case, you only need to install `langchain-graph-retriever`:
 
-```{python}
-#| eval: False
-%pip install langchain langchain-graph-retriever
+```bash
+pip install langchain langchain-graph-retriever
 ```
 
 ## Preparing Data
@@ -51,59 +50,160 @@ For this guide, I have a JSON file with information about animals. Several examp
         "habitat": "rainforest"
     }
 }
-```
 
-```{python}
-import json
-from langchain_core.documents import Document
-animals = []
-with open("../../data/animals.jsonl", "r") as file:
-    for line in file:
-        data = json.loads(line.strip())
-        animals.append(Document(
-            id=data["id"],
-            page_content=data["text"],
-            metadata=data["metadata"],
-        ))
+```python title="Fetching Animal Data"
+from graph_rag_example_helpers.datasets.animals import fetch_documents
+animals = fetch_documents()
 ```
 
 ## Populating the Vector Store
 
-```{python}
-from dotenv import load_dotenv
-from langchain_astradb import AstraDBVectorStore
-from langchain_openai import OpenAIEmbeddings
+The following shows how to populate a variety of vector stores with the animal data.
 
-load_dotenv()
-vector_store = AstraDBVectorStore.from_documents(
-    collection_name="animals",
-    documents=animals,
-    embedding=OpenAIEmbeddings(),
-)
-```
+=== "Astra"
+
+    ```python
+    from dotenv import load_dotenv
+    from langchain_astradb import AstraDBVectorStore
+    from langchain_openai import OpenAIEmbeddings
+
+    load_dotenv()
+    vector_store = AstraDBVectorStore.from_documents(
+        collection_name="animals",
+        documents=animals,
+        embedding=OpenAIEmbeddings(),
+    )
+    ```
+
+=== "Apache Cassandra"
+
+    ```python
+    from langchain_community.vectorstores.cassandra import Cassandra
+    from langchain_openai import OpenAIEmbeddings
+    from langchain_graph_retriever.transformers.metadata_denormalizer import (
+        MetadataDenormalizer,
+    )
+
+    metadata_denormalizer = MetadataDenormalizer() # (1)!
+    vector_store = Cassandra.from_documents(
+        documents=list(metadata_denormalizer.transform_documents(animals)),
+        embedding=OpenAIEmbeddings(),
+        table_name="animals",
+    )
+    ```
+
+    1. Since Cassandra doesn't index items in lists for querying, it is necessary to
+    denormalize metadata containing list to be queried. By default, the
+    [MetadataDenormalizer][langchain_graph_retriever.transformers.metadata_denormalizer.MetadataDenormalizer]
+    denormalizes all keys. It may be configured to only denormalize those
+    metadata keys used as edge targets.
+
+=== "OpenSearch"
+
+    ```python
+    from langchain_community.vectorstores import OpenSearchVectorSearch
+    from langchain_openai import OpenAIEmbeddings
+
+    vector_store = OpenSearchVectorSearch.from_documents(
+        opensearch_url=OPEN_SEARCH_URL,
+        index_name="animals",
+        embedding_function=OpenAIEmbeddings(),
+        engine="faiss",
+        documents=animals,
+    )
+    ```
+
+=== "Chroma"
+
+    ```python
+    from langchain_chroma.vectorstores import Chroma
+    from langchain_openai import OpenAIEmbeddings
+    from langchain_graph_retriever.transformers.metadata_denormalizer import (
+        MetadataDenormalizer,
+    )
+
+    metadata_denormalizer = MetadataDenormalizer() # (1)!
+    vector_store = Chroma.from_documents(
+        documents=list(metadata_denormalizer.transform_documents(animals)),
+        embedding=OpenAIEmbeddings(),
+        collection_name_name="animals",
+    )
+    ```
+
+    1. Since Chroma doesn't index items in lists for querying, it is necessary to
+    denormalize metadata containing list to be queried. By default, the
+    [MetadataDenormalizer][langchain_graph_retriever.transformers.metadata_denormalizer.MetadataDenormalizer]
+    denormalizes all keys. It may be configured to only denormalize those
+    metadata keys used as edge targets.
 
 ## Simple Traversal
 
 For our first retrieval and graph traversal, we're going to start with a single animal best matching the query, and then traverse to other animals with the same `habitat` and/or `origin`.
 
-```{python}
-from graph_retriever.strategies import Eager
-from langchain_graph_retriever import GraphRetriever
+=== "Astra"
 
-simple = GraphRetriever(
-    # Adapt AstraDBVectorStore for use with Graph Retrievers.
-    store = vector_store,
-    # Define the relationships to navigate:
-    edges = [("habitat", "habitat"), ("origin", "origin")],
-    strategy = Eager(k=10, start_k=1, depth=2),
-)
-```
+    ```python
+    from graph_retriever.strategies import Eager
+    from langchain_graph_retriever import GraphRetriever
+
+    simple = GraphRetriever(
+        store = vector_store,
+        edges = [("habitat", "habitat"), ("origin", "origin"), ("keywords", "keywords")],
+        strategy = Eager(k=10, start_k=1, depth=2),
+    )
+    ```
+
+=== "Apache Cassandra"
+
+    ```python
+    from graph_retriever.strategies import Eager
+    from langchain_graph_retriever import GraphRetriever
+    from langchain_graph_retriever.adapters.cassandra import CassandraAdapter
+
+    simple = GraphRetriever(
+        store = store = CassandraAdapter(vector_store, metadata_denormalizer, {"keywords"}),,
+        edges = [("habitat", "habitat"), ("origin", "origin"), ("keywords", "keywords")],
+        strategy = Eager(k=10, start_k=1, depth=2),
+    )
+    ```
+
+=== "OpenSearch"
+
+    ```python
+    from graph_retriever.strategies import Eager
+    from langchain_graph_retriever import GraphRetriever
+
+    simple = GraphRetriever(
+        store = vector_store,
+        edges = [("habitat", "habitat"), ("origin", "origin"), ("keywords", "keywords")],
+        strategy = Eager(k=10, start_k=1, depth=2),
+    )
+    ```
+
+
+=== "Chroma"
+
+    ```python
+    from graph_retriever.strategies import Eager
+    from langchain_graph_retriever import GraphRetriever
+    from langchain_graph_retriever.adapters.chroma import ChromaAdapter
+
+    simple = GraphRetriever(
+        store = ChromaAdapter(vector_store, metadata_denormalizer, {"keywords"}),
+        edges = [("habitat", "habitat"), ("origin", "origin"), ("keywords", "keywords")],
+        strategy = Eager(k=10, start_k=1, depth=2),
+    )
+    ```
+
+!!! note "Denormalization"
+
+    The above code is exactly the same for all stores, however adapters for denormalized stores (Chroma and Apache Cassandra) require configuration to specify which metadata fields need to be rewritten when issuing queries.
 
 The above creates a graph traversing retriever that starts with the nearest animal (`start_k=1`), retrieves 10 documents (`k=10`) and limits the search to documents that are at most 2 steps away from the first animal (`depth=2`).
 
 The edges define how metadata values can be used for traversal. In this case, every animal is connected to other animals with the same habitat and/or same origin.
 
-```{python}
+```python
 simple_results = simple.invoke("what mammals could be found near a capybara")
 
 for doc in simple_results:
@@ -115,10 +215,7 @@ for doc in simple_results:
 `langchain-graph-retrievers` includes code for converting the document graph into a `networkx` graph, for rendering and other analysis.
 See @fig-document-graph
 
-```{python}
-#| code-fold: True
-#| label: fig-document-graph
-#| fig-cap: "Graph of retrieved documents"
+```python title="Graph retrieved documents"
 import networkx as nx
 import matplotlib.pyplot as plt
 from langchain_graph_retriever.document_graph import create_graph

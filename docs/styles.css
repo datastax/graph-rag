@@ -1,0 +1,9 @@
+.grid.two {
+    grid-template-columns: 1fr 1fr;
+}
+.yellow {
+    color: #EED202;
+}
+.green {
+    color: #228B22;
+}

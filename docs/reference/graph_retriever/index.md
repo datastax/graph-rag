@@ -1,3 +1,8 @@
+---
+toc:
+    title: graph_retriever
+---
+
 # graph_retriever
 
 ::: graph_retriever
