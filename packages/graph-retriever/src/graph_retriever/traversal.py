@@ -1,5 +1,6 @@
 """Implements the traversal logic for graph-based document retrieval."""
 
+import copy
 from collections.abc import Iterable, Sequence
 from typing import Any
 
@@ -52,7 +53,7 @@ def traverse(
     traversal = _Traversal(
         query=query,
         edges=edges,
-        strategy=strategy.model_copy(deep=True),
+        strategy=copy.deepcopy(strategy),
         store=store,
         metadata_filter=metadata_filter,
         initial_root_ids=initial_root_ids,
@@ -103,7 +104,7 @@ async def atraverse(
     traversal = _Traversal(
         query=query,
         edges=edges,
-        strategy=strategy.model_copy(deep=True),
+        strategy=copy.deepcopy(strategy),
         store=store,
         metadata_filter=metadata_filter,
         initial_root_ids=initial_root_ids,

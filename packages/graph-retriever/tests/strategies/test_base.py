@@ -1,3 +1,5 @@
+import dataclasses
+
 import pytest
 from graph_retriever.strategies import (
     Eager,
@@ -18,7 +20,9 @@ def test_build_strategy_base():
     assert strategy == Eager(k=7, start_k=5, adjacent_k=9, max_depth=2)
 
     # base strategy with invalid kwarg
-    with pytest.warns(UserWarning, match=r"Unsupported key\(s\) 'invalid_kwarg' set."):
+    with pytest.raises(
+        TypeError, match=r"got an unexpected keyword argument 'invalid_kwarg'"
+    ):
         strategy = Strategy.build(base_strategy=base_strategy, invalid_kwarg=4)
         assert strategy == base_strategy
 
@@ -31,7 +35,7 @@ def test_build_strategy_base_override():
     strategy = Strategy.build(
         base_strategy=base_strategy, strategy=override_strategy, k=4
     )
-    assert strategy == override_strategy.model_copy(update={"k": 4})
+    assert strategy == dataclasses.replace(override_strategy, k=4)
 
     # override base strategy and change params
     strategy = Strategy.build(
@@ -40,14 +44,15 @@ def test_build_strategy_base_override():
     assert strategy == Eager(k=3, start_k=4, adjacent_k=7, max_depth=3)
 
     # override base strategy and invalid kwarg
-    with pytest.warns(UserWarning, match=r"Unsupported key\(s\) 'invalid_kwarg' set."):
+    with pytest.raises(
+        TypeError, match=r"got an unexpected keyword argument 'invalid_kwarg'"
+    ):
         strategy = Strategy.build(
             base_strategy=base_strategy,
             strategy=override_strategy,
             k=4,
             invalid_kwarg=4,
         )
-        assert strategy == override_strategy.model_copy(update={"k": 4})
 
     # attempt override base strategy with dict
     with pytest.raises(ValueError, match="Unsupported 'strategy'"):
@@ -62,7 +67,9 @@ def test_build_strategy_base_override_mmr():
     override_strategy = Mmr(k=7, start_k=4, adjacent_k=8, max_depth=3, lambda_mult=0.3)
 
     # override base strategy with mmr kwarg
-    with pytest.warns(UserWarning, match=r"Unsupported key\(s\) 'lambda_mult' set."):
+    with pytest.raises(
+        TypeError, match="got an unexpected keyword argument 'lambda_mult'"
+    ):
         strategy = Strategy.build(base_strategy=base_strategy, lambda_mult=0.2)
         assert strategy == base_strategy
 
@@ -70,7 +77,7 @@ def test_build_strategy_base_override_mmr():
     strategy = Strategy.build(
         base_strategy=base_strategy, strategy=override_strategy, k=4
     )
-    assert strategy == override_strategy.model_copy(update={"k": 4})
+    assert strategy == dataclasses.replace(override_strategy, k=4)
 
     # override base strategy with mmr strategy and mmr arg
     strategy = Strategy.build(
@@ -79,7 +86,9 @@ def test_build_strategy_base_override_mmr():
     assert strategy == Mmr(k=4, start_k=4, adjacent_k=8, max_depth=3, lambda_mult=0.2)
 
     # start with override strategy, change to base, try to set mmr arg
-    with pytest.warns(UserWarning, match=r"Unsupported key\(s\) 'lambda_mult' set."):
+    with pytest.raises(
+        TypeError, match="got an unexpected keyword argument 'lambda_mult'"
+    ):
         Strategy.build(
             base_strategy=override_strategy, strategy=base_strategy, lambda_mult=0.2
         )

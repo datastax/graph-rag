@@ -3,16 +3,15 @@
 from __future__ import annotations
 
 import abc
-import warnings
+import dataclasses
 from collections.abc import Iterable
 from typing import Any
-
-from pydantic import BaseModel
 
 from graph_retriever.types import Node
 
 
-class Strategy(BaseModel, abc.ABC):
+@dataclasses.dataclass(kw_only=True)
+class Strategy(abc.ABC):
     """
     Interface for configuring node selection and traversal strategies.
 
@@ -50,7 +49,7 @@ class Strategy(BaseModel, abc.ABC):
     adjacent_k: int = 10
     max_depth: int | None = None
 
-    _query_embedding: list[float] = []
+    _query_embedding: list[float] = dataclasses.field(default_factory=list)
 
     @abc.abstractmethod
     def discover_nodes(self, nodes: dict[str, Node]) -> None:
@@ -149,42 +148,8 @@ class Strategy(BaseModel, abc.ABC):
         else:
             raise ValueError("'strategy' must be set in `__init__` or invocation")
 
-        # Warn if any of the kwargs don't exist in the strategy.
-        # Note: We could rely on Pydantic with forbidden extra arguments to
-        # handle this, however the experience isn't as nice (Validation error
-        # rather than warning, no indication of which field, etc.).
-        assert strategy is not None
-        invalid_keys = _invalid_keys(strategy, kwargs)
-        if invalid_keys is not None:
-            warnings.warn(f"Unsupported key(s) {invalid_keys} set.")
-
         # Apply the kwargs to update the strategy.
-        # This uses `model_validate` rather than `model_copy`` to re-apply validation.
-        strategy = strategy.model_validate(
-            {**strategy.model_dump(), **kwargs},
-        )
+        assert strategy is not None
+        strategy = dataclasses.replace(strategy, **kwargs)
 
         return strategy
-
-
-def _invalid_keys(model: BaseModel, dict: dict[str, Any]) -> str | None:
-    """
-    Identify invalid keys in the given dictionary for a Pydantic model.
-
-    Parameters
-    ----------
-    model : BaseModel
-        The Pydantic model to validate against.
-    dict : dict[str, Any]
-        The dictionary to check.
-
-    Returns
-    -------
-    :
-        A comma-separated string of invalid keys, if any.
-    """
-    invalid_keys = set(dict.keys()) - set(model.model_fields.keys())
-    if invalid_keys:
-        return ", ".join([f"'{k}'" for k in invalid_keys])
-    else:
-        return None

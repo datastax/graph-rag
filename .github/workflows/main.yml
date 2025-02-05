@@ -166,7 +166,7 @@ jobs:
         run: uv sync --all-packages --group=docs --all-extras
 
       - name: Check if documentation can be built
-        run: uv run mkdocs build
+        run: uv run mkdocs build --strict
         id: build
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

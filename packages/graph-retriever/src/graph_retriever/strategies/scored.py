@@ -1,8 +1,7 @@
+import dataclasses
 import heapq
 from collections.abc import Callable, Iterable
-from typing import Annotated
 
-from pydantic import WithJsonSchema
 from typing_extensions import override
 
 from graph_retriever.strategies.base import Strategy
@@ -18,16 +17,14 @@ class _ScoredNode:
         return other.score < self.score
 
 
+@dataclasses.dataclass
 class Scored(Strategy):
     """Strategy selecing nodes using a scoring function."""
 
-    scorer: Annotated[
-        Callable[[Node], float],
-        WithJsonSchema({"type": "callable", "examples": [1, 0, -1]}),
-    ]
-    per_iteration_limit: int | None = None
+    scorer: Callable[[Node], float]
+    _nodes: list[_ScoredNode] = dataclasses.field(default_factory=list)
 
-    _nodes: list[_ScoredNode] = []
+    per_iteration_limit: int | None = None
 
     @override
     def discover_nodes(self, nodes: dict[str, Node]) -> None:

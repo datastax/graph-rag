@@ -1,5 +1,6 @@
 """Provides a graph-based retriever combining vector search and graph traversal."""
 
+import dataclasses
 from collections.abc import Sequence
 from functools import cached_property
 from typing import (
@@ -31,19 +32,6 @@ class GraphRetriever(BaseRetriever):
     supports multiple traversal strategies and integrates seamlessly with
     LangChain's retriever framework.
 
-    Parameters
-    ----------
-    store : Adapter | VectorStore
-        The adapter or vector store used for document retrieval.
-    edges : list[EdgeSpec] | EdgeFunction, default []
-        A list of [EdgeSpec][graph_retriever.edges.EdgeSpec] for use in creating a
-        [MetadataEdgeFunction][graph_retriever.edges.MetadataEdgeFunction],
-        or an [EdgeFunction][graph_retriever.edges.EdgeFunction].
-    strategy : Strategy, default Eager
-        The traversal strategy to use.
-        Defaults to an [Eager][graph_retriever.strategies.Eager] (breadth-first)
-        strategy which explores the top `adjacent_k` for each edge.
-
     Attributes
     ----------
     store : Adapter | VectorStore
@@ -54,8 +42,6 @@ class GraphRetriever(BaseRetriever):
         or an [EdgeFunction][graph_retriever.edges.EdgeFunction].
     strategy : Strategy
         The traversal strategy to use.
-    adapter: Adapter
-        The adapter to use during traversals
     """
 
     store: Adapter | VectorStore
@@ -81,9 +67,7 @@ class GraphRetriever(BaseRetriever):
             The updated GraphRetriever instance.
         """
         if self.model_extra:
-            self.strategy = self.strategy.model_validate(
-                {**self.strategy.model_dump(), **self.model_extra}
-            )
+            self.strategy = dataclasses.replace(self.strategy, **self.model_extra)
             self.model_extra.clear()
         return self
 

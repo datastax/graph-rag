@@ -6,7 +6,6 @@ from functools import cached_property
 
 import numpy as np
 from numpy.typing import NDArray
-from pydantic import Field
 from typing_extensions import override
 
 from graph_retriever.strategies.base import Strategy
@@ -40,6 +39,7 @@ class _MmrCandidate:
             self.score = self.weighted_similarity - self.weighted_redundancy
 
 
+@dataclasses.dataclass
 class Mmr(Strategy):
     """
     Maximal Marginal Relevance (MMR) traversal strategy.
@@ -88,16 +88,16 @@ class Mmr(Strategy):
         selected.
     """
 
-    lambda_mult: float = Field(default=0.5, ge=0.0, le=1.0)
+    lambda_mult: float = 0.5
     score_threshold: float = NEG_INF
 
-    _selected_ids: list[str] = []
+    _selected_ids: list[str] = dataclasses.field(default_factory=list)
     """List of selected IDs (in selection order)."""
 
-    _candidate_id_to_index: dict[str, int] = {}
+    _candidate_id_to_index: dict[str, int] = dataclasses.field(default_factory=dict)
     """Dictionary of candidate IDs to indices in candidates and candidate_embeddings."""
 
-    _candidates: list[_MmrCandidate] = []
+    _candidates: list[_MmrCandidate] = dataclasses.field(default_factory=list)
     """List containing information about candidates.
     Same order as rows in `candidate_embeddings`.
     """

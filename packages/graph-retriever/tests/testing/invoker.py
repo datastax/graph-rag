@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import abc
+import dataclasses
 from collections.abc import Callable, Sequence
 from typing import Any, Generic, TypeVar
 
@@ -79,7 +80,7 @@ class TraversalCall(Generic[T]):
         **kwargs: Any,
     ) -> T:
         strategy = _pick("strategy", strategy, self.strategy)
-        strategy = strategy.model_copy(update=kwargs)
+        strategy = dataclasses.replace(strategy, **kwargs)
 
         results = await self.sync_or_async._traverse(
             query=_pick("query", query, self.query),

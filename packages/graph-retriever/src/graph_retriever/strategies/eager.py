@@ -1,5 +1,6 @@
 """Provide eager (breadth-first) traversal strategy."""
 
+import dataclasses
 from collections.abc import Iterable
 
 from typing_extensions import override
@@ -8,6 +9,7 @@ from graph_retriever.strategies.base import Strategy
 from graph_retriever.types import Node
 
 
+@dataclasses.dataclass
 class Eager(Strategy):
     """
     Eager traversal strategy (breadth-first).
@@ -42,7 +44,7 @@ class Eager(Strategy):
         Maximum traversal depth. If `None`, there is no limit.
     """
 
-    _nodes: list[Node] = []
+    _nodes: list[Node] = dataclasses.field(default_factory=list)
 
     @override
     def discover_nodes(self, nodes: dict[str, Node]) -> None:

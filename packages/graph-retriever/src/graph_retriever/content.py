@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+import dataclasses
 from collections.abc import Callable
 from typing import Any
 
-from pydantic import BaseModel
 
-
-class Content(BaseModel):
+@dataclasses.dataclass
+class Content:
     """
     Model representing retrieved content.
 
@@ -30,7 +30,7 @@ class Content(BaseModel):
     id: str
     content: str
     embedding: list[float]
-    metadata: dict[str, Any] = {}
+    metadata: dict[str, Any] = dataclasses.field(default_factory=dict)
 
     mime_type: str = "text/plain"
     score: float | None = None
@@ -41,7 +41,7 @@ class Content(BaseModel):
         content: str,
         embedding: list[float] | Callable[[str], list[float]],
         score: float | None = None,
-        metadata: dict[str, Any] = {},
+        metadata: dict[str, Any] | None = None,
         mime_type: str = "text/plain",
     ) -> Content:
         """
@@ -73,6 +73,6 @@ class Content(BaseModel):
             content=content,
             embedding=embedding(content) if callable(embedding) else embedding,
             score=score,
-            metadata=metadata,
+            metadata=metadata or {},
             mime_type=mime_type,
         )

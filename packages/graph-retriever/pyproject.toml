@@ -39,7 +39,6 @@ classifiers = [
 ]
 
 dependencies = [
-    "pydantic>=2.10.4",
     "numpy>=1.26.4",
     "typing-extensions>=4.12.2",
     "pytest[testing]>=8.3.4",
@@ -60,7 +59,6 @@ testing = [
 
 [tool.deptry.package_module_name_map]
 numpy = "numpy"
-pydantic = "pydantic"
 pytest = "pytest"
 simsimd = "simsimd"
 typing-extensions = "typing_extensions"
