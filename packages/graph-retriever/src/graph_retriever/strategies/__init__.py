@@ -1,5 +1,4 @@
-"""Strategies determine which nodes are selected during traversal.
-"""
+"""Strategies determine which nodes are selected during traversal."""
 
 from .base import Strategy
 from .eager import Eager

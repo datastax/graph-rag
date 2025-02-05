@@ -1,4 +1,5 @@
-"""Package containing useful Document Transformers.
+"""
+Package containing useful Document Transformers.
 
 Many of these add metadata that could be useful for linking content, such as
 extracting named entities or keywords from the page content.
