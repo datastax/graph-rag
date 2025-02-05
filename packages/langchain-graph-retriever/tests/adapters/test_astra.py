@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+import time
 
 import pytest
 from graph_retriever.testing.adapter_tests import AdapterComplianceSuite
@@ -136,6 +137,22 @@ class TestAstraAdapter(AdapterComplianceSuite):
 
         admin = AstraDBDatabaseAdmin(api_endpoint=api_endpoint, token=token)
         admin.create_keyspace(keyspace)
+
+        # Sometimes the creation of the store fails because the keyspace isn't
+        # created yet. To avoid that, poll the list of keyspaces until we
+        # confirm it is created.
+        found = False
+        t_end = time.time() + 5 # run 5 seconds
+        while time.time() < t_end:
+            keyspaces = admin.list_keyspaces()
+            if keyspace in keyspaces:
+                found = True
+                break
+
+            print(f"Waiting for keyspace '{keyspace}'...")
+            time.sleep(0.01)
+
+        assert found, f"Keyspace '{keyspace}' not created"
 
         store = AstraDBVectorStore(
             embedding=animal_embeddings,
