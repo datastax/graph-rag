@@ -30,18 +30,6 @@ class Eager(Strategy):
         Number of documents to fetch for each outgoing edge.
     max_depth : int, optional
         Maximum traversal depth. If `None`, there is no limit.
-
-    Attributes
-    ----------
-    k : int
-        Maximum number of nodes to retrieve during traversal.
-    start_k : int
-        Number of documents to fetch via similarity for starting the traversal.
-        Added to any initial roots provided to the traversal.
-    adjacent_k : int
-        Number of documents to fetch for each outgoing edge.
-    max_depth : int
-        Maximum traversal depth. If `None`, there is no limit.
     """
 
     _nodes: list[Node] = dataclasses.field(default_factory=list)

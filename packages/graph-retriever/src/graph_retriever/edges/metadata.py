@@ -55,12 +55,6 @@ class MetadataEdgeFunction:
         Definitions of edges for traversal, represented as a pair of fields
         representing the source and target of the edges.
 
-    Attributes
-    ----------
-    edges : list[EdgeSpec]
-        Definitions of edges for traversal, represented as a pair of fields
-        representing the source and target of the edges.
-
     Raises
     ------
     ValueError
