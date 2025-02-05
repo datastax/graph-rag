@@ -64,13 +64,13 @@ class Mmr(Strategy):
         Controls the trade-off between relevance and diversity. A value closer
         to 1 prioritizes relevance, while a value closer to 0 prioritizes
         diversity. Must be between 0 and 1 (inclusive).
-    score_threshold : float, default -infinity
+    min_mmr_score : float, default -infinity
         Only nodes with a score greater than or equal to this value will be
         selected.
     """
 
     lambda_mult: float = 0.5
-    score_threshold: float = NEG_INF
+    min_mmr_score: float = NEG_INF
 
     _selected_ids: list[str] = dataclasses.field(default_factory=list)
     """List of selected IDs (in selection order)."""
@@ -216,7 +216,7 @@ class Mmr(Strategy):
         """
         if limit == 0:
             return []
-        if self._best_id is None or self._best_score < self.score_threshold:
+        if self._best_id is None or self._best_score < self.min_mmr_score:
             return []
 
         # Get the selection and remove from candidates.

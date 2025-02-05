@@ -124,7 +124,7 @@ async def test_angular(sync_or_async: SyncOrAsync):
     assert await traversal(start_k=3, max_depth=0) == ["v0", "v2"]
 
     # v0 score is .46, v2 score is 0.16 so it won't be chosen.
-    assert await traversal(score_threshold=0.2) == ["v0"]
+    assert await traversal(min_mmr_score=0.2) == ["v0"]
 
     # with k=4 we should get all of the documents.
     assert await traversal(k=4) == ["v0", "v1", "v2", "v3"]

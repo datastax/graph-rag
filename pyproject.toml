@@ -91,9 +91,9 @@ verbosity = -1
 RUFF = "ruff@0.9.4"
 DEPTRY = "deptry@0.22.0"
 
-[tool.poe.tasks.install-deps]
+[tool.poe.tasks.sync]
 help = "Install dependencies from all packages and all extras"
-cmd = "uv sync --all-packages --all-extras"
+cmd = "uv sync --group=docs --all-packages --all-extras"
 
 [tool.poe.tasks.lock-check]
 help = "Runs `uv lock --locked` to check uv.lock file consistency (fix with `lock-fix`)"
@@ -164,21 +164,21 @@ sequence = [
 [tool.poe.tasks.build]
 help = "Builds all the packages"
 sequence = [
-    "install-deps",
+    "sync",
     {cmd = "uv build --all-packages"},
 ]
 
 [tool.poe.tasks.docs-serve]
 help = "Starts a live preview of the docs site"
 sequence = [
-    {cmd = "uv sync --all-packages --group=docs"},
+    "sync",
     {cmd = "uv run mkdocs serve -o"},
 ]
 
 [tool.poe.tasks.docs-build]
 help = "Build the docs"
 sequence = [
-    {cmd = "uv sync --all-packages --group=docs"},
+    "sync",
     {cmd = "uv run mkdocs build --strict"},
 ]
 
