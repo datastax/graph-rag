@@ -1,5 +1,5 @@
-from collections.abc import Iterator
 import time
+from collections.abc import Iterator
 
 import pytest
 from graph_retriever.testing.adapter_tests import AdapterComplianceSuite
@@ -142,14 +142,14 @@ class TestAstraAdapter(AdapterComplianceSuite):
         # created yet. To avoid that, poll the list of keyspaces until we
         # confirm it is created.
         found = False
-        t_end = time.time() + 5 # run 5 seconds
+        t_end = time.time() + 5  # run 5 seconds
         while time.time() < t_end:
             keyspaces = admin.list_keyspaces()
             if keyspace in keyspaces:
                 found = True
                 break
 
-            print(f"Waiting for keyspace '{keyspace}'...")
+            print(f"Waiting for keyspace '{keyspace}'...")  # noqa: T201
             time.sleep(0.01)
 
         assert found, f"Keyspace '{keyspace}' not created"
