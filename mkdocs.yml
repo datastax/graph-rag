@@ -33,6 +33,7 @@ plugins:
           docstring_style: numpy
           merge_init_into_class: true
           show_symbol_type_toc: true
+          show_root_full_path: true
           separate_signature: true
           show_signature_annotations: true
           signature_crossrefs: true
@@ -59,7 +60,7 @@ markdown_extensions:
 theme:
   name: material
   features:
-    # - navigation.indexes
+    - navigation.indexes
     - navigation.instant
     - navigation.sections
     - navigation.tabs
@@ -67,7 +68,6 @@ theme:
     - navigation.tracking
     - navigation.path
     - toc.follow
-    - toc.integrate
     - search.suggest
     - search.highlight
 

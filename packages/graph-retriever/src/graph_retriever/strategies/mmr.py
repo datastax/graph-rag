@@ -67,25 +67,6 @@ class Mmr(Strategy):
     score_threshold : float, default -infinity
         Only nodes with a score greater than or equal to this value will be
         selected.
-
-    Attributes
-    ----------
-    k : int
-        Maximum number of nodes to retrieve during traversal.
-    start_k : int
-        Number of documents to fetch via similarity for starting the traversal.
-        Added to any initial roots provided to the traversal.
-    adjacent_k : int
-        Number of documents to fetch for each outgoing edge.
-    max_depth : int
-        Maximum traversal depth. If `None`, there is no limit.
-    lambda_mult : float
-        Controls the trade-off between relevance and diversity. A value closer
-        to 1 prioritizes relevance, while a value closer to 0 prioritizes
-        diversity. Must be between 0 and 1 (inclusive).
-    score_threshold : float
-        Only nodes with a score greater than or equal to this value will be
-        selected.
     """
 
     lambda_mult: float = 0.5
