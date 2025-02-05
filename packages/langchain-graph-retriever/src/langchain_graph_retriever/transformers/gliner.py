@@ -1,15 +1,16 @@
 from collections.abc import Sequence
 from typing import Any
 
+from gliner import GLiNER  # type: ignore
 from langchain_core.documents import BaseDocumentTransformer, Document
 from typing_extensions import override
 
 
-class GLiNEREntityExtractor(BaseDocumentTransformer):
+class GLiNERTransformer(BaseDocumentTransformer):
     """
-    Add metadata to documents about named entities using `GLiNER`_.
+    Add metadata to documents about named entities using `GLiNER`.
 
-    `GLiNER`_ is a Named Entity Recognition (NER) model capable of identifying any
+    `GLiNER` is a Named Entity Recognition (NER) model capable of identifying any
     entity type using a bidirectional transformer encoder (BERT-like).
 
     Preliminaries
@@ -20,9 +21,9 @@ class GLiNEREntityExtractor(BaseDocumentTransformer):
     Note that ``bs4`` is also installed to support the WebBaseLoader in the example,
     but not needed by the GLiNEREntityExtractor itself.
 
-    .. code-block:: bash
-
-        pip install -q langchain_community bs4 gliner
+    ```
+    pip install -q langchain_community bs4 gliner
+    ```
 
     Example
     -------
@@ -62,8 +63,9 @@ class GLiNEREntityExtractor(BaseDocumentTransformer):
         A prefix to add to metadata keys outputted by the extractor.
         This will be prepended to the label, with the value (or values) holding the
         generated keywords for that entity kind.
-    model : str, default "urchade/gliner_mediumv2.1"
-        The GLiNER model to use.
+    model : str | GLiNER, default "urchade/gliner_mediumv2.1"
+        The GLiNER model to use. Pass the name of the model to load
+        or pass an instantiated GLiNER model instance.
 
     """  # noqa: E501
 
@@ -73,18 +75,14 @@ class GLiNEREntityExtractor(BaseDocumentTransformer):
         *,
         batch_size: int = 8,
         metadata_key_prefix: str = "",
-        model: str = "urchade/gliner_mediumv2.1",
+        model: Any = "urchade/gliner_mediumv2.1",
     ):
-        try:
-            from gliner import GLiNER  # type: ignore
-
+        if isinstance(model, GLiNER):
+            self._model = model
+        elif isinstance(model, str):
             self._model = GLiNER.from_pretrained(model)
-
-        except ImportError:
-            raise ImportError(
-                "gliner is required for the GLiNEREntityExtractor. "
-                "Please install it with `pip install gliner`."
-            ) from None
+        else:
+            raise ValueError(f"Invalid model: {model}")
 
         self._batch_size = batch_size
         self._labels = labels
