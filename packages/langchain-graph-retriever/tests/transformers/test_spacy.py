@@ -1,13 +1,13 @@
 import pytest
 from langchain_core.documents import Document
-from langchain_graph_retriever.transformers.spacy import SpacyNERTransformer
 
 
 @pytest.mark.extra
 def test_transform_documents(animal_docs: list[Document]):
-    from spacy.language import Language
-    from spacy.tokens import Doc, Span
-    from spacy.vocab import Vocab
+    from langchain_graph_retriever.transformers.spacy import SpacyNERTransformer
+    from spacy.language import Language  # type: ignore
+    from spacy.tokens import Doc, Span  # type: ignore
+    from spacy.vocab import Vocab  # type: ignore
 
     class FakeLanguage(Language):
         def __init__(self):

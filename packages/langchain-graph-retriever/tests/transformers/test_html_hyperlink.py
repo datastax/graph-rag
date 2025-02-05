@@ -1,8 +1,5 @@
 import pytest
 from langchain_core.documents import Document
-from langchain_graph_retriever.transformers.html_hyperlink import (
-    HtmlHyperlinkTransformer,
-)
 
 test_html = """
 <!DOCTYPE html>
@@ -28,6 +25,10 @@ test_html = """
 
 @pytest.mark.extra
 def test_transform_documents():
+    from langchain_graph_retriever.transformers.html_hyperlink import (
+        HtmlHyperlinkTransformer,
+    )
+
     doc = Document(
         id="animal_html",
         page_content=test_html,

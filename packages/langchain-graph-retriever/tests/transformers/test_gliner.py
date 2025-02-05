@@ -2,12 +2,12 @@ from typing import Any
 
 import pytest
 from langchain_core.documents import Document
-from langchain_graph_retriever.transformers.gliner import GLiNERTransformer
 
 
 @pytest.mark.extra
 def test_transform_documents(animal_docs: list[Document]):
     from gliner import GLiNER  # type: ignore
+    from langchain_graph_retriever.transformers.gliner import GLiNERTransformer
 
     class FakeGLiNER(GLiNER):
         def __init__(self):
