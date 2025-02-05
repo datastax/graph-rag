@@ -7,7 +7,7 @@ from graph_retriever.adapters import Adapter
 from graph_retriever.testing.adapter_tests import AdapterComplianceSuite
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
-from langchain_graph_retriever.document_transformers.metadata_denormalizer import (
+from langchain_graph_retriever.transformers.metadata_denormalizer import (
     MetadataDenormalizer,
 )
 

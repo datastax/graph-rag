@@ -16,7 +16,7 @@ from typing_extensions import (
 )
 
 from langchain_graph_retriever._conversion import doc_to_content
-from langchain_graph_retriever.document_transformers.metadata_denormalizer import (
+from langchain_graph_retriever.transformers.metadata_denormalizer import (
     MetadataDenormalizer,
 )
 

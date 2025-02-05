@@ -82,6 +82,7 @@ simsimd = "simsimd"
 spacy = "spacy"
 testcontainers = "testcontainers"
 tqdm = "tqdm"
+types-beautifulsoup4 = "types_beautifulsoup4"
 typing-extensions = "typing_extensions"
 
 [tool.deptry.per_rule_ignores]
@@ -96,7 +97,7 @@ astra = [
     "httpx>=0.28.1",
     "langchain-astradb>=0.5.3",
 ]
-beautifulsoup4 = [
+html = [
     "beautifulsoup4>=4.12.3",
 ]
 cassandra = [
@@ -139,5 +140,6 @@ dev = [
     "simsimd>=6.2.1",
     "testcontainers>=4.9.0",
     "langchain-tests>=0.3.8",
+    "types-beautifulsoup4>=4.12.0.20250204",
 ]
 

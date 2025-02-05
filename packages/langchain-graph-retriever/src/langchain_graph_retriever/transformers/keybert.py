@@ -1,11 +1,12 @@
 from collections.abc import Sequence
 from typing import Any
 
+from keybert import KeyBERT  # type: ignore
 from langchain_core.documents import BaseDocumentTransformer, Document
 from typing_extensions import override
 
 
-class KeybertKeywordExtractor(BaseDocumentTransformer):
+class KeyBERTTransformer(BaseDocumentTransformer):
     """
     Add metadata to documents about keywords using `KeyBERT <https://maartengr.github.io/KeyBERT/>`_.
 
@@ -71,18 +72,14 @@ class KeybertKeywordExtractor(BaseDocumentTransformer):
         *,
         batch_size: int = 8,
         metadata_key: str = "keywords",
-        model: str = "all-MiniLM-L6-v2",
+        model: str | KeyBERT = "all-MiniLM-L6-v2",
     ):
-        try:
-            import keybert  # type: ignore
-
-            self._kw_model = keybert.KeyBERT(model=model)
-        except ImportError:
-            raise ImportError(
-                "keybert is required for the KeybertLinkExtractor. "
-                "Please install it with `pip install keybert`."
-            ) from None
-
+        if isinstance(model, KeyBERT):
+            self._kw_model = model
+        elif isinstance(model, str):
+            self._kw_model = KeyBERT(model=model)
+        else:
+            raise ValueError(f"Invalid model: {model}")
         self._batch_size = batch_size
         self._metadata_key = metadata_key
 

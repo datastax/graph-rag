@@ -1,20 +1,16 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any
+from typing import Any
 from urllib.parse import urldefrag, urljoin, urlparse
 
-from langchain_core._api import beta
+from bs4 import BeautifulSoup
+from bs4.element import Tag
 from langchain_core.documents import BaseDocumentTransformer, Document
 from typing_extensions import override
 
-if TYPE_CHECKING:
-    from bs4 import BeautifulSoup  # type: ignore
-    from bs4.element import Tag  # type: ignore
 
-
-@beta()
-class HtmlHyperlinkExtractor(BaseDocumentTransformer):
+class HtmlHyperlinkTransformer(BaseDocumentTransformer):
     """
     Extract hyperlinks from HTML content.
 
@@ -207,14 +203,6 @@ class HtmlHyperlinkExtractor(BaseDocumentTransformer):
         metadata_key: str = "hyperlink",
         drop_fragments: bool = True,
     ):
-        try:
-            from bs4 import BeautifulSoup  # noqa:F401
-        except ImportError as e:
-            raise ImportError(
-                "BeautifulSoup4 is required for HtmlHyperlinkExtractor. "
-                "Please install it with `pip install beautifulsoup4`."
-            ) from e
-
         self._url_metadata_key = url_metadata_key
         self._metadata_key = metadata_key
         self._drop_fragments = drop_fragments
@@ -224,20 +212,25 @@ class HtmlHyperlinkExtractor(BaseDocumentTransformer):
         href = link.get("href")
         if href is None:
             return None
+        if isinstance(href, list) and len(href) == 1:
+            href = href[0]
+        if not isinstance(href, str):
+            return None
+
         url = urlparse(href)
         if url.scheme not in ["http", "https", ""]:
             return None
 
         # Join the HREF with the page_url to convert relative paths to absolute.
-        url = str(urljoin(page_url, href))
+        joined_url = str(urljoin(page_url, href))
 
         # Fragments would be useful if we chunked a page based on section.
         # Then, each chunk would have a different URL based on the fragment.
         # Since we aren't doing that yet, they just "break" links. So, drop
         # the fragment.
         if drop_fragments:
-            return urldefrag(url).url
-        return url
+            return urldefrag(joined_url).url
+        return joined_url
 
     @staticmethod
     def _parse_urls(
@@ -247,7 +240,7 @@ class HtmlHyperlinkExtractor(BaseDocumentTransformer):
         urls: set[str] = set()
 
         for link in soup_links:
-            parsed_url = HtmlHyperlinkExtractor._parse_url(
+            parsed_url = HtmlHyperlinkTransformer._parse_url(
                 link, page_url=page_url, drop_fragments=drop_fragments
             )
             # Remove self links and entries for any 'a' tag that failed to parse

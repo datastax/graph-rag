@@ -1,7 +1,7 @@
 import json
 
 from langchain_core.documents import Document
-from langchain_graph_retriever.document_transformers.metadata_denormalizer import (
+from langchain_graph_retriever.transformers.metadata_denormalizer import (
     DEFAULT_PATH_DELIMITER,
     DEFAULT_STATIC_VALUE,
     DENORMALIZED_KEYS_KEY,
