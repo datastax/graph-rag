@@ -59,11 +59,11 @@ class KeyBERTTransformer(BaseDocumentTransformer):
 
     Parameters
     ----------
-    batch_size : int, default 8
+    batch_size :
         The number of documents to process in each batch.
-    metadata_key : str, default "keywords"
+    metadata_key :
         The name of the key used in the metadata output.
-    model : str, default "all-MiniLM-L6-v2"
+    model :
         The KeyBERT model to use.
     """  # noqa: E501
 
@@ -88,7 +88,7 @@ class KeyBERTTransformer(BaseDocumentTransformer):
         self, documents: Sequence[Document], **kwargs: Any
     ) -> Sequence[Document]:
         for i in range(0, len(documents), self._batch_size):
-            batch = documents[i : i + self._batch_size]
+            batch = documents[i :
             texts = [item.page_content for item in batch]
             extracted = self._kw_model.extract_keywords(docs=texts, **kwargs)
             if len(texts) == 1:

@@ -16,11 +16,11 @@ def top_k(
 
     Parameters
     ----------
-    contents : Iterable[Content]
+    contents :
         The content from which to select the top-K.
     embedding: list[float]
         The embedding we're looking for.
-    k : int
+    k :
         The number of items to select.
 
     Returns

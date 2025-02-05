@@ -104,7 +104,7 @@ class AstraAdapter(Adapter):
 
     Parameters
     ----------
-    vector_store : AstraDBVectorStore
+    vector_store :
         The AstraDB vector store instance.
     """  # noqa: E501
 
@@ -261,15 +261,15 @@ class AstraAdapter(Adapter):
 
         Parameters
         ----------
-        edges : set[Edge]
+        edges :
             The edges to prepare.
 
         Returns
         -------
-        metadata_in : dict[str, set[Any]]
+        metadata_in :
             Dictionary of metadata constraints indicating the field to constrain
             and the set of values.
-        ids : set[str]
+        ids :
             Set of IDs to query for.
 
         Raises

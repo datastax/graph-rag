@@ -186,12 +186,12 @@ class HtmlHyperlinkTransformer(BaseDocumentTransformer):
 
     Parameters
     ----------
-    url_metadata_key : str, default "url"
+    url_metadata_key :
         The metadata field containing the URL of the document. Must be set
         before transforming. Needed to resolve relative paths.
-    metadata_key : str, default "hyperlink"
+    metadata_key :
         The metadata field to populate with documents linked from this content.
-    drop_fragments : bool, default True
+    drop_fragments :
         Whether fragments in URLs and links should be dropped.
 
     """  # noqa: E501

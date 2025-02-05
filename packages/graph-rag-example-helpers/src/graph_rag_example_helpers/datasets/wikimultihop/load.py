@@ -24,7 +24,7 @@ def wikipedia_lines(para_with_hyperlink_zip_path: str) -> Iterable[bytes]:
 
     Parameters
     ----------
-    para_with_hyperlink_zip_path : str
+    para_with_hyperlink_zip_path :
         Path to `para_with_hyperlink.zip` downloaded following the instructions
         in
         [2wikimultihop](https://github.com/Alab-NII/2wikimultihop?tab=readme-ov-file#new-update-april-7-2021).
@@ -61,13 +61,13 @@ async def aload_2wikimultihop(
 
     Parameters
     ----------
-    para_with_hyperlink_zip_path : str
+    para_with_hyperlink_zip_path :
         Path to `para_with_hyperlink.zip` downloaded following the instructions
         in
         [2wikimultihop](https://github.com/Alab-NII/2wikimultihop?tab=readme-ov-file#new-update-april-7-2021).
-    store : VectorStore
+    store :
         The VectorStore to populate.
-    batch_prepare : BatchPreparer
+    batch_prepare :
         Function to apply to batches of lines to produce the document.
     """
     assert os.path.isfile(para_with_hyperlink_zip_path)

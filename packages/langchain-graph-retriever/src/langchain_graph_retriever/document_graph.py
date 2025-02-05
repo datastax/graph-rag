@@ -17,7 +17,7 @@ def _best_communities(graph: nx.DiGraph) -> list[list[str]]:
 
     Parameters
     ----------
-    graph : nx.DiGraph
+    graph :
         The directed graph to analyze.
 
     Returns
@@ -58,9 +58,9 @@ def create_graph(
 
     Parameters
     ----------
-    documents : Sequence[Document]
+    documents :
         A sequence of documents to add as nodes.
-    edges : list[EdgeSpec] | EdgeFunction
+    edges :
         Definitions of edges to use for creating the graph or edge function to use.
 
     Returns
@@ -125,7 +125,7 @@ def group_by_community(graph: nx.DiGraph) -> list[list[Document]]:
 
     Paramaters
     ----------
-    graph : nx.DiGraph
+    graph :
         The directed graph of documents.
 
     Returns

@@ -26,23 +26,23 @@ def traverse(
 
     Parameters
     ----------
-    query : str
+    query :
         The query string for the traversal.
-    edges : list[EdgeSpec] | EdgeFunction
+    edges :
         A list of [EdgeSpec][graph_retriever.edges.EdgeSpec] for use in creating a
         [MetadataEdgeFunction][graph_retriever.edges.MetadataEdgeFunction],
         or an [EdgeFunction][graph_retriever.edges.EdgeFunction].
-    strategy : Strategy
+    strategy :
         The traversal strategy that defines how nodes are discovered, selected,
         and finalized.
-    store : Adapter
+    store :
         The vector store adapter used for similarity searches and document
         retrieval.
-    metadata_filter : dict[str, Any], optional
+    metadata_filter :
         Optional filter for metadata during traversal.
-    initial_root_ids : Sequence[str], optional
+    initial_root_ids :
         IDs of the initial root nodes for the traversal.
-    store_kwargs : dict[str, Any], optional
+    store_kwargs :
         Additional arguments passed to the store adapter.
 
     Returns
@@ -77,23 +77,23 @@ async def atraverse(
 
     Parameters
     ----------
-    query : str
+    query :
         The query string for the traversal.
-    edges : list[EdgeSpec] | EdgeFunction
+    edges :
         A list of [EdgeSpec][graph_retriever.edges.EdgeSpec] for use in creating a
         [MetadataEdgeFunction][graph_retriever.edges.MetadataEdgeFunction],
         or an [EdgeFunction][graph_retriever.edges.EdgeFunction].
-    strategy : Strategy
+    strategy :
         The traversal strategy that defines how nodes are discovered, selected,
         and finalized.
-    store : Adapter
+    store :
         The vector store adapter used for similarity searches and document
         retrieval.
-    metadata_filter : dict[str, Any], optional
+    metadata_filter :
         Optional filter for metadata during traversal.
-    initial_root_ids : Sequence[str], optional
+    initial_root_ids :
         IDs of the initial root nodes for the traversal.
-    store_kwargs : dict[str, Any], optional
+    store_kwargs :
         Additional arguments passed to the store adapter.
 
     Returns
@@ -315,7 +315,7 @@ class _Traversal:
 
         Parameters
         ----------
-        edges : set[Edge]
+        edges :
             The edges whose adjacent documents need to be fetched.
 
         Returns
@@ -340,7 +340,7 @@ class _Traversal:
 
         Parameters
         ----------
-        edges : set[Edge]
+        edges :
             The edges whose adjacent documents need to be fetched.
 
         Returns
@@ -368,9 +368,9 @@ class _Traversal:
 
         Parameters
         ----------
-        content : Content
+        content :
             The content to convert into a node.
-        depth : int, optional
+        depth :
             The depth of the node. If None, the depth is calculated based on the
             incoming edges.
 
@@ -422,9 +422,9 @@ class _Traversal:
 
         Parameters
         ----------
-        contents : Iterable[Content]
+        contents :
             The contents to add.
-        depth : int, optional
+        depth :
             The depth to assign to the nodes. If None, the depth is inferred
             based on the incoming edges.
 
@@ -456,7 +456,7 @@ class _Traversal:
 
         Parameters
         ----------
-        nodes : Iterable[Node]
+        nodes :
             The nodes to mark as visited.
 
         Returns

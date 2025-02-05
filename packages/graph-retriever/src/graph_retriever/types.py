@@ -18,21 +18,21 @@ class Node:
 
     Parameters
     ----------
-    id : str
+    id :
         The unique identifier of the document represented by this node.
-    content : str
+    content :
         The content.
-    depth : int
+    depth :
         The depth (number of edges) through which this node was discovered. This
         depth may not reflect the true depth in the full graph if only a subset
         of edges is retrieved.
-    embedding : list[float]
+    embedding :
         The embedding vector of the document, used for similarity calculations.
-    metadata : dict[str, Any]
+    metadata :
         Metadata from the original document. This is a reference to the original
         document metadata and should not be modified directly. Any updates to
         metadata should be made to `extra_metadata`.
-    extra_metadata : dict[str, Any]
+    extra_metadata :
         Additional metadata to override or augment the original document
         metadata during traversal.
     """

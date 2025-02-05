@@ -262,10 +262,10 @@ class AdapterComplianceSuite(abc.ABC):
 
         Parameters
         ----------
-        method : str
+        method :
             The method being tested. For instance, `get`, `aget`, or
             `similarity_search_with_embedding`, etc.
-        case_id : str
+        case_id :
             The ID of the case being executed. For instance, `one` or `many`.
         """
 

@@ -19,10 +19,10 @@ def doc_to_content(doc: Document, *, embedding: list[float] | None = None) -> Co
 
     Parameters
     ----------
-    doc : Document
+    doc :
         The document to convert.
 
-    embedding : list[float], optional
+    embedding :
         The embedding of the document. If not provided, the
         `doc.metadata[METADATA_EMBEDDING_KEY]` should be set to the embedding.
 

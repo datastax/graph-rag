@@ -33,12 +33,12 @@ class ParentTransformer(BaseDocumentTransformer):
 
     Parameters
     ----------
-    path_metadata_key : str, default "path"
+    path_metadata_key :
         Metadata key containing the path.
         This may correspond to paths in a file system, hierarchy in a document, etc.
     parent_metadata_key: str, default "parent"
         Metadata key for the added parent path
-    path_delimiter : str, default "\"
+    path_delimiter :
         Delimiter of items in the path.
     """
 

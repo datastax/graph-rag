@@ -32,7 +32,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
 
     Parameters
     ----------
-    vector_store : VectorStore
+    vector_store :
         The vector store instance.
     """
 
@@ -62,7 +62,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
 
         Parameters
         ----------
-        filter : dict[str, str], optional
+        filter :
             Filter on the metadata to update.
 
         Returns
@@ -78,7 +78,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
 
         Parameters
         ----------
-        docs : list[Document]
+        docs :
             The documents returned from the vector store
 
         Returns
@@ -101,13 +101,13 @@ class LangchainAdapter(Generic[StoreT], Adapter):
 
         Parameters
         ----------
-        embedding : list[float]
+        embedding :
             Embedding to look up documents similar to.
-        k : int, default 4
+        k :
             Number of Documents to return.
-        filter : dict[str, str], optional
+        filter :
             Filter on the metadata to apply.
-        kwargs : dict, optional
+        kwargs :
             Additional keyword arguments.
 
         Returns
@@ -132,13 +132,13 @@ class LangchainAdapter(Generic[StoreT], Adapter):
 
         Parameters
         ----------
-        embedding : list[float]
+        embedding :
             Embedding to look up documents similar to.
-        k : int, default 4
+        k :
             Number of Documents to return.
-        filter : dict[str, str], optional
+        filter :
             Filter on the metadata to apply.
-        kwargs : dict, optional
+        kwargs :
             Additional keyword arguments.
 
         Returns
@@ -166,13 +166,13 @@ class LangchainAdapter(Generic[StoreT], Adapter):
 
         Parameters
         ----------
-        embedding : list[float]
+        embedding :
             Embedding to look up documents similar to.
-        k : int, default 4
+        k :
             Number of Documents to return.
-        filter : dict[str, str], optional
+        filter :
             Filter on the metadata to apply.
-        kwargs : dict, optional
+        kwargs :
             Additional keyword arguments.
 
         Returns
@@ -214,7 +214,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
 
         Parameters
         ----------
-        ids : Sequence[str]
+        ids :
             List of IDs to get.
 
         Returns
@@ -254,11 +254,11 @@ class LangchainAdapter(Generic[StoreT], Adapter):
 
         Parameters
         ----------
-        ids : Sequence[str]
+        ids :
             List of IDs to get.
-        filter : dict[str, Any], optional
+        filter :
             Filter to apply to the recrods.
-        kwargs : dict, optional
+        kwargs :
             Additional keyword arguments. These are up to the implementation.
 
         Returns
@@ -296,11 +296,11 @@ class LangchainAdapter(Generic[StoreT], Adapter):
 
         Parameters
         ----------
-        ids : Sequence[str]
+        ids :
             List of IDs to get.
-        filter : dict[str, Any], optional
+        filter :
             Filter to apply to the documents.
-        kwargs : dict, optional
+        kwargs :
             Additional keyword arguments. These are up to the implementation.
 
         Returns
@@ -326,12 +326,12 @@ class LangchainAdapter(Generic[StoreT], Adapter):
 
         Parameters
         ----------
-        base_filter : dict[str, Any]
+        base_filter :
             Any base metadata filter that should be used for search.
             Generally corresponds to the user specified filters for the entire
             traversal. Should be combined with the filters necessary to support
             nodes with an *incoming* edge matching `edge`.
-        edge : Edge, optional
+        edge :
             An optional edge which should be added to the filter.
 
         Returns
@@ -358,7 +358,7 @@ class DenormalizedAdapter(LangchainAdapter[StoreT]):
 
     Parameters
     ----------
-    vector_store : VectorStore
+    vector_store :
         The vector store instance.
     metadata_denormalizer: MetadataDenormalizer, optional
         An instance of the MetadataDenormalizer used for doc insertion.

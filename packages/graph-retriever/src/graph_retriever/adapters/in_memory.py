@@ -26,7 +26,7 @@ class InMemoryBase(Adapter, abc.ABC):
 
         Parameters
         ----------
-        embedding : Embedding
+        embedding :
             embedding function to use.
         """
         self.store: dict[str, Content] = {c.id: c for c in content}

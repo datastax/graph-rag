@@ -22,7 +22,7 @@ class InMemoryAdapter(LangchainAdapter[InMemoryVectorStore]):
 
     Parameters
     ----------
-    vector_store : InMemoryVectorStore
+    vector_store :
         The in-memory vector store instance.
     """
 
@@ -86,11 +86,11 @@ class InMemoryAdapter(LangchainAdapter[InMemoryVectorStore]):
 
         Parameters
         ----------
-        key : str
+        key :
             Metadata key to look for.
-        value : Any
+        value :
             Value to check for equality or containment.
-        metadata : dict[str, Any]
+        metadata :
             Metadata dictionary to inspect.
 
         Returns
@@ -120,7 +120,7 @@ class InMemoryAdapter(LangchainAdapter[InMemoryVectorStore]):
 
         Parameters
         ----------
-        filter_dict : dict[str, str], optional
+        filter_dict :
             Dictionary specifying the filter criteria.
 
         Returns

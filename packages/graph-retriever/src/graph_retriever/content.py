@@ -12,18 +12,18 @@ class Content:
 
     Parameters
     ----------
-    id : str
+    id :
         The ID of the content.
-    content : str
+    content :
         The content.
-    embedding : list[float]
+    embedding :
         The embedding of the content.
-    score : float | None
+    score :
         The similarity of the embedding to the query.
         This is optional, and may not be set depending on the content.
-    metadata : dict[str, Any]
+    metadata :
         The metadata associated with the content.
-    mime_type : str
+    mime_type :
         The MIME type of the content.
     """
 
@@ -49,18 +49,18 @@ class Content:
 
         Parameters
         ----------
-        id : str
+        id :
             The ID of the content.
-        content : str
+        content :
             The content.
-        embedding : list[float] | Callable[[str], list[float]]
+        embedding :
             The embedding, or a function to apply to the content to compute the
             embedding.
-        score : float | None, optional
+        score :
             The similarity of the embedding to the query.
-        metadata : dict[str, Any], optional
+        metadata :
             The metadata associated with the content.
-        mime_type : str, optional
+        mime_type :
             The MIME type of the content.
 
         Returns

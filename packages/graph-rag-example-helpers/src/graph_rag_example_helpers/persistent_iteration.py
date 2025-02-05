@@ -22,11 +22,11 @@ class PersistentIteration(Generic[T]):
 
     Parameters
     ----------
-    journal_name : str
+    journal_name :
         Name of the journal file to use. If it doesn't exist it will be
         created. The indices of completed items will be written to the
         journal.
-    iterator : Iterator[T]
+    iterator :
         The iterator to process persistently. It must be deterministic --
         elements should always be returned in the same order on restarts.
     """
@@ -51,10 +51,10 @@ class PersistentIteration(Generic[T]):
 
         Returns
         -------
-        offset : Offset
+        offset :
             The offset of the next item. Should be acknowledge after the item
             is finished processing.
-        item : T
+        item :
             The next item.
         """
         index, item = next(self.iterator)
@@ -86,7 +86,7 @@ class PersistentIteration(Generic[T]):
 
         Parameters
         ----------
-        offset : int
+        offset :
             The offset to acknowledge.
 
         Returns

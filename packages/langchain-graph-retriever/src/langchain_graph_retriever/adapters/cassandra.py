@@ -26,7 +26,7 @@ class CassandraAdapter(DenormalizedAdapter[Cassandra]):
 
     Parameters
     ----------
-    vector_store : Cassandra
+    vector_store :
         The Cassandra vector store instance.
     metadata_denormalizer: MetadataDenormalizer, optional
         An instance of the MetadataDenormalizer used for doc insertion.

@@ -21,14 +21,14 @@ class Strategy(abc.ABC):
 
     Parameters
     ----------
-    k : int, default 5
+    k :
         Maximum number of nodes to retrieve during traversal.
-    start_k : int, default 4
+    start_k :
         Number of documents to fetch via similarity for starting the traversal.
         Added to any initial roots provided to the traversal.
-    adjacent_k : int, default 10
+    adjacent_k :
         Number of documents to fetch for each outgoing edge.
-    max_depth : int, optional
+    max_depth :
         Maximum traversal depth. If `None`, there is no limit.
     """
 
@@ -49,7 +49,7 @@ class Strategy(abc.ABC):
 
         Parameters
         ----------
-        nodes : dict[str, Node]
+        nodes :
             Discovered nodes keyed by their IDs.
         """
         ...
@@ -82,7 +82,7 @@ class Strategy(abc.ABC):
 
         Parameters
         ----------
-        nodes : Iterable[Node]
+        nodes :
             Nodes selected for finalization.
 
         Returns
@@ -105,9 +105,9 @@ class Strategy(abc.ABC):
 
         Parameters
         ----------
-        base_strategy : Strategy
+        base_strategy :
             The base strategy to start with.
-        kwargs : dict, optional
+        kwargs :
             Additional configuration options for the strategy.
 
         Returns

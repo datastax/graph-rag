@@ -100,7 +100,7 @@ def initialize_environment(env: Environment = Environment.CASSIO):
 
     Parameters
     ----------
-    env : Environment, default Environment.CASSIO
+    env :
         The environment to initialize
 
     Notes

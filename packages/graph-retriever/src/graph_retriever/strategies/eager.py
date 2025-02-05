@@ -21,14 +21,14 @@ class Eager(Strategy):
 
     Parameters
     ----------
-    k : int, default 5
+    k :
         Maximum number of nodes to retrieve during traversal.
-    start_k : int, default 4
+    start_k :
         Number of documents to fetch via similarity for starting the traversal.
         Added to any initial roots provided to the traversal.
-    adjacent_k : int, default 10
+    adjacent_k :
         Number of documents to fetch for each outgoing edge.
-    max_depth : int, optional
+    max_depth :
         Maximum traversal depth. If `None`, there is no limit.
     """
 

@@ -25,7 +25,7 @@ class ChromaAdapter(DenormalizedAdapter[Chroma]):
 
     Parameters
     ----------
-    vector_store : Chroma
+    vector_store :
         The Chroma vector store instance.
     metadata_denormalizer: MetadataDenormalizer, optional
         An instance of the MetadataDenormalizer used for doc insertion.

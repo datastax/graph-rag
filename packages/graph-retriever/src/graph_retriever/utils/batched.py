@@ -19,9 +19,9 @@ except ImportError:  # pragma: no cover
 
         Parameters
         ----------
-        iterable : Iterator[T]
+        iterable :
             Iterator over elements.
-        n : int
+        n :
             Size of batches.
 
         Yields

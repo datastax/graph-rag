@@ -189,13 +189,13 @@ async def test_parsed(sync_or_async: SyncOrAsync):
 
                       A0    (*)
         ....        AL   AR       <....
-        :              |              :
-        :              |  ^           :
+        :
+        :
         v              |  .           v
                        |   :
-       TR              |   :          BL
+       TR              |   :
     T0   --------------x--------------   B0
-       TL              |   :          BR
+       TL              |   :
                        |   :
                        |  .
                        | .

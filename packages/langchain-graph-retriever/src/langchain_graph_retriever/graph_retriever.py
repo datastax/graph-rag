@@ -34,13 +34,13 @@ class GraphRetriever(BaseRetriever):
 
     Attributes
     ----------
-    store : Adapter | VectorStore
+    store :
         The adapter or vector store used for document retrieval.
-    edges : list[EdgeSpec] | EdgeFunction
+    edges :
         A list of [EdgeSpec][graph_retriever.edges.EdgeSpec] for use in creating a
         [MetadataEdgeFunction][graph_retriever.edges.MetadataEdgeFunction],
         or an [EdgeFunction][graph_retriever.edges.EdgeFunction].
-    strategy : Strategy
+    strategy :
         The traversal strategy to use.
     """
 
@@ -63,7 +63,7 @@ class GraphRetriever(BaseRetriever):
 
         Returns
         -------
-        : GraphRetriever
+        :
             The updated GraphRetriever instance.
         """
         if self.model_extra:
@@ -99,18 +99,18 @@ class GraphRetriever(BaseRetriever):
 
         Parameters
         ----------
-        query : str
+        query :
             The query string to search for.
-        edges : list[EdgeSpec] | EdgeFunction, optional
+        edges :
             Override edge definitions for this invocation.
-        initial_roots : Sequence[str]
+        initial_roots :
             Document IDs to use as initial roots. The top `adjacent_k` nodes
             connected to each root are included in the initial candidates.
-        filter : dict[str, Any], optional
+        filter :
             Optional metadata filter to apply.
-        store_kwargs : dict[str, Any], optional
+        store_kwargs :
             Additional keyword arguments for the store.
-        kwargs : dict, optional
+        kwargs :
             Additional arguments for configuring the traversal strategy.
 
         Returns
@@ -160,18 +160,18 @@ class GraphRetriever(BaseRetriever):
 
         Parameters
         ----------
-        query : str
+        query :
             The query string to search for.
-        edges : list[EdgeSpec] | EdgeFunction, optional
+        edges :
             Override edge definitions for this invocation.
-        initial_roots : Sequence[str]
+        initial_roots :
             Document IDs to use as initial roots. The top `adjacent_k` nodes
             connected to each root are included in the initial candidates.
-        filter : dict[str, Any], optional
+        filter :
             Optional metadata filter to apply.
-        store_kwargs : dict[str, Any], optional
+        store_kwargs :
             Additional keyword arguments for the store.
-        kwargs : dict, optional
+        kwargs :
             Additional arguments for configuring the traversal strategy.
 
         Returns

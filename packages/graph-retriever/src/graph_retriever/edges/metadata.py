@@ -51,7 +51,7 @@ class MetadataEdgeFunction:
 
     Parameters
     ----------
-    edges : list[EdgeSpec]
+    edges :
         Definitions of edges for traversal, represented as a pair of fields
         representing the source and target of the edges.
 
@@ -86,7 +86,7 @@ class MetadataEdgeFunction:
         ----------
         metadata :dict[str, Any]
             The metadata dictionary to process.
-        incoming : bool, default False
+        incoming :
             If True, extracts edges for incoming relationships.
 
         Returns
@@ -140,7 +140,7 @@ class MetadataEdgeFunction:
 
         Parameters
         ----------
-        content : Content
+        content :
             The content to extract edges from.
 
         Returns

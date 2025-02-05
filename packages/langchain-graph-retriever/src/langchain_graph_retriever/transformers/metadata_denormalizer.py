@@ -48,12 +48,12 @@ class MetadataDenormalizer(BaseDocumentTransformer):
 
     Parameters
     ----------
-    keys : set[str], optional:
+    keys :
         A set of metadata keys to denormalize.
         If empty, all sequence-based fields will be denormalized.
-    path_delimiter : str, default "→" (unicode 2192)
+    path_delimiter :
         The path delimiter to use when building denormalized keys.
-    static_value : str, default "§" (unicode 00A7)
+    static_value :
         The value to set on each denormalized key.
 
     """  # noqa: E501
@@ -149,9 +149,9 @@ class MetadataDenormalizer(BaseDocumentTransformer):
 
         Parameters
         ----------
-        key : str
+        key :
             The metadata key to denormalize
-        value : Any
+        value :
             The metadata value to denormalize
 
         Returns

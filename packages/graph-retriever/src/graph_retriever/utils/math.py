@@ -15,10 +15,10 @@ def cosine_similarity(X: Matrix, Y: Matrix) -> np.ndarray:
 
     Parameters
     ----------
-    X : Matrix
+    X :
         A matrix of shape (m, n), where `m` is the number of rows and `n` is the
         number of columns (features).
-    Y : Matrix
+    Y :
         A matrix of shape (p, n), where `p` is the number of rows and `n` is the
         number of columns (features).
 
@@ -82,13 +82,13 @@ def cosine_similarity_top_k(
 
     Parameters
     ----------
-    X : Matrix
+    X :
         A matrix of shape (m, n), where `m` is the number of rows and `n` is the
         number of columns (features).
-    Y : Matrix
+    Y :
         A matrix of shape (p, n), where `p` is the number of rows and `n` is the
         number of columns (features).
-    top_k : int, optional
+    top_k :
         Max number of results to return.
     score_threshold:
         Minimum score to return.

@@ -20,13 +20,13 @@ async def run_in_executor(
 
     Parameters
     ----------
-    executor : Executor, optional
+    executor :
         The executor to run in.
-    func : Callable[P, Output]
+    func :
         The function.
-    *args : Any
+    *args :
         The positional arguments to the function.
-    kwargs : dict, optional
+    kwargs :
         The keyword arguments to the function.
 
     Returns

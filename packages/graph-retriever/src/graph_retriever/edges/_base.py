@@ -28,9 +28,9 @@ class MetadataEdge(Edge):
 
     Parameters
     ----------
-    incoming_field : str
+    incoming_field :
         The name of the metadata field storing incoming edges.
-    value : Any
+    value :
         The value associated with the key for this edge
     """
 
@@ -45,7 +45,7 @@ class IdEdge(Edge):
 
     Parameters
     ----------
-    id : str
+    id :
         The ID of the node to link to.
     """
 
@@ -59,9 +59,9 @@ class Edges:
 
     Parameters
     ----------
-    incoming : set[Edge]
+    incoming :
         Incoming edges that link to this node.
-    outgoing : set[Edge]
+    outgoing :
         Edges that this node link to. These edges should be defined in terms of
         the *incoming* `Edge` they match. For instance, a link from "mentions"
         to "id" would link to `IdEdge(...)`.

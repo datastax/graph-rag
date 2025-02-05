@@ -27,7 +27,7 @@ class OpenSearchAdapter(LangchainAdapter[OpenSearchVectorSearch]):
 
     Parameters
     ----------
-    vector_store  : OpenSearchVectorSearch
+    vector_store  :
         The OpenSearch vector store instance.
 
     Notes
@@ -61,7 +61,7 @@ class OpenSearchAdapter(LangchainAdapter[OpenSearchVectorSearch]):
 
         Parameters
         ----------
-        filter : dict[str, str], optional
+        filter :
             Metadata filter to apply.
 
         Returns

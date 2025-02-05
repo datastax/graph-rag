@@ -51,20 +51,20 @@ class Mmr(Strategy):
 
     Parameters
     ----------
-    k : int, default 5
+    k :
         Maximum number of nodes to retrieve during traversal.
-    start_k : int, default 4
+    start_k :
         Number of documents to fetch via similarity for starting the traversal.
         Added to any initial roots provided to the traversal.
-    adjacent_k : int, default 10
+    adjacent_k :
         Number of documents to fetch for each outgoing edge.
-    max_depth : int, optional
+    max_depth :
         Maximum traversal depth. If `None`, there is no limit.
-    lambda_mult : float, default 0.5
+    lambda_mult :
         Controls the trade-off between relevance and diversity. A value closer
         to 1 prioritizes relevance, while a value closer to 0 prioritizes
         diversity. Must be between 0 and 1 (inclusive).
-    min_mmr_score : float, default -infinity
+    min_mmr_score :
         Only nodes with a score greater than or equal to this value will be
         selected.
     """
@@ -156,14 +156,14 @@ class Mmr(Strategy):
 
         Parameters
         ----------
-        candidate_id : str
+        candidate_id :
             The ID of the candidate to pop.
 
         Returns
         -------
-        candidate : _MmrCandidate
+        candidate :
             The candidate with the given ID.
-        embedding : NDArray[np.float32]
+        embedding :
             The `NDArray` embedding of the candidate.
 
         Raises

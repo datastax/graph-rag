@@ -41,20 +41,20 @@ class Adapter(abc.ABC):
 
         Parameters
         ----------
-        query : str
+        query :
             Input text.
-        k : int, default 4
+        k :
             Number of content items to return.
-        filter : dict[str, Any], optional
+        filter :
             Filter on the metadata to apply.
-        kwargs : dict, optional
+        kwargs :
             Additional keyword arguments.
 
         Returns
         -------
-        query_embedding : list[float]
+        query_embedding :
             The query embedding used for selecting the most relevant content.
-        contents : list[Content]
+        contents :
             List of up to `k` content items most similar to the query vector.
         """
         query_embedding = self.embed_query(query)
@@ -80,20 +80,20 @@ class Adapter(abc.ABC):
 
         Parameters
         ----------
-        query : str
+        query :
             Input text.
-        k : int, default 4
+        k :
             Number of content items to return.
-        filter : dict[str, Any], optional
+        filter :
             Filter on the metadata to apply.
-        kwargs : dict, optional
+        kwargs :
             Additional keyword arguments.
 
         Returns
         -------
-        query_embedding : list[float]
+        query_embedding :
             The query embedding used for selecting the most relevant content.
-        contents : list[Content]
+        contents :
             List of up to `k` content items most similar to the query
             vector.
         """
@@ -114,13 +114,13 @@ class Adapter(abc.ABC):
 
         Parameters
         ----------
-        embedding : list[float]
+        embedding :
             The query embedding used for selecting the most relevant content.
-        k : int, default 4
+        k :
             Number of content items to return.
-        filter : dict[str, Any], optional
+        filter :
             Filter on the metadata to apply.
-        kwargs : dict, optional
+        kwargs :
             Additional keyword arguments.
 
         Returns
@@ -142,13 +142,13 @@ class Adapter(abc.ABC):
 
         Parameters
         ----------
-        embedding : list[float]
+        embedding :
             The query embedding used for selecting the most relevant content.
-        k : int, default 4
+        k :
             Number of content items to return.
-        filter : dict[str, Any], optional
+        filter :
             Filter on the metadata to apply.
-        kwargs : dict, optional
+        kwargs :
             Additional keyword arguments.
 
         Returns
@@ -185,11 +185,11 @@ class Adapter(abc.ABC):
 
         Parameters
         ----------
-        ids : Sequence[str]
+        ids :
             List of IDs to get.
-        filter : dict[str, Any], optional
+        filter :
             Filter on the metadata to apply.
-        kwargs : dict, optional
+        kwargs :
             Additional keyword arguments. These are up to the implementation.
 
         Returns
@@ -218,11 +218,11 @@ class Adapter(abc.ABC):
 
         Parameters
         ----------
-        ids : Sequence[str]
+        ids :
             List of IDs to get.
-        filter : dict[str, Any], optional
+        filter :
             Filter on the metadata to apply.
-        kwargs : dict, optional
+        kwargs :
             Additional keyword arguments. These are up to the implementation.
 
         Returns
@@ -251,15 +251,15 @@ class Adapter(abc.ABC):
 
         Parameters
         ----------
-        edges : set[Edge]
+        edges :
             The edges to look for.
-        query_embedding : list[float]
+        query_embedding :
             The query embedding used for selecting the most relevant content.
-        k : int
+        k :
             The number of relevant content items to select.
-        filter : dict[str, Any], optional
+        filter :
             Optional metadata to filter the results.
-        kwargs : dict, optional
+        kwargs :
             Keyword arguments to pass to the similarity search.
 
         Returns
@@ -311,15 +311,15 @@ class Adapter(abc.ABC):
 
         Parameters
         ----------
-        edges : set[Edge]
+        edges :
             The edges to look for.
-        query_embedding : list[float]
+        query_embedding :
             The query embedding used for selecting the most relevant content.
-        k : int
+        k :
             The number of relevant content items to select for the edges.
-        filter : dict[str, Any], optional
+        filter :
             Optional metadata to filter the results.
-        kwargs : dict, optional
+        kwargs :
             Keyword arguments to pass to the similarity search.
 
         Returns
@@ -374,12 +374,12 @@ class Adapter(abc.ABC):
 
         Parameters
         ----------
-        base_filter : dict[str, Any]
+        base_filter :
             Any base metadata filter that should be used for search.
             Generally corresponds to the user specified filters for the entire
             traversal. Should be combined with the filters necessary to support
             nodes with an *incoming* edge matching `edge`.
-        edge : Edge, optional
+        edge :
             An optional edge which should be added to the filter.
 
         Returns
