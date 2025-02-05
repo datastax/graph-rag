@@ -63,7 +63,7 @@ class GLiNERTransformer(BaseDocumentTransformer):
         A prefix to add to metadata keys outputted by the extractor.
         This will be prepended to the label, with the value (or values) holding the
         generated keywords for that entity kind.
-    model :
+    model : str
         The GLiNER model to use. Pass the name of the model to load
         or pass an instantiated GLiNER model instance.
 
@@ -93,7 +93,7 @@ class GLiNERTransformer(BaseDocumentTransformer):
         self, documents: Sequence[Document], **kwargs: Any
     ) -> Sequence[Document]:
         for i in range(0, len(documents), self._batch_size):
-            batch = documents[i :
+            batch = documents[i : i + self._batch_size]
             texts = [item.page_content for item in batch]
             extracted = self._model.batch_predict_entities(
                 texts=texts, labels=self._labels, **kwargs
