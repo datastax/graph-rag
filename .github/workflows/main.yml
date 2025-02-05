@@ -28,7 +28,7 @@ jobs:
         id: setup
 
       - name: Install Python dependencies
-        run: uv sync --frozen --all-packages
+        run: uv sync --frozen --all-packages --all-extras
         shell: bash
 
       - name: Run `fmt-check`
