@@ -164,7 +164,6 @@ def test_communities(animal_docs: list[Document]):
         ["lark"],
         ["lemur"],
         ["lizard"],
-        ["llama"],
         ["lobster"],
         ["magpie"],
         ["manatee"],

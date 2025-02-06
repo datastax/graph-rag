@@ -116,7 +116,8 @@ class AstraAdapter(Adapter):
     @override
     def embed_query(self, query: str) -> list[float]:
         embedding = self.vector_store.embedding
-        assert embedding is not None
+        assert embedding is not None, \
+            "Cannot embed queries with server-side embeddings (vectorize)"
 
         return embedding.embed_query(query)
 
@@ -145,14 +146,23 @@ class AstraAdapter(Adapter):
         filter: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> tuple[list[float], list[Content]]:
+        # Work around the fact that `k == 0` is rejected by Astra.
+        # AstraDBVectorStore has a similar work around for non-vectorize path, but
+        # we want it to apply in both cases.
+        query_k = k
+        if query_k == 0:
+            query_k = 1
         query_embedding, docs_with_embeddings = (
             self.vector_store.similarity_search_with_embedding(
                 query=query,
-                k=k,
+                k=query_k,
                 filter=filter,
                 **kwargs,
             )
         )
+        if k == 0:
+            return query_embedding, []
+
         return query_embedding, self._build_contents(docs_with_embeddings)
 
     @override
@@ -164,15 +174,23 @@ class AstraAdapter(Adapter):
         filter: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> tuple[list[float], list[Content]]:
+        # Work around the fact that `k == 0` is rejected by Astra.
+        # AstraDBVectorStore has a similar work around for non-vectorize path, but
+        # we want it to apply in both cases.
+        query_k = k
+        if query_k == 0:
+            query_k = 1
         (
             query_embedding,
             docs_with_embeddings,
         ) = await self.vector_store.asimilarity_search_with_embedding(
             query=query,
-            k=k,
+            k=query_k,
             filter=filter,
             **kwargs,
         )
+        if k == 0:
+            return query_embedding, []
         return query_embedding, self._build_contents(docs_with_embeddings)
 
     @override
@@ -184,6 +202,9 @@ class AstraAdapter(Adapter):
         filter: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> list[Content]:
+        if k == 0:
+            return []
+
         docs_with_embeddings = (
             self.vector_store.similarity_search_with_embedding_by_vector(
                 embedding=embedding,
@@ -203,6 +224,9 @@ class AstraAdapter(Adapter):
         filter: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> list[Content]:
+        if k == 0:
+            return []
+
         docs_with_embeddings = (
             await self.vector_store.asimilarity_search_with_embedding_by_vector(
                 embedding=embedding,

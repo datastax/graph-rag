@@ -33,8 +33,38 @@ class InMemoryBase(Adapter, abc.ABC):
         self.embedding = embedding
 
     @override
-    def embed_query(self, query: str) -> list[float]:
-        return self.embedding(query)
+    def search_with_embedding(
+        self,
+        query: str,
+        k: int = 4,
+        filter: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> tuple[list[float], list[Content]]:
+        query_embedding = self.embedding(query)
+        docs = self.search(
+            embedding=query_embedding,
+            k=k,
+            filter=filter,
+            **kwargs,
+        )
+        return query_embedding, docs
+
+    @override
+    async def asearch_with_embedding(
+        self,
+        query: str,
+        k: int = 4,
+        filter: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> tuple[list[float], list[Content]]:
+        query_embedding = self.embedding(query)
+        docs = await self.asearch(
+            embedding=query_embedding,
+            k=k,
+            filter=filter,
+            **kwargs,
+        )
+        return query_embedding, docs
 
     @override
     def search(

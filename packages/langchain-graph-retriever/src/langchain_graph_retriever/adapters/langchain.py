@@ -50,9 +50,13 @@ class LangchainAdapter(Generic[StoreT], Adapter):
             raise ValueError(msg)
         return self.vector_store.embeddings
 
-    @override
-    def embed_query(self, query):
+    def embed_query(self, query: str):
+        """Return the embedding of the query."""
         return self._safe_embedding.embed_query(query)
+
+    async def aembed_query(self, query: str):
+        """Return the embedding of the query."""
+        return await self._safe_embedding.aembed_query(query)
 
     def update_filter_hook(
         self, filter: dict[str, Any] | None
@@ -87,6 +91,40 @@ class LangchainAdapter(Generic[StoreT], Adapter):
             The formatted content.
         """
         return [doc_to_content(doc) for doc in docs]
+
+    @override
+    def search_with_embedding(
+        self,
+        query: str,
+        k: int = 4,
+        filter: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> tuple[list[float], list[Content]]:
+        query_embedding = self.embed_query(query)
+        docs = self.search(
+            embedding=query_embedding,
+            k=k,
+            filter=filter,
+            **kwargs,
+        )
+        return query_embedding, docs
+
+    @override
+    async def asearch_with_embedding(
+        self,
+        query: str,
+        k: int = 4,
+        filter: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> tuple[list[float], list[Content]]:
+        query_embedding = await self.aembed_query(query)
+        docs = await self.asearch(
+            embedding=query_embedding,
+            k=k,
+            filter=filter,
+            **kwargs,
+        )
+        return query_embedding, docs
 
     @abc.abstractmethod
     def _search(
@@ -146,6 +184,9 @@ class LangchainAdapter(Generic[StoreT], Adapter):
         :
             List of Contents most similar to the query vector.
         """
+        if k == 0:
+            return []
+
         docs = self._search(
             embedding=embedding,
             k=k,
@@ -200,6 +241,9 @@ class LangchainAdapter(Generic[StoreT], Adapter):
         filter: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> list[Content]:
+        if k == 0:
+            return []
+
         docs = await self._asearch(
             embedding=embedding,
             k=k,

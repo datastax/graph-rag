@@ -81,13 +81,13 @@ async def test_animals_keywords(animals: Adapter, sync_or_async: SyncOrAsync):
         "bison",
         "cat",
         "coyote",
+        "crow",
         "dog",
         "fox",
         "gazelle",
         "horse",
         "hyena",
         "jackal",
-        "llama",
         "mongoose",
     ]
 
