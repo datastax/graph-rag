@@ -1,11 +1,10 @@
 import dataclasses
 import os
 import time
-import typing
 from collections.abc import Iterator
-from typing_extensions import override
 
 import pytest
+from astrapy.authentication import StaticTokenProvider
 from graph_retriever.testing.adapter_tests import (
     AdapterComplianceCase,
     AdapterComplianceSuite,
@@ -14,11 +13,9 @@ from langchain_astradb.utils.vector_store_codecs import _DefaultVSDocumentCodec
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_graph_retriever.adapters.astra import AstraAdapter, _QueryHelper
+from typing_extensions import override
 
 TEST_CODEC = _DefaultVSDocumentCodec("page_content", ignore_invalid_documents=True)
-
-if typing.TYPE_CHECKING:
-    from astrapy.authentication import StaticTokenProvider
 
 
 def test_create_ids_query_no_user() -> None:
@@ -131,7 +128,6 @@ def astra_config(enabled_stores: set[str]) -> Iterator[_AstraConfig | None]:
         return
 
     from astrapy import AstraDBDatabaseAdmin
-    from astrapy.authentication import StaticTokenProvider
     from dotenv import load_dotenv
 
     load_dotenv()
