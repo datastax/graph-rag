@@ -1,5 +1,6 @@
 ---
 title: testing
+icon: material/subdirectory-arrow-right
 toc:
     title: graph_retriever.testing
 ---

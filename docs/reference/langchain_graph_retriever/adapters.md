@@ -1,5 +1,6 @@
 ---
 title: adapters
+icon: material/subdirectory-arrow-right
 toc:
     title: langchain_graph_retriever.adapters
 ---
