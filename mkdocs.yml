@@ -114,6 +114,7 @@ nav:
             - reference/graph_retriever/edges.md
             - reference/graph_retriever/strategies.md
             - reference/graph_retriever/adapters.md
+            - reference/graph_retriever/testing.md
             - reference/graph_retriever/utils.md
         - langchain-graph-retriever:
             - reference/langchain_graph_retriever/index.md
