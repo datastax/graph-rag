@@ -105,6 +105,7 @@ nav:
         - guide/edges.md
         - guide/strategies.md
         - guide/adapters.md
+        - guide/transformers.md
     - Examples:
         - examples/index.md
         - examples/lazy-graph-rag.ipynb
