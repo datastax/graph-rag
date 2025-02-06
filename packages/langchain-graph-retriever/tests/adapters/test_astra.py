@@ -3,7 +3,7 @@ import os
 import time
 import typing
 from collections.abc import Iterator
-from typing import override
+from typing_extensions import override
 
 import pytest
 from graph_retriever.testing.adapter_tests import (
