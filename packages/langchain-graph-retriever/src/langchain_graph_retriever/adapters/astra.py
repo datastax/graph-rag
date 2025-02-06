@@ -113,14 +113,6 @@ class AstraAdapter(Adapter):
             component_name="langchain_graph_retriever"
         )
 
-    @override
-    def embed_query(self, query: str) -> list[float]:
-        embedding = self.vector_store.embedding
-        assert embedding is not None, \
-            "Cannot embed queries with server-side embeddings (vectorize)"
-
-        return embedding.embed_query(query)
-
     def _build_contents(
         self, docs_with_embeddings: list[tuple[Document, list[float]]]
     ) -> list[Content]:

@@ -29,10 +29,12 @@ class TestChroma(AdapterComplianceSuite):
         metadata_denormalizer = MetadataDenormalizer()
         docs = list(metadata_denormalizer.transform_documents(animal_docs))
         store = Chroma.from_documents(
-            docs, animal_embeddings, collection_name="animals",
+            docs,
+            animal_embeddings,
+            collection_name="animals",
             # Use `cosine` metric for consistency with other systems.
             # Default was L2.
-            collection_metadata={"hnsw:space": "cosine"}
+            collection_metadata={"hnsw:space": "cosine"},
         )
 
         yield ChromaAdapter(

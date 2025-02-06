@@ -3,7 +3,6 @@ import json
 import os
 
 import pytest
-
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from pytest import Parser
@@ -116,4 +115,5 @@ def animal_docs() -> list[Document]:
 def animal_embeddings() -> Embeddings:
     # This must be imported late (after registering the rewrites)
     from graph_retriever.testing.embeddings import AnimalEmbeddings
+
     return BaseEmbeddings(AnimalEmbeddings())

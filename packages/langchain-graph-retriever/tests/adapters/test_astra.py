@@ -1,17 +1,24 @@
 import dataclasses
 import os
 import time
+import typing
 from collections.abc import Iterator
 from typing import override
 
 import pytest
-from graph_retriever.testing.adapter_tests import AdapterComplianceSuite, AdapterComplianceCase
+from graph_retriever.testing.adapter_tests import (
+    AdapterComplianceCase,
+    AdapterComplianceSuite,
+)
 from langchain_astradb.utils.vector_store_codecs import _DefaultVSDocumentCodec
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_graph_retriever.adapters.astra import AstraAdapter, _QueryHelper
 
 TEST_CODEC = _DefaultVSDocumentCodec("page_content", ignore_invalid_documents=True)
+
+if typing.TYPE_CHECKING:
+    from astrapy.authentication import StaticTokenProvider
 
 
 def test_create_ids_query_no_user() -> None:
@@ -109,19 +116,19 @@ def test_create_metadata_query_user() -> None:
     assert query["$and"][0]["$or"][1]["metadata.foo"]["$in"] == list(range(100, 200))
     assert query["$and"][1] == {"metadata.answer": 42}
 
+
 @dataclasses.dataclass
 class _AstraConfig:
-    token: str
+    token: StaticTokenProvider
     keyspace: str
     api_endpoint: str
+
 
 @pytest.fixture(scope="module")
 def astra_config(enabled_stores: set[str]) -> Iterator[_AstraConfig | None]:
     if "astra" not in enabled_stores:
-            pytest.skip("Pass --stores=astra to test Astra")
-            return
-
-    import os
+        pytest.skip("Pass --stores=astra to test Astra")
+        return
 
     from astrapy import AstraDBDatabaseAdmin
     from astrapy.authentication import StaticTokenProvider
@@ -155,6 +162,7 @@ def astra_config(enabled_stores: set[str]) -> Iterator[_AstraConfig | None]:
 
     admin.drop_keyspace(keyspace)
 
+
 class TestAstraAdapter(AdapterComplianceSuite):
     @pytest.fixture(scope="class")
     def adapter(
@@ -179,24 +187,40 @@ class TestAstraAdapter(AdapterComplianceSuite):
 
         store.delete_collection()
 
+
 VECTORIZE_EXPECTATION_OVERRIDES: dict[tuple[str, str], list[str]] = {
     ("search", "basic"): ["alpaca", "cat", "chicken", "horse"],
     ("asearch", "basic"): ["alpaca", "cat", "chicken", "horse"],
     ("search_with_embedding", "basic"): ["alpaca", "cat", "chicken", "horse"],
     ("asearch_with_embedding", "basic"): ["alpaca", "cat", "chicken", "horse"],
-    ("adjacent", "metadata_and_id"): ["cat", "cobra", "crocodile", "gecko", "iguana", "lizard"],
-    ("aadjacent", "metadata_and_id"): ["cat", "cobra", "crocodile", "gecko", "iguana", "lizard"],
+    ("adjacent", "metadata_and_id"): [
+        "cat",
+        "cobra",
+        "crocodile",
+        "gecko",
+        "iguana",
+        "lizard",
+    ],
+    ("aadjacent", "metadata_and_id"): [
+        "cat",
+        "cobra",
+        "crocodile",
+        "gecko",
+        "iguana",
+        "lizard",
+    ],
 }
+
+
 class TestAstraVectorizeAdapter(AdapterComplianceSuite):
     @override
     def expected(self, method: str, case: AdapterComplianceCase) -> list[str]:
         # Since vectorize currently requires a server-side embedding model, we
         # need to change the expectations a little to reflect the embeddings
         # that are actually computed.
-        return VECTORIZE_EXPECTATION_OVERRIDES.get((method, case.id), None) or (
+        return VECTORIZE_EXPECTATION_OVERRIDES.get((method, case.id), []) or (
             super().expected(method, case)
         )
-
 
     @pytest.fixture(scope="class")
     def adapter(
@@ -204,10 +228,10 @@ class TestAstraVectorizeAdapter(AdapterComplianceSuite):
         animal_docs: list[Document],
         astra_config: _AstraConfig,
     ) -> Iterator["AstraAdapter"]:
-        from langchain_astradb import AstraDBVectorStore
         from astrapy.info import CollectionVectorServiceOptions
+        from langchain_astradb import AstraDBVectorStore
 
-        service=CollectionVectorServiceOptions(
+        service = CollectionVectorServiceOptions(
             provider="nvidia",
             model_name="NV-Embed-QA",
         )

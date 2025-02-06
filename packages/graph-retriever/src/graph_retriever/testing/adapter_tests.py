@@ -39,10 +39,24 @@ def assert_ids_any_order(
     result_ids = [r.id for r in results]
     assert set(result_ids) == set(expected), "should contain exactly expected IDs"
 
+
 @dataclass
 class AdapterComplianceCase(abc.ABC):
+    """
+    Base dataclass for test cases.
+
+    Attributes
+    ----------
+    id :
+        The ID of the test case.
+
+    expected :
+        The expected results of the case.
+    """
+
     id: str
     expected: list[str]
+
 
 @dataclass
 class GetCase(AdapterComplianceCase):
@@ -51,15 +65,18 @@ class GetCase(AdapterComplianceCase):
     request: list[str]
     filter: dict[str, Any] | None = None
 
+
 GET_CASES: list[GetCase] = [
     # Currently, this is not required for `get` implementations since the
     # traversal skips making `get` calls with no IDs. Some stores (such as chroma)
     # fail in this case.
     # GetCase("none", [], []),
     GetCase(id="one", request=["boar"], expected=["boar"]),
-    GetCase(id="many",
-            request=["boar", "chinchilla", "cobra"],
-            expected=["boar", "chinchilla", "cobra"]),
+    GetCase(
+        id="many",
+        request=["boar", "chinchilla", "cobra"],
+        expected=["boar", "chinchilla", "cobra"],
+    ),
     GetCase(
         id="missing",
         request=["boar", "chinchilla", "unicorn", "cobra"],
@@ -104,11 +121,7 @@ SEARCH_CASES: list[SearchCase] = [
         query="domesticated hunters",
         expected=["cat", "horse", "chicken", "dog"],
     ),
-    SearchCase(
-        id="k2",
-        query="domesticated hunters",
-        k=2,
-        expected=["cat", "horse"]),
+    SearchCase(id="k2", query="domesticated hunters", k=2, expected=["cat", "horse"]),
     SearchCase(
         id="k0",
         query="domesticated hunters",
@@ -260,7 +273,7 @@ class AdapterComplianceSuite(abc.ABC):
     loaded.
     """
 
-    def expected(self, method: str, case: AdapterComplianceCase) -> list[str] | None:
+    def expected(self, method: str, case: AdapterComplianceCase) -> list[str]:
         """
         Override to change the expected behavior of a case.
 
@@ -351,9 +364,7 @@ class AdapterComplianceSuite(abc.ABC):
         results = await adapter.asearch(embedding, **search_case.kwargs)
         assert_ids_any_order(results, expected)
 
-    def test_adjacent(
-        self, adapter: Adapter, adjacent_case: AdjacentCase
-    ) -> None:
+    def test_adjacent(self, adapter: Adapter, adjacent_case: AdjacentCase) -> None:
         """Run tests for `adjacent."""
         expected = self.expected("adjacent", adjacent_case)
         embedding, _ = adapter.search_with_embedding(adjacent_case.query, k=0)

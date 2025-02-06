@@ -22,7 +22,6 @@ class Adapter(abc.ABC):
     def __init__(self) -> None:
         pass
 
-
     @abc.abstractmethod
     def search_with_embedding(
         self,
