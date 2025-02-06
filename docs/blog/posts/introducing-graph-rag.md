@@ -68,7 +68,7 @@ Assuming you already have a LangChain project using a Vector Store, all you need
     # Define your graph traversal
     traversal = GraphRetriever(
         store=vector_store,
-        edges=[("mentions", "id"), "entities"],
+        edges=[("mentions", "id"), ("entities", "entites")],
     )
 
     # Query the graph
