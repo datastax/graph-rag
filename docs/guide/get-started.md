@@ -1,6 +1,6 @@
 # Get Started
 
-This page is an executable notebook demonstrating how to combine Graph Traversal and Vector Search using `langchain-graph-retriever` with `langchain`.
+This page demonstrates how to combine Graph Traversal and Vector Search using `langchain-graph-retriever` with `langchain`.
 
 ## Pre-requisites
 
@@ -50,6 +50,7 @@ For this guide, I have a JSON file with information about animals. Several examp
         "habitat": "rainforest"
     }
 }
+```
 
 ```python title="Fetching Animal Data"
 from graph_rag_example_helpers.datasets.animals import fetch_documents

@@ -98,12 +98,13 @@ theme:
 
 nav:
     - Home: index.md
-    - Get Started:
-        - get-started/index.md
-        - get-started/traversal.md
-        - get-started/edges.md
-        - get-started/strategies.md
-        - get-started/adapters.md
+    - Guide:
+        - guide/index.md
+        - guide/get-started.md
+        - guide/traversal.md
+        - guide/edges.md
+        - guide/strategies.md
+        - guide/adapters.md
     - Examples:
         - examples/index.md
         - examples/lazy-graph-rag.ipynb

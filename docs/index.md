@@ -20,7 +20,7 @@ These retrievers are implemented using the metadata search functionality of exis
     Use existing metadata fields without additional processing.
     Retrieve more from your existing vector store!
 
-    [:octicons-arrow-right-24: Get started](./get-started/index.md)
+    [:octicons-arrow-right-24: Get started](./guide/get-started.md)
 
 -   :material-clock-edit-outline:{ .lg .middle } __Change links on demand__
 
@@ -28,7 +28,7 @@ These retrievers are implemented using the metadata search functionality of exis
 
     Edges can be specified on-the-fly, allowing different relationships to be traversed based on the question.
 
-    [:octicons-arrow-right-24: Edges](./get-started/edges.md)
+    [:octicons-arrow-right-24: Edges](./guide/edges.md)
 
 
 -   :material-connection:{ .lg .middle } __Pluggable Traversal Strategies__
@@ -37,7 +37,7 @@ These retrievers are implemented using the metadata search functionality of exis
 
     Use built-in traversal strategies like Eager or MMR, or define your own logic to select which nodes to explore.
 
-    [:octicons-arrow-right-24: Strategies](./get-started/strategies.md)
+    [:octicons-arrow-right-24: Strategies](./guide/strategies.md)
 
 -   :material-multicast:{ .lg .middle } __Broad compatibility__
 
@@ -46,7 +46,7 @@ These retrievers are implemented using the metadata search functionality of exis
     Adapters are available for a variety of vector stores with support for
     additional stores easily added.
 
-    [:octicons-arrow-right-24: Adapters](./get-started/adapters.md)
+    [:octicons-arrow-right-24: Adapters](./guide/adapters.md)
 </div>
 
 ## Example: LangChain Retriever combining Vector and Graph traversal
