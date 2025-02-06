@@ -13,7 +13,7 @@ At a high level, traversal performs the following steps:
 
 ## Traversal Methods
 
-The [`graph_retriever`](../reference/graph_retriever/index.md) package provides [`traverse`][graph_retriever.traverse] and [`atraverse`][langchain_graph_retriever.atraverse] for performing traversals.
+The [`graph_retriever`](../reference/graph_retriever/index.md) package provides [`traverse`][graph_retriever.traverse] and [`atraverse`][graph_retriever.atraverse] for performing traversals.
 
 ## LangChain Graph Retriever {: #graph-retriever }
 
