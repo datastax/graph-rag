@@ -1,5 +1,6 @@
 ---
 title: "Introducing Graph Retrievers: Smarter, Simpler Document Graphs for Vector Stores"
+sug: introducing-graph-rag
 description: "Announcing the first release of Graph Retrievers, a powerful graph traversal retriever for your vector store!"
 author: "Ben Chambers"
 date: 2025-01-31
@@ -11,6 +12,8 @@ categories:
 We're excited to announce the release of **Graph Retrievers**, a powerful new tool for leveraging graph traversal in your vector stores with ease!
 
 With Graph Retrievers, you can dynamically explore relationships between documents using metadata fields—no need for complex preprocessing or building an entire knowledge graph upfront.
+
+<!-- more -->
 
 ## A Brief History: Where We Started
 
