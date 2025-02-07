@@ -7,7 +7,7 @@ hide:
 
 # Graph RAG
 
-Graph RAG provides retrievers combining **unstructured** similarity-search on vectors and
+Graph RAG provides retrievers that combine **unstructured** similarity-search on vectors and
 **structured** traversal of metadata properties.
 These retrievers are implemented using the metadata search functionality of existing vector stores, **allowing you to traverse your existing vector store**!
 
