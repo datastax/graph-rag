@@ -74,24 +74,12 @@ def initialize_from_prompts(env: Environment = Environment.CASSIO):
     import getpass
 
     for required in env.required_envvars():
-        if required in NON_SECRETS:
+        if required in os.environ:
+            continue
+        elif required in NON_SECRETS:
             os.environ[required] = input(required)
         else:
             os.environ[required] = getpass.getpass(required)
-
-    if (keyspace := input("ASTRA_DB_KEYSPACE (empty for default)")) is not None:
-        os.environ["ASTRA_DB_KEYSPACE"] = keyspace
-    else:
-        os.environ.pop("ASTRA_DB_KEYSPACE", None)
-
-    if (
-        lc_api_key := getpass.getpass("LANGCHAIN_API_KEY (empty for no tracing)")
-    ) is not None:
-        os.environ["LANGCHAIN_API_KEY"] = lc_api_key
-        os.environ["LANGCHAIN_TRACING_V2"] = "True"
-    else:
-        os.environ.pop("LANGCHAIN_API_KEY")
-        os.environ.pop("LANGCHAIN_TRACING_V2")
 
 
 def initialize_environment(env: Environment = Environment.CASSIO):
