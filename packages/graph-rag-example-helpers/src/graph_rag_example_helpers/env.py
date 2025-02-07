@@ -113,7 +113,7 @@ def initialize_environment(env: Environment = Environment.CASSIO):
         3. If necessary variables aren't set by the above, then prompts the user.
     """
     # 1. If a `.env` file is found, load environment variables from that.
-    if (dotenv_path := find_dotenv()) is not None:
+    if dotenv_path := find_dotenv():
         load_dotenv(dotenv_path)
         verify_environment(env)
         return
