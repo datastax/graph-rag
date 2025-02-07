@@ -9,7 +9,9 @@ from typing_extensions import override
 
 class SpacyNERTransformer(BaseDocumentTransformer):
     """
-    Uses **spaCy** to identify and label named entities in text, extracting structured
+    Add metadata to documents about named entities using **spaCy**.
+
+    Identifies and labels named entities in text, extracting structured
     metadata such as organizations, locations, dates, and other key entity types.
 
     [**spaCy**](https://spacy.io/) is a library for Natural Language Processing
@@ -50,7 +52,7 @@ class SpacyNERTransformer(BaseDocumentTransformer):
     CARDINAL, DATE, EVENT, FAC, GPE, LANGUAGE, LAW, LOC, MONEY, NORP, ORDINAL,
     ORG, PERCENT, PERSON, PRODUCT, QUANTITY, TIME, WORK_OF_ART.
 
-    """  # noqa: E501
+    """
 
     def __init__(
         self,
@@ -68,7 +70,7 @@ class SpacyNERTransformer(BaseDocumentTransformer):
 
         if isinstance(model, str):
             if not spacy.util.is_package(model):
-                spacy.cli.download(model)
+                spacy.cli.download(model)  # type: ignore
             self.model = spacy.load(model)
         elif isinstance(model, Language):
             self.model = model

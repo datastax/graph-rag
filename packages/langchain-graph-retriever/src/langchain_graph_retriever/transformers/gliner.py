@@ -8,11 +8,13 @@ from typing_extensions import override
 
 class GLiNERTransformer(BaseDocumentTransformer):
     """
-    Uses **GLiNER** to extract structured entity labels from text, identifying key
-    attributes and categories to enrich document metadata with semantic information.
+    Add metadata to documents about named entities using **GLiNER**.
 
-    [**GLiNER**](https://github.com/urchade/GLiNER) is a Named Entity Recognition (NER)
-    model capable of identifying any entity type using a
+    Extracts structured entity labels from text, identifying key attributes and
+    categories to enrich document metadata with semantic information.
+
+    [**GLiNER**](https://github.com/urchade/GLiNER) is a Named Entity
+    Recognition (NER) model capable of identifying any entity type using a
     bidirectional transformer encoder (BERT-like).
 
     Prerequisites
@@ -85,7 +87,7 @@ class GLiNERTransformer(BaseDocumentTransformer):
                 result = Document(
                     id=batch[j].id,
                     page_content=batch[j].page_content,
-                    metadata=batch[j].metadata.copy()
+                    metadata=batch[j].metadata.copy(),
                 )
                 for key in new_metadata.keys():
                     result.metadata[key] = list(new_metadata[key])

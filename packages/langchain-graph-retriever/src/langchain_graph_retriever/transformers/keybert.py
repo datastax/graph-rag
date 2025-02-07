@@ -8,8 +8,10 @@ from typing_extensions import override
 
 class KeyBERTTransformer(BaseDocumentTransformer):
     """
-    Uses **KeyBERT** to extract key topics and concepts from text, generating
-    metadata that highlights the most relevant terms to describe the content.
+    Add metadata to documents about keywords using **KeyBERT**.
+
+    Extracts key topics and concepts from text, generating metadata that highlights
+    the most relevant terms to describe the content.
 
     [**KeyBERT**](https://maartengr.github.io/KeyBERT) is a minimal and easy-to-use
     keyword extraction technique that leverages BERT embeddings to create keywords and
@@ -59,7 +61,7 @@ class KeyBERTTransformer(BaseDocumentTransformer):
     def _extract_keywords(
         self, docs: list[str], **kwargs
     ) -> list[list[tuple[str, float]]]:
-        """Wrapper to always return a list of responses"""
+        """Wrap the function to always return a list of responses."""
         extracted = self._kw_model.extract_keywords(docs=docs, **kwargs)
         if len(docs) == 1:
             # Even if we pass a list, if it contains one item, keybert will flatten it.
