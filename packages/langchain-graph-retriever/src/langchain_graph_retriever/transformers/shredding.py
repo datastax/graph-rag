@@ -1,4 +1,4 @@
-"""Denormalizer for sequence-based metadata fields."""
+"""Shredding Transformer for sequence-based metadata fields."""
 
 import json
 from collections.abc import Sequence
@@ -7,14 +7,14 @@ from typing import Any
 from langchain_core.documents import BaseDocumentTransformer, Document
 from typing_extensions import override
 
-DENORMALIZED_KEYS_KEY = "__denormalized_keys"
+SHREDDED_KEYS_KEY = "__shredded_keys"
 DEFAULT_PATH_DELIMITER = "→"  # unicode 2192
 DEFAULT_STATIC_VALUE = "§"  # unicode 00A7
 
 
-class MetadataDenormalizer(BaseDocumentTransformer):
+class ShreddingTransformer(BaseDocumentTransformer):
     """
-    Denormalizes sequence-based metadata fields.
+    Shreds sequence-based metadata fields.
 
     Certain vector stores do not support storing or searching on metadata fields
     with sequence-based values. This transformer converts sequence-based fields
@@ -26,35 +26,33 @@ class MetadataDenormalizer(BaseDocumentTransformer):
     .. code-block:: python
 
         from langchain_core.documents import Document
-        from langchain_community.document_transformers.metadata_denormalizer import (
-            MetadataDenormalizer,
-        )
+        from langchain_community.document_transformers import ShreddingTransformer
 
         doc = Document(
             page_content="test",
             metadata={"place": ["berlin", "paris"], "topic": ["weather"]},
         )
 
-        de_normalizer = MetadataDenormalizer()
+        shredder = ShreddingTransformer()
 
-        docs = de_normalizer.transform_documents([doc])
+        docs = shredder.transform_documents([doc])
 
         print(docs[0].metadata)
 
 
     .. code-block:: output
 
-        {'place.berlin': True, 'place.paris': True, 'topic.weather': True}
+        {'place→berlin': '§', 'place→paris': '§', 'topic→weather': '§'}
 
     Parameters
     ----------
     keys :
-        A set of metadata keys to denormalize.
-        If empty, all sequence-based fields will be denormalized.
+        A set of metadata keys to shred.
+        If empty, all sequence-based fields will be shredded.
     path_delimiter :
-        The path delimiter to use when building denormalized keys.
+        The path delimiter to use when building shredded keys.
     static_value :
-        The value to set on each denormalized key.
+        The value to set on each shredded key.
 
     """  # noqa: E501
 
@@ -76,34 +74,34 @@ class MetadataDenormalizer(BaseDocumentTransformer):
         transformed_docs = []
         for document in documents:
             new_doc = Document(id=document.id, page_content=document.page_content)
-            denormalized_keys: list[str] = []
+            shredded_keys: list[str] = []
             for key, value in document.metadata.items():
-                is_normalized = isinstance(value, Sequence) and not isinstance(
+                is_nested_sequence = isinstance(value, Sequence) and not isinstance(
                     value, str | bytes
                 )
-                should_denormalize = (not self.keys) or (key in self.keys)
-                if is_normalized and should_denormalize:
-                    denormalized_keys.append(key)
+                should_shred = (not self.keys) or (key in self.keys)
+                if is_nested_sequence and should_shred:
+                    shredded_keys.append(key)
                     for item in value:
-                        new_doc.metadata[self.denormalized_key(key=key, value=item)] = (
-                            self.denormalized_value()
+                        new_doc.metadata[self.shredded_key(key=key, value=item)] = (
+                            self.shredded_value()
                         )
                 else:
                     new_doc.metadata[key] = value
-            if len(denormalized_keys) > 0:
-                new_doc.metadata[DENORMALIZED_KEYS_KEY] = json.dumps(denormalized_keys)
+            if len(shredded_keys) > 0:
+                new_doc.metadata[SHREDDED_KEYS_KEY] = json.dumps(shredded_keys)
             transformed_docs.append(new_doc)
 
         return transformed_docs
 
-    def revert_documents(
+    def restore_documents(
         self, documents: Sequence[Document], **kwargs: Any
     ) -> Sequence[Document]:
         """
-        Revert documents transformed by the MetadataDenormalizer.
+        Restore documents transformed by the ShreddingTransformer.
 
-        Reverts documents transformed by the MetadataDenormalizer back to their original
-        state before denormalization.
+        Restore documents transformed by the ShreddingTransformer back to their original
+        state before shredding.
 
         Note that any non-string values inside lists will be converted to strings
         after reverting.
@@ -119,16 +117,16 @@ class MetadataDenormalizer(BaseDocumentTransformer):
         reverted_docs = []
         for document in documents:
             new_doc = Document(id=document.id, page_content=document.page_content)
-            denormalized_keys = set(
-                json.loads(document.metadata.pop(DENORMALIZED_KEYS_KEY, "[]"))
+            shredded_keys = set(
+                json.loads(document.metadata.pop(SHREDDED_KEYS_KEY, "[]"))
             )
 
             for key, value in document.metadata.items():
-                # Check if the key belongs to a denormalized group
+                # Check if the key belongs to a shredded group
                 split_key = key.split(self.path_delimiter, 1)
                 if (
                     len(split_key) == 2
-                    and split_key[0] in denormalized_keys
+                    and split_key[0] in shredded_keys
                     and value == self.static_value
                 ):
                     original_key, original_value = split_key
@@ -136,38 +134,38 @@ class MetadataDenormalizer(BaseDocumentTransformer):
                         new_doc.metadata[original_key] = []
                     new_doc.metadata[original_key].append(original_value)
                 else:
-                    # Retain non-denormalized metadata as is
+                    # Retain non-shredded metadata as is
                     new_doc.metadata[key] = value
 
             reverted_docs.append(new_doc)
 
         return reverted_docs
 
-    def denormalized_key(self, key: str, value: Any) -> str:
+    def shredded_key(self, key: str, value: Any) -> str:
         """
-        Get the denormalized key for a key/value pair.
+        Get the shredded key for a key/value pair.
 
         Parameters
         ----------
         key :
-            The metadata key to denormalize
+            The metadata key to shred
         value :
-            The metadata value to denormalize
+            The metadata value to shred
 
         Returns
         -------
         str
-            the denormalized key
+            the shredded key
         """
         return f"{key}{self.path_delimiter}{value}"
 
-    def denormalized_value(self) -> str:
+    def shredded_value(self) -> str:
         """
-        Get the denormalized value for a key/value pair.
+        Get the shredded value for a key/value pair.
 
         Returns
         -------
         str
-            the denormalized value
+            the shredded value
         """
         return self.static_value

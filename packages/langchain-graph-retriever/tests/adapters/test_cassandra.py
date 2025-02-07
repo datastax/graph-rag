@@ -7,9 +7,7 @@ from graph_retriever.adapters import Adapter
 from graph_retriever.testing.adapter_tests import AdapterComplianceSuite
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
-from langchain_graph_retriever.transformers.metadata_denormalizer import (
-    MetadataDenormalizer,
-)
+from langchain_graph_retriever.transformers import ShreddingTransformer
 
 if typing.TYPE_CHECKING:
     from cassandra.cluster import Cluster  # type: ignore
@@ -71,7 +69,7 @@ class TestCassandraAdapter(AdapterComplianceSuite):
             "{'class': 'SimpleStrategy', 'replication_factor': 1}"
         )
 
-        metadata_denormalizer = MetadataDenormalizer()
+        shredder = ShreddingTransformer()
         session = cluster.connect()
         session.execute(f"DROP TABLE IF EXISTS {KEYSPACE}.animals")
         store = Cassandra(
@@ -80,9 +78,9 @@ class TestCassandraAdapter(AdapterComplianceSuite):
             keyspace=KEYSPACE,
             table_name="animals",
         )
-        docs = list(metadata_denormalizer.transform_documents(animal_docs))
+        docs = list(shredder.transform_documents(animal_docs))
         store.add_documents(docs)
-        yield CassandraAdapter(store, metadata_denormalizer, {"keywords"})
+        yield CassandraAdapter(store, shredder, {"keywords"})
 
         if session:
             session.shutdown()

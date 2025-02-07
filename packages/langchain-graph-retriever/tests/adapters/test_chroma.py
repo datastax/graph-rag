@@ -5,9 +5,7 @@ from graph_retriever.adapters import Adapter
 from graph_retriever.testing.adapter_tests import AdapterComplianceSuite
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
-from langchain_graph_retriever.transformers.metadata_denormalizer import (
-    MetadataDenormalizer,
-)
+from langchain_graph_retriever.transformers import ShreddingTransformer
 
 
 class TestChroma(AdapterComplianceSuite):
@@ -26,8 +24,8 @@ class TestChroma(AdapterComplianceSuite):
             ChromaAdapter,
         )
 
-        metadata_denormalizer = MetadataDenormalizer()
-        docs = list(metadata_denormalizer.transform_documents(animal_docs))
+        shredder = ShreddingTransformer()
+        docs = list(shredder.transform_documents(animal_docs))
         store = Chroma.from_documents(
             docs,
             animal_embeddings,
@@ -37,8 +35,6 @@ class TestChroma(AdapterComplianceSuite):
             collection_metadata={"hnsw:space": "cosine"},
         )
 
-        yield ChromaAdapter(
-            store, metadata_denormalizer, nested_metadata_fields={"keywords"}
-        )
+        yield ChromaAdapter(store, shredder, nested_metadata_fields={"keywords"})
 
         store.delete_collection()

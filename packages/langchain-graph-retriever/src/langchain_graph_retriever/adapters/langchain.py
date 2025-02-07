@@ -16,9 +16,7 @@ from typing_extensions import (
 )
 
 from langchain_graph_retriever._conversion import doc_to_content
-from langchain_graph_retriever.transformers.metadata_denormalizer import (
-    MetadataDenormalizer,
-)
+from langchain_graph_retriever.transformers import ShreddingTransformer
 
 StoreT = TypeVar("StoreT", bound=VectorStore)
 
@@ -392,7 +390,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
         return metadata_filter
 
 
-class DenormalizedAdapter(LangchainAdapter[StoreT]):
+class ShreddedLangchainAdapter(LangchainAdapter[StoreT]):
     """
     Base adapter for integrating vector stores with the graph retriever system.
 
@@ -404,9 +402,9 @@ class DenormalizedAdapter(LangchainAdapter[StoreT]):
     ----------
     vector_store :
         The vector store instance.
-    metadata_denormalizer: MetadataDenormalizer, optional
-        An instance of the MetadataDenormalizer used for doc insertion.
-        If not passed then a default instance of MetadataDenormalizer is used.
+    shredder: ShreddingTransformer, optional
+        An instance of the ShreddingTransformer used for doc insertion.
+        If not passed then a default instance of ShreddingTransformer is used.
     nested_metadata_fields: set[str]
         The set of metadata fields that contain nested values.
     """
@@ -414,16 +412,12 @@ class DenormalizedAdapter(LangchainAdapter[StoreT]):
     def __init__(
         self,
         vector_store: StoreT,
-        metadata_denormalizer: MetadataDenormalizer | None = None,
+        shredder: ShreddingTransformer | None = None,
         nested_metadata_fields: set[str] = set(),
     ):
         """Initialize the base adapter."""
         super().__init__(vector_store=vector_store)
-        self.metadata_denormalizer = (
-            MetadataDenormalizer()
-            if metadata_denormalizer is None
-            else metadata_denormalizer
-        )
+        self.shredder = ShreddingTransformer() if shredder is None else shredder
         self.nested_metadata_fields = nested_metadata_fields
 
     @override
@@ -433,17 +427,17 @@ class DenormalizedAdapter(LangchainAdapter[StoreT]):
         if filter is None:
             return None
 
-        denormalized_filter = {}
+        shredded_filter = {}
         for key, value in filter.items():
             if key in self.nested_metadata_fields:
-                denormalized_filter[
-                    self.metadata_denormalizer.denormalized_key(key, value)
-                ] = self.metadata_denormalizer.denormalized_value()
+                shredded_filter[self.shredder.shredded_key(key, value)] = (
+                    self.shredder.shredded_value()
+                )
             else:
-                denormalized_filter[key] = value
-        return denormalized_filter
+                shredded_filter[key] = value
+        return shredded_filter
 
     @override
     def format_documents_hook(self, docs: list[Document]) -> list[Content]:
-        normalized = list(self.metadata_denormalizer.revert_documents(documents=docs))
-        return super().format_documents_hook(normalized)
+        restored = list(self.shredder.restore_documents(documents=docs))
+        return super().format_documents_hook(restored)

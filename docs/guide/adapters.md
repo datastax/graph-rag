@@ -15,7 +15,7 @@ __Supported__
 
 __Collection Support__
 
-: Indicates whether the store supports lists in metadata values or not. Stores which do not support it directly (:material-alert-circle:{.yellow}) can be used by applying the [MetadataDenormalizer][langchain_graph_retriever.transformers.metadata_denormalizer.MetadataDenormalizer] document transformer to documents before writing, which spreads the items of the collection into multiple metadata keys.
+: Indicates whether the store supports lists in metadata values or not. Stores which do not support it directly (:material-alert-circle:{.yellow}) can be used by applying the [ShreddingTransformer][langchain_graph_retriever.transformers.ShreddingTransformer] document transformer to documents before writing, which spreads the items of the collection into multiple metadata keys.
 
 __Combined Adjacent Query__
 
@@ -43,12 +43,12 @@ supports operating on metadata containing both primitive and list values. Additi
 
 ### Apache Cassandra {: #cassandra}
 
-[Apache Cassandra](https://cassandra.apache.org/) is supported by the [`CassandraAdapter`][langchain_graph_retriever.adapters.cassandra.CassandraAdapter]. The adapter requires denormalizing metadata containing lists in order to use them as edges. It does not combine the adjacent query.
+[Apache Cassandra](https://cassandra.apache.org/) is supported by the [`CassandraAdapter`][langchain_graph_retriever.adapters.cassandra.CassandraAdapter]. The adapter requires shredding metadata containing lists in order to use them as edges. It does not combine the adjacent query.
 
 ### Chroma
 
-[Chroma](https://www.trychroma.com/) is supported by the [`ChromaAdapter`][langchain_graph_retriever.adapters.chroma.ChromaAdapter]. The adapter requires denormalizing metadata containing lists in order to use them as edges. It does not combine the adjacent query.
+[Chroma](https://www.trychroma.com/) is supported by the [`ChromaAdapter`][langchain_graph_retriever.adapters.chroma.ChromaAdapter]. The adapter requires shredding metadata containing lists in order to use them as edges. It does not combine the adjacent query.
 
 ## Implementation
 
-The [Adapter][graph_retriever.adapters.Adapter] interface may be implemented directly. For LangChain [VectorStores][langchain_core.vectorstores.base.VectorStore], [LangchainAdapter][langchain_graph_retriever.adapters.langchain.LangchainAdapter] and [DenormalizedAdapter][langchain_graph_retriever.adapters.langchain.DenormalizedAdapter] provide much of the necessary functionality.
+The [Adapter][graph_retriever.adapters.Adapter] interface may be implemented directly. For LangChain [VectorStores][langchain_core.vectorstores.base.VectorStore], [LangchainAdapter][langchain_graph_retriever.adapters.langchain.LangchainAdapter] and [ShreddedLangchainAdapter][langchain_graph_retriever.adapters.langchain.ShreddedLangchainAdapter] provide much of the necessary functionality.
