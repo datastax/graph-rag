@@ -53,6 +53,7 @@ dev = [
     "pytest-asyncio>=0.25.2",
     "poethepoet>=0.32.1",
     "nbstripout>=0.8.1",
+    "nbmake>=1.5.5",
 ]
 
 docs = [
@@ -163,11 +164,16 @@ cmd = "uv run pytest -vs --runextras ."
 help = "Runs all tests (against in-memory stores)"
 sequence = [ "test-gr", "test-lgr"]
 
+[tool.poe.tasks.test-nb]
+help = "Runs tests on notebooks"
+shell = "find . -name '*.ipynb' | awk 'system(\"git check-ignore --quiet \" $0)' | xargs | uv run pytest docs --nbmake"
+
 [tool.poe.tasks.test-all]
 help = "Runs all tests (against all stores)"
 sequence = [
   "test-gr",
   { cmd = "uv run pytest -vs . --stores=all", cwd = "packages/langchain-graph-retriever" },
+  "test-nb",
 ]
 
 [tool.poe.tasks.build]

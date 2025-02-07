@@ -11,6 +11,7 @@ import httpx
 from graph_retriever.utils.batched import batched
 from langchain_core.documents import Document
 from langchain_core.vectorstores.base import VectorStore
+import requests
 from tqdm import tqdm  # type: ignore[import-untyped]
 
 from graph_rag_example_helpers.persistent_iteration import PersistentIteration
@@ -52,9 +53,14 @@ MAX_RETRIES = 8
 BatchPreparer = Callable[[Iterator[bytes]], Iterator[Document]]
 """Function to apply to batches of lines to produce the document."""
 
+SHORT_URL = "https://raw.githubusercontent.com/datastax/graph-rag/refs/heads/main/data/para_with_hyperlink_short.jsonl"
 
 async def aload_2wikimultihop(
-    para_with_hyperlink_zip_path: str, store: VectorStore, batch_prepare: BatchPreparer
+        short: bool,
+        *,
+        full_para_with_hyperlink_zip_path: str,
+        store: VectorStore,
+        batch_prepare: BatchPreparer,
 ) -> None:
     """
     Load 2wikimultihop data into the given `VectorStore`.
@@ -70,10 +76,28 @@ async def aload_2wikimultihop(
     batch_prepare :
         Function to apply to batches of lines to produce the document.
     """
-    assert os.path.isfile(para_with_hyperlink_zip_path)
+    if short:
+        local_path = "../../data/para_with_hyperlink_short.jsonl"
+        if os.path.isfile(local_path):
+            for batch in batched(open(local_path).readlines(), BATCH_SIZE):
+                docs = batch_prepare(batch)
+                store.add_documents(docs)
+            print(f"Loaded from {local_path}")  # noqa: T201
+        else:
+            print(f"{local_path} not found, fetching short dataset")  # noqa: T201
+            response = requests.get(SHORT_URL)
+            response.raise_for_status() # Ensure we get a valid response
+
+            for batch in batched(response.text.splitlines(), BATCH_SIZE):
+                docs = batch_prepare(batch)
+                store.add_documents(docs)
+            print(f"Loaded from {SHORT_URL}") # noqa: T201
+        return
+
+    assert os.path.isfile(full_para_with_hyperlink_zip_path)
     persistence = PersistentIteration(
         journal_name="load_2wikimultihop.jrnl",
-        iterator=batched(wikipedia_lines(para_with_hyperlink_zip_path), BATCH_SIZE),
+        iterator=batched(wikipedia_lines(full_para_with_hyperlink_zip_path), BATCH_SIZE),
     )
     total_batches = ceil(LINES_IN_FILE / BATCH_SIZE) - persistence.completed_count()
     if persistence.completed_count() > 0:
@@ -81,9 +105,6 @@ async def aload_2wikimultihop(
             f"Resuming loading with {persistence.completed_count()}"
             f" completed, {total_batches} remaining"
         )
-
-    # We can't use asyncio.TaskGroup in 3.10. This would be simpler with that.
-    tasks: list[asyncio.Task] = []
 
     @backoff.on_exception(
         backoff.expo,
@@ -102,11 +123,13 @@ async def aload_2wikimultihop(
                     print(err_desc)  # noqa: T201
             raise
 
+
+    # We can't use asyncio.TaskGroup in 3.10. This would be simpler with that.
+    tasks: list[asyncio.Task] = []
+
     for offset, batch_lines in tqdm(persistence, total=total_batches):
         batch_docs = batch_prepare(batch_lines)
         if batch_docs:
-            ids = [doc.id for doc in batch_docs]
-            assert len(set(ids)) == len(ids)
             task = asyncio.create_task(add_docs(batch_docs, offset))
 
             # It is OK if tasks are lost upon failure since that means we're

@@ -183,7 +183,9 @@ jobs:
 
       - name: Check if documentation can be built
         run: uv run mkdocs build --strict
-        id: build
+
+      - name: Test Notebooks
+        run: uv run poe test-nb
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
