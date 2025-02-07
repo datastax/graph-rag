@@ -9,51 +9,26 @@ from typing_extensions import override
 
 class SpacyNERTransformer(BaseDocumentTransformer):
     """
-    Add metadata to documents about named entities using `spaCy`.
+    Uses **spaCy** to identify and label named entities in text, extracting structured
+    metadata such as organizations, locations, dates, and other key entity types.
 
-    Preliminaries
+    [**spaCy**](https://spacy.io/) is a library for Natural Language Processing
+    in Python. Here it is used for Named Entity Recognition (NER) to extract values
+    from document content.
+
+    Prerequisites
     -------------
 
-    Install the ``spacy`` package. The below uses ``spacy[apple]`` so it includes optimizations
-    for running on Apple M1 hardrware.
+    This transformer requires the `spacy` extra to be installed.
 
-    .. code-block:: bash
-
-        pip install -q "spacy[apple]"
-
-    Download the model.
-
-    .. code-block:: bash
-
-        python -m spacy download en_core_web_sm
+    ```
+    pip install -qU langchain_graph_retriever[spacy]
+    ```
 
     Example
     -------
-    We load the ``state_of_the_union.txt`` file, chunk it, then for each chunk we
-    add named entities to the metadata.
-
-    .. code-block:: python
-
-        from langchain_community.document_loaders import WebBaseLoader
-        from langchain_text_splitters import CharacterTextSplitter
-        from langchain_graph_retriever.document_transformers import SpacyNERTransformer
-
-        loader = WebBaseLoader(
-            "https://raw.githubusercontent.com/hwchase17/chat-your-data/master/state_of_the_union.txt"
-        )
-        raw_documents = loader.load()
-
-        text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-        documents = text_splitter.split_documents(raw_documents)
-
-        extractor = SpacyNERTransformer()
-        documents = extractor.transform_documents(documents)
-
-        print(documents[0].metadata)
-
-    .. code-block:: output
-
-        {'source': 'https://raw.githubusercontent.com/hwchase17/chat-your-data/master/state_of_the_union.txt', 'person': ['president zelenskyy', 'vladimir putin']}
+    An example of how to use this transformer exists
+    [HERE](../../guide/transformers.md#spacynertransformer) in the guide.
 
     Parameters
     ----------
@@ -64,13 +39,14 @@ class SpacyNERTransformer(BaseDocumentTransformer):
     metadata_key :
         The metadata key to store the extracted entities in.
     model :
-        The spacy model to use.
+        The spaCy model to use. Pass the name of a model to load
+        or pass an instantiated spaCy model instance.
 
     Notes
     -----
      See spaCy docs for the selected model to determine what NER labels will be
      used. The default model
-    (en_core_web_sm)[https://spacy.io/models/en#en_core_web_sm-labels] produces:
+    [en_core_web_sm](https://spacy.io/models/en#en_core_web_sm-labels) produces:
     CARDINAL, DATE, EVENT, FAC, GPE, LANGUAGE, LAW, LOC, MONEY, NORP, ORDINAL,
     ORG, PERCENT, PERSON, PRODUCT, QUANTITY, TIME, WORK_OF_ART.
 
@@ -91,6 +67,8 @@ class SpacyNERTransformer(BaseDocumentTransformer):
         self.metadata_key = metadata_key
 
         if isinstance(model, str):
+            if not spacy.util.is_package(model):
+                spacy.cli.download(model)
             self.model = spacy.load(model)
         elif isinstance(model, Language):
             self.model = model

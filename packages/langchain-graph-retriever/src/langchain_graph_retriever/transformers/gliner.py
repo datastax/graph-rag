@@ -8,50 +8,27 @@ from typing_extensions import override
 
 class GLiNERTransformer(BaseDocumentTransformer):
     """
-    Add metadata to documents about named entities using `GLiNER`.
+    Uses **GLiNER** to extract structured entity labels from text, identifying key
+    attributes and categories to enrich document metadata with semantic information.
 
-    `GLiNER` is a Named Entity Recognition (NER) model capable of identifying any
-    entity type using a bidirectional transformer encoder (BERT-like).
+    [**GLiNER**](https://github.com/urchade/GLiNER) is a Named Entity Recognition (NER)
+    model capable of identifying any entity type using a
+    bidirectional transformer encoder (BERT-like).
 
-    Preliminaries
+    Prerequisites
     -------------
 
-    Install the ``gliner`` package.
-
-    Note that ``bs4`` is also installed to support the WebBaseLoader in the example,
-    but not needed by the GLiNEREntityExtractor itself.
+    This transformer requires the `gliner` extra to be installed.
 
     ```
-    pip install -q langchain_community bs4 gliner
+    pip install -qU langchain_graph_retriever[gliner]
     ```
 
     Example
     -------
-    We load the ``state_of_the_union.txt`` file, chunk it, then for each chunk we
-    add named entities to the metadata.
+    An example of how to use this transformer exists
+    [HERE](../../guide/transformers.md#glinertransformer) in the guide.
 
-    .. code-block:: python
-
-        from langchain_community.document_loaders import WebBaseLoader
-        from langchain_community.document_transformers import GLiNEREntityExtractor
-        from langchain_text_splitters import CharacterTextSplitter
-
-        loader = WebBaseLoader(
-            "https://raw.githubusercontent.com/hwchase17/chat-your-data/master/state_of_the_union.txt"
-        )
-        raw_documents = loader.load()
-
-        text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-        documents = text_splitter.split_documents(raw_documents)
-
-        extractor = GLiNEREntityExtractor(labels=["person", "topic"])
-        documents = extractor.transform_documents(documents)
-
-        print(documents[0].metadata)
-
-    .. code-block:: output
-
-        {'source': 'https://raw.githubusercontent.com/hwchase17/chat-your-data/master/state_of_the_union.txt', 'person': ['president zelenskyy', 'vladimir putin']}
 
     Parameters
     ----------
@@ -63,9 +40,9 @@ class GLiNERTransformer(BaseDocumentTransformer):
         A prefix to add to metadata keys outputted by the extractor.
         This will be prepended to the label, with the value (or values) holding the
         generated keywords for that entity kind.
-    model : str
-        The GLiNER model to use. Pass the name of the model to load
-        or pass an instantiated GLiNER model instance.
+    model :
+        The GLiNER model to use. Pass the name of a model to load or
+        pass an instantiated GLiNER model instance.
 
     """  # noqa: E501
 
@@ -75,7 +52,7 @@ class GLiNERTransformer(BaseDocumentTransformer):
         *,
         batch_size: int = 8,
         metadata_key_prefix: str = "",
-        model: Any = "urchade/gliner_mediumv2.1",
+        model: str | GLiNER = "urchade/gliner_mediumv2.1",
     ):
         if isinstance(model, GLiNER):
             self._model = model
@@ -92,20 +69,26 @@ class GLiNERTransformer(BaseDocumentTransformer):
     def transform_documents(
         self, documents: Sequence[Document], **kwargs: Any
     ) -> Sequence[Document]:
+        results: list[Document] = []
         for i in range(0, len(documents), self._batch_size):
             batch = documents[i : i + self._batch_size]
             texts = [item.page_content for item in batch]
             extracted = self._model.batch_predict_entities(
                 texts=texts, labels=self._labels, **kwargs
             )
-            for i, entities in enumerate(extracted):
-                labels = set()
+            for j, entities in enumerate(extracted):
+                new_metadata: dict[str, Any] = {}
                 for entity in entities:
                     label = self.metadata_key_prefix + entity["label"]
-                    labels.add(label)
-                    batch[i].metadata.setdefault(label, set()).add(
-                        entity["text"].lower()
-                    )
-                for label in labels:
-                    batch[i].metadata[label] = list(batch[i].metadata[label])
-        return documents
+                    new_metadata.setdefault(label, set()).add(entity["text"].lower())
+
+                result = Document(
+                    id=batch[j].id,
+                    page_content=batch[j].page_content,
+                    metadata=batch[j].metadata.copy()
+                )
+                for key in new_metadata.keys():
+                    result.metadata[key] = list(new_metadata[key])
+
+                results.append(result)
+        return results

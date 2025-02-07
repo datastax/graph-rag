@@ -8,6 +8,8 @@ def test_transform_documents():
     h1 = Document(id="h1", page_content="test", metadata={"_path": "root.h1"})
     h1a = Document(id="h1a", page_content="test", metadata={"_path": "root.h1.a"})
 
+    original_h1 = h1.model_copy()
+
     transformer = ParentTransformer(
         path_metadata_key="_path", parent_metadata_key="_parent", path_delimiter="."
     )
@@ -24,3 +26,6 @@ def test_transform_documents():
     transformer = ParentTransformer()
     with pytest.raises(ValueError, match="path not found in metadata"):
         transformer.transform_documents([root])
+
+    # confirm original docs aren't modified
+    assert original_h1 == h1

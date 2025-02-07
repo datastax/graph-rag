@@ -98,7 +98,7 @@ The following shows how to populate a variety of vector stores with the animal d
 
     1. Since Cassandra doesn't index items in lists for querying, it is necessary to
     shred metadata containing list to be queried. By default, the
-    [ShreddingTransformer][langchain_graph_retriever.transformers.ShreddingTransformer]
+    [`ShreddingTransformer`][langchain_graph_retriever.transformers.ShreddingTransformer]
     shreds all keys. It may be configured to only shred those
     metadata keys used as edge targets.
 
@@ -134,7 +134,7 @@ The following shows how to populate a variety of vector stores with the animal d
 
     1. Since Chroma doesn't index items in lists for querying, it is necessary to
     shred metadata containing list to be queried. By default, the
-    [ShreddingTransformer][langchain_graph_retriever.transformers.ShreddingTransformer]
+    [`ShreddingTransformer`][langchain_graph_retriever.transformers.ShreddingTransformer]
     shreds all keys. It may be configured to only shred those
     metadata keys used as edge targets.
 

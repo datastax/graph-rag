@@ -18,6 +18,8 @@ def test_transform_documents(animal_docs: list[Document]):
         ) -> list[list[dict[str, str]]]:
             return [[{"text": text.split()[0], "label": "first"}] for text in texts]
 
+    first_doc = animal_docs[0].model_copy()
+
     fake_model = FakeGLiNER()
     transformer = GLiNERTransformer(
         ["first"], model=fake_model, metadata_key_prefix="prefix_"
@@ -28,3 +30,6 @@ def test_transform_documents(animal_docs: list[Document]):
 
     with pytest.raises(ValueError, match="Invalid model"):
         GLiNERTransformer([], model={})
+
+    # confirm original docs aren't modified
+    assert first_doc == animal_docs[0]

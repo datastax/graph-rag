@@ -21,6 +21,8 @@ def test_transform_documents(animal_docs: list[Document]):
                 for doc in docs
             ]
 
+    first_doc = animal_docs[0].model_copy()
+
     fake_model = FakeKeyBERT()
     transformer = KeyBERTTransformer(model=fake_model, metadata_key="keybert")
 
@@ -29,3 +31,6 @@ def test_transform_documents(animal_docs: list[Document]):
 
     with pytest.raises(ValueError, match="Invalid model"):
         KeyBERTTransformer(model={})
+
+    # confirm original docs aren't modified
+    assert first_doc == animal_docs[0]

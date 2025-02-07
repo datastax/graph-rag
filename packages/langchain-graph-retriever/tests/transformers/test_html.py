@@ -25,8 +25,8 @@ test_html = """
 
 @pytest.mark.extra
 def test_transform_documents():
-    from langchain_graph_retriever.transformers.html_hyperlink import (
-        HtmlHyperlinkTransformer,
+    from langchain_graph_retriever.transformers.html import (
+        HyperlinkTransformer,
     )
 
     doc = Document(
@@ -35,7 +35,9 @@ def test_transform_documents():
         metadata={"_url": "https://example.com/animals"},
     )
 
-    transformer = HtmlHyperlinkTransformer(
+    original_doc = doc.model_copy()
+
+    transformer = HyperlinkTransformer(
         url_metadata_key="_url",
         metadata_key="_hyperlinks",
     )
@@ -45,6 +47,9 @@ def test_transform_documents():
     assert "https://example.com/gecko" in transformed_doc.metadata["_hyperlinks"]
     assert len(transformed_doc.metadata["_hyperlinks"]) == 6
 
-    transformer = HtmlHyperlinkTransformer()
+    transformer = HyperlinkTransformer()
     with pytest.raises(ValueError, match="html document url not found in metadata"):
         transformer.transform_documents([doc])
+
+    # confirm original docs aren't modified
+    assert original_doc == doc

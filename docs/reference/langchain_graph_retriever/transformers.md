@@ -2,7 +2,7 @@
 title: transformers
 icon: material/subdirectory-arrow-right
 toc:
-    title: langchain_graph_retriever.transformers
+    title: ..._retriever.transformers
 ---
 
 # langchain_graph_retriever.transformers
@@ -10,3 +10,4 @@ toc:
 ::: langchain_graph_retriever.transformers
     options:
       show_submodules: true
+      inherited_members: true

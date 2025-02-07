@@ -8,54 +8,26 @@ from typing_extensions import override
 
 class KeyBERTTransformer(BaseDocumentTransformer):
     """
-    Add metadata to documents about keywords using `KeyBERT <https://maartengr.github.io/KeyBERT/>`_.
+    Uses **KeyBERT** to extract key topics and concepts from text, generating
+    metadata that highlights the most relevant terms to describe the content.
 
-    KeyBERT is a minimal and easy-to-use keyword extraction technique that
-    leverages BERT embeddings to create keywords and keyphrases that are most
-    similar to a document.
+    [**KeyBERT**](https://maartengr.github.io/KeyBERT) is a minimal and easy-to-use
+    keyword extraction technique that leverages BERT embeddings to create keywords and
+    keyphrases that are most similar to a document.
 
-    The KeybertKeywordExtractor uses KeyBERT add a list of keywords to a
-    document's metadata.
-
-    Preliminaries
+    Prerequisites
     -------------
 
-    Install the ``keybert`` package.
+    This transformer requires the `keybert` extra to be installed.
 
-    Note that ``bs4`` is also installed to support the WebBaseLoader in the example,
-    but not needed by the KeybertKeywordExtractor itself.
-
-    .. code-block:: bash
-
-        pip install -q langchain_community bs4 keybert
+    ```
+    pip install -qU langchain_graph_retriever[keybert]
+    ```
 
     Example
     -------
-    We load the ``state_of_the_union.txt`` file, chunk it, then for each chunk we
-    add keywords to the metadata.
-
-    .. code-block:: python
-
-        from langchain_community.document_loaders import WebBaseLoader
-        from langchain_community.document_transformers import KeybertKeywordExtractor
-        from langchain_text_splitters import CharacterTextSplitter
-
-        loader = WebBaseLoader(
-            "https://raw.githubusercontent.com/hwchase17/chat-your-data/master/state_of_the_union.txt"
-        )
-        raw_documents = loader.load()
-
-        text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-        documents = text_splitter.split_documents(raw_documents)
-
-        extractor = KeybertKeywordExtractor()
-        documents = extractor.transform_documents(documents)
-
-        print(documents[0].metadata)
-
-    .. code-block:: output
-
-        {'source': 'https://raw.githubusercontent.com/hwchase17/chat-your-data/master/state_of_the_union.txt', 'keywords': ['putin', 'vladimir', 'ukrainian', 'russia', 'ukraine']}
+    An example of how to use this transformer exists
+    [HERE](../../guide/transformers.md#keyberttransformer) in the guide.
 
     Parameters
     ----------
@@ -64,8 +36,9 @@ class KeyBERTTransformer(BaseDocumentTransformer):
     metadata_key :
         The name of the key used in the metadata output.
     model :
-        The KeyBERT model to use.
-    """  # noqa: E501
+        The KeyBERT model to use. Pass the name of a model to load
+        or pass an instantiated KeyBERT model instance.
+    """
 
     def __init__(
         self,
@@ -83,20 +56,35 @@ class KeyBERTTransformer(BaseDocumentTransformer):
         self._batch_size = batch_size
         self._metadata_key = metadata_key
 
+    def _extract_keywords(
+        self, docs: list[str], **kwargs
+    ) -> list[list[tuple[str, float]]]:
+        """Wrapper to always return a list of responses"""
+        extracted = self._kw_model.extract_keywords(docs=docs, **kwargs)
+        if len(docs) == 1:
+            # Even if we pass a list, if it contains one item, keybert will flatten it.
+            return [extracted]
+        else:
+            return extracted
+
     @override
     def transform_documents(
         self, documents: Sequence[Document], **kwargs: Any
     ) -> Sequence[Document]:
+        results: list[Document] = []
         for i in range(0, len(documents), self._batch_size):
             batch = documents[i : i + self._batch_size]
             texts = [item.page_content for item in batch]
-            extracted = self._kw_model.extract_keywords(docs=texts, **kwargs)
-            if len(texts) == 1:
-                # Even though we pass a list, if it contains one item, keybert will
-                # flatten it. This means it's easier to just call the special case
-                # for one item.
-                batch[0].metadata[self._metadata_key] = [kw[0] for kw in extracted]
-            else:
-                for i, keywords in enumerate(extracted):
-                    batch[i].metadata[self._metadata_key] = [kw[0] for kw in keywords]
-        return documents
+            extracted = self._extract_keywords(docs=texts, **kwargs)
+            for j, keywords in enumerate(extracted):
+                results.append(
+                    Document(
+                        id=batch[j].id,
+                        page_content=batch[j].page_content,
+                        metadata={
+                            self._metadata_key: [kw[0] for kw in keywords],
+                            **batch[j].metadata,
+                        },
+                    )
+                )
+        return results

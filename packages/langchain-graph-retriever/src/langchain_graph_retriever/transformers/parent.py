@@ -6,40 +6,27 @@ from typing_extensions import override
 
 
 class ParentTransformer(BaseDocumentTransformer):
-    r"""
-    Adds the parent path to the document metadata.
-
-    Example
-    -------
-    ```
-    # Given document chunks with 4 different paths:
-    root = Document(id="root", page_content="test", metadata={"path": "root"})
-    h1 = Document(id="h1", page_content="test", metadata={"path": "root/h1"})
-    h1a = Document(id="h1a", page_content="test", metadata={"path": "root/h1/a"})
-    h1b = Document(id="h1b", page_content="test", metadata={"path": "root/h1/b"})
-    ```
-
-    Example use with documents
-    --------------------------
-    .. code_block: python
-        transformer = LinkExtractorTransformer([
-            HierarchyLinkExtractor().as_document_extractor(
-                # Assumes the "path" to each document is in the metadata.
-                # Could split strings, etc.
-                lambda doc: doc.metadata.get("path", [])
-            )
-        ])
-        linked = transformer.transform_documents(docs)
+    """
+    Adds the hierarchal Parent path to the document metadata.
 
     Parameters
     ----------
     path_metadata_key :
         Metadata key containing the path.
         This may correspond to paths in a file system, hierarchy in a document, etc.
-    parent_metadata_key: str, default "parent"
+    parent_metadata_key:
         Metadata key for the added parent path
     path_delimiter :
         Delimiter of items in the path.
+
+    Example
+    -------
+    An example of how to use this transformer exists
+    [HERE](../../guide/transformers.md#parenttransformer) in the guide.
+
+    Notes
+    -----
+    Expects each document to contain its _path_ in its metadata.
     """
 
     def __init__(
@@ -57,6 +44,7 @@ class ParentTransformer(BaseDocumentTransformer):
     def transform_documents(
         self, documents: Sequence[Document], **kwargs: Any
     ) -> Sequence[Document]:
+        results: list[Document] = []
         for document in documents:
             if self._path_metadata_key not in document.metadata:
                 msg = (
@@ -67,7 +55,9 @@ class ParentTransformer(BaseDocumentTransformer):
 
             path: str = document.metadata[self._path_metadata_key]
             path_parts = path.split(self._path_delimiter)
+            result = document.model_copy()
             if len(path_parts) > 1:
                 parent_path = self._path_delimiter.join(path_parts[0:-1])
-                document.metadata[self._parent_metadata_key] = parent_path
-        return documents
+                result.metadata[self._parent_metadata_key] = parent_path
+            results.append(result)
+        return results

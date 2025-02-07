@@ -9,7 +9,9 @@ that do not support querying on elements of lists.
 """
 
 from .shredding import ShreddingTransformer
+from .parent import ParentTransformer
 
 __all__ = [
     "ShreddingTransformer",
+    "ParentTransformer",
 ]

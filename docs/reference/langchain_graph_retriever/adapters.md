@@ -2,7 +2,7 @@
 title: adapters
 icon: material/subdirectory-arrow-right
 toc:
-    title: langchain_graph_retriever.adapters
+    title: ..._retriever.adapters
 ---
 
 # langchain_graph_retriever.adapters

@@ -10,6 +10,7 @@ from langchain_graph_retriever.transformers.shredding import (
 
 
 def test_transform_documents(animal_docs: list[Document]):
+    first_doc = animal_docs[0].model_copy()
     original_docs = [animal_docs[0]]
     transformer = ShreddingTransformer()
 
@@ -36,8 +37,12 @@ def test_transform_documents(animal_docs: list[Document]):
     assert shredded_key in shredded_metadata
     assert shredded_metadata[shredded_key] == DEFAULT_STATIC_VALUE
 
+    # confirm original docs aren't modified
+    assert first_doc == animal_docs[0]
+
 
 def test_restore_documents(animal_docs: list[Document]):
+    first_doc = animal_docs[0].model_copy()
     original_docs = [animal_docs[0]]
     transformer = ShreddingTransformer()
 
@@ -46,3 +51,6 @@ def test_restore_documents(animal_docs: list[Document]):
     restored_docs = transformer.restore_documents(shredded_docs)
 
     assert original_docs[0] == restored_docs[0]
+
+    # confirm original docs aren't modified
+    assert first_doc == animal_docs[0]

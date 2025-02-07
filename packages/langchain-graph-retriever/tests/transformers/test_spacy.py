@@ -24,6 +24,8 @@ def test_transform_documents(animal_docs: list[Document]):
             ]
             return doc
 
+    first_doc = animal_docs[0].model_copy()
+
     fake_model = FakeLanguage()
 
     transformer = SpacyNERTransformer(model=fake_model, metadata_key="spacey")
@@ -57,3 +59,6 @@ def test_transform_documents(animal_docs: list[Document]):
 
     with pytest.raises(ValueError, match="Invalid model"):
         SpacyNERTransformer(model={})  # type: ignore
+
+    # confirm original docs aren't modified
+    assert first_doc == animal_docs[0]

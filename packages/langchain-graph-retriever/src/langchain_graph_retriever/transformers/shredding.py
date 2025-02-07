@@ -20,29 +20,10 @@ class ShreddingTransformer(BaseDocumentTransformer):
     with sequence-based values. This transformer converts sequence-based fields
     into simple metadata values.
 
-    Example:
+    Example
     -------
-
-    .. code-block:: python
-
-        from langchain_core.documents import Document
-        from langchain_community.document_transformers import ShreddingTransformer
-
-        doc = Document(
-            page_content="test",
-            metadata={"place": ["berlin", "paris"], "topic": ["weather"]},
-        )
-
-        shredder = ShreddingTransformer()
-
-        docs = shredder.transform_documents([doc])
-
-        print(docs[0].metadata)
-
-
-    .. code-block:: output
-
-        {'place→berlin': '§', 'place→paris': '§', 'topic→weather': '§'}
+    An example of how to use this transformer exists
+    [HERE](../../guide/transformers.md#shreddingtransformer) in the guide.
 
     Parameters
     ----------
@@ -53,8 +34,7 @@ class ShreddingTransformer(BaseDocumentTransformer):
         The path delimiter to use when building shredded keys.
     static_value :
         The value to set on each shredded key.
-
-    """  # noqa: E501
+    """
 
     def __init__(
         self,
@@ -100,11 +80,11 @@ class ShreddingTransformer(BaseDocumentTransformer):
         """
         Restore documents transformed by the ShreddingTransformer.
 
-        Restore documents transformed by the ShreddingTransformer back to their original
-        state before shredding.
+        Restore documents transformed by the ShreddingTransformer back to
+        their original state before shredding.
 
         Note that any non-string values inside lists will be converted to strings
-        after reverting.
+        after restoring.
 
         Args:
             documents: A sequence of Documents to be transformed.
@@ -114,7 +94,7 @@ class ShreddingTransformer(BaseDocumentTransformer):
         Sequence[Document]
             A sequence of transformed Documents.
         """
-        reverted_docs = []
+        restored_docs = []
         for document in documents:
             new_doc = Document(id=document.id, page_content=document.page_content)
             shredded_keys = set(
@@ -137,9 +117,9 @@ class ShreddingTransformer(BaseDocumentTransformer):
                     # Retain non-shredded metadata as is
                     new_doc.metadata[key] = value
 
-            reverted_docs.append(new_doc)
+            restored_docs.append(new_doc)
 
-        return reverted_docs
+        return restored_docs
 
     def shredded_key(self, key: str, value: Any) -> str:
         """
