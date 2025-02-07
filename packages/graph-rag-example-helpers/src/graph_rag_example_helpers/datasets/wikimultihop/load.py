@@ -73,7 +73,7 @@ async def aload_2wikimultihop(
         Maximum number of lines to load.
         If a number less than one thousand, limits loading to the given number of lines.
         If `None`, loads all content.
-    para_with_hyperlink_zip_path :
+    full_para_with_hyperlink_zip_path :
         Path to `para_with_hyperlink.zip` downloaded following the instructions
         in
         [2wikimultihop](https://github.com/Alab-NII/2wikimultihop?tab=readme-ov-file#new-update-april-7-2021).
