@@ -45,9 +45,9 @@ class MetadataEdgeFunction:
     """
     Helper for extracting and encoding edges in metadata.
 
-    This class provides tools to extract incoming and outgoing edges from document
-    metadata and normalize metadata where needed. Both incoming and outgoing edges
-    use the same target name, enabling equality matching for keys.
+    This class provides tools to extract incoming and outgoing edges from
+    document metadata. Both incoming and outgoing edges use the same target
+    name, enabling equality matching for keys.
 
     Parameters
     ----------

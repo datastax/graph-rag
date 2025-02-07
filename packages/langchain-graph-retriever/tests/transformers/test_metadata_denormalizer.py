@@ -1,17 +1,17 @@
 import json
 
 from langchain_core.documents import Document
-from langchain_graph_retriever.transformers.metadata_denormalizer import (
+from langchain_graph_retriever.transformers.shredding import (
     DEFAULT_PATH_DELIMITER,
     DEFAULT_STATIC_VALUE,
-    DENORMALIZED_KEYS_KEY,
-    MetadataDenormalizer,
+    SHREDDED_KEYS_KEY,
+    ShreddingTransformer,
 )
 
 
 def test_transform_documents(animal_docs: list[Document]):
     original_docs = [animal_docs[0]]
-    transformer = MetadataDenormalizer()
+    transformer = ShreddingTransformer()
 
     # confirm "keywords" contains a list value in original document
     list_key = "keywords"
@@ -22,27 +22,27 @@ def test_transform_documents(animal_docs: list[Document]):
     first_keyword = original_metadata[list_key][0]
 
     # transform the document
-    denormalized_docs = transformer.transform_documents(original_docs)
-    denormalized_metadata = denormalized_docs[0].metadata
+    shredded_docs = transformer.transform_documents(original_docs)
+    shredded_metadata = shredded_docs[0].metadata
 
     # confirm "keywords" no longer exists as a metadata key
-    assert list_key not in denormalized_metadata
+    assert list_key not in shredded_metadata
 
-    # confirm "keywords" exists as a denormalized key
-    assert list_key in json.loads(denormalized_metadata[DENORMALIZED_KEYS_KEY])
+    # confirm "keywords" exists as a shredded key
+    assert list_key in json.loads(shredded_metadata[SHREDDED_KEYS_KEY])
 
-    # confirm the denormalized key has the expected value
-    denormalized_key = f"{list_key}{DEFAULT_PATH_DELIMITER}{first_keyword}"
-    assert denormalized_key in denormalized_metadata
-    assert denormalized_metadata[denormalized_key] == DEFAULT_STATIC_VALUE
+    # confirm the shredded key has the expected value
+    shredded_key = f"{list_key}{DEFAULT_PATH_DELIMITER}{first_keyword}"
+    assert shredded_key in shredded_metadata
+    assert shredded_metadata[shredded_key] == DEFAULT_STATIC_VALUE
 
 
-def test_revert_documents(animal_docs: list[Document]):
+def test_restore_documents(animal_docs: list[Document]):
     original_docs = [animal_docs[0]]
-    transformer = MetadataDenormalizer()
+    transformer = ShreddingTransformer()
 
-    denormalized_docs = transformer.transform_documents(original_docs)
+    shredded_docs = transformer.transform_documents(original_docs)
 
-    reverted_docs = transformer.revert_documents(denormalized_docs)
+    restored_docs = transformer.restore_documents(shredded_docs)
 
-    assert original_docs[0] == reverted_docs[0]
+    assert original_docs[0] == restored_docs[0]

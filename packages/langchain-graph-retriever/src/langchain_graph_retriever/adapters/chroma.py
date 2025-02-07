@@ -7,7 +7,7 @@ from langchain_core.documents import Document
 from typing_extensions import override
 
 from langchain_graph_retriever._conversion import METADATA_EMBEDDING_KEY
-from langchain_graph_retriever.adapters.langchain import DenormalizedAdapter
+from langchain_graph_retriever.adapters.langchain import ShreddedLangchainAdapter
 
 try:
     from langchain_chroma import Chroma
@@ -16,7 +16,7 @@ except (ImportError, ModuleNotFoundError):
     raise ImportError(msg)
 
 
-class ChromaAdapter(DenormalizedAdapter[Chroma]):
+class ChromaAdapter(ShreddedLangchainAdapter[Chroma]):
     """
     Adapter for [Chroma](https://www.trychroma.com/) vector store.
 
@@ -27,9 +27,9 @@ class ChromaAdapter(DenormalizedAdapter[Chroma]):
     ----------
     vector_store :
         The Chroma vector store instance.
-    metadata_denormalizer: MetadataDenormalizer, optional
-        An instance of the MetadataDenormalizer used for doc insertion.
-        If not passed then a default instance of MetadataDenormalizer is used.
+    shredder: ShreddingTransformer, optional
+        An instance of the ShreddingTransformer used for doc insertion.
+        If not passed then a default instance of ShreddingTransformer is used.
     """
 
     @override

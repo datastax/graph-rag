@@ -81,22 +81,20 @@ The following shows how to populate a variety of vector stores with the animal d
     ```python
     from langchain_community.vectorstores.cassandra import Cassandra
     from langchain_openai import OpenAIEmbeddings
-    from langchain_graph_retriever.transformers.metadata_denormalizer import (
-        MetadataDenormalizer,
-    )
+    from langchain_graph_retriever.transformers import ShreddingTransformer
 
-    metadata_denormalizer = MetadataDenormalizer() # (1)!
+    shredder = ShreddingTransformer() # (1)!
     vector_store = Cassandra.from_documents(
-        documents=list(metadata_denormalizer.transform_documents(animals)),
+        documents=list(shredder.transform_documents(animals)),
         embedding=OpenAIEmbeddings(),
         table_name="animals",
     )
     ```
 
     1. Since Cassandra doesn't index items in lists for querying, it is necessary to
-    denormalize metadata containing list to be queried. By default, the
-    [MetadataDenormalizer][langchain_graph_retriever.transformers.metadata_denormalizer.MetadataDenormalizer]
-    denormalizes all keys. It may be configured to only denormalize those
+    shred metadata containing list to be queried. By default, the
+    [ShreddingTransformer][langchain_graph_retriever.transformers.ShreddingTransformer]
+    shreds all keys. It may be configured to only shred those
     metadata keys used as edge targets.
 
 === "OpenSearch"
@@ -119,22 +117,20 @@ The following shows how to populate a variety of vector stores with the animal d
     ```python
     from langchain_chroma.vectorstores import Chroma
     from langchain_openai import OpenAIEmbeddings
-    from langchain_graph_retriever.transformers.metadata_denormalizer import (
-        MetadataDenormalizer,
-    )
+    from langchain_graph_retriever.transformers import ShreddingTransformer
 
-    metadata_denormalizer = MetadataDenormalizer() # (1)!
+    shredder = ShreddingTransformer() # (1)!
     vector_store = Chroma.from_documents(
-        documents=list(metadata_denormalizer.transform_documents(animals)),
+        documents=list(shredder.transform_documents(animals)),
         embedding=OpenAIEmbeddings(),
         collection_name_name="animals",
     )
     ```
 
     1. Since Chroma doesn't index items in lists for querying, it is necessary to
-    denormalize metadata containing list to be queried. By default, the
-    [MetadataDenormalizer][langchain_graph_retriever.transformers.metadata_denormalizer.MetadataDenormalizer]
-    denormalizes all keys. It may be configured to only denormalize those
+    shred metadata containing list to be queried. By default, the
+    [ShreddingTransformer][langchain_graph_retriever.transformers.ShreddingTransformer]
+    shreds all keys. It may be configured to only shred those
     metadata keys used as edge targets.
 
 ## Simple Traversal
@@ -162,7 +158,7 @@ For our first retrieval and graph traversal, we're going to start with a single 
     from langchain_graph_retriever.adapters.cassandra import CassandraAdapter
 
     simple = GraphRetriever(
-        store = store = CassandraAdapter(vector_store, metadata_denormalizer, {"keywords"}),,
+        store = store = CassandraAdapter(vector_store, shredder, {"keywords"}),,
         edges = [("habitat", "habitat"), ("origin", "origin"), ("keywords", "keywords")],
         strategy = Eager(k=10, start_k=1, depth=2),
     )
@@ -190,15 +186,15 @@ For our first retrieval and graph traversal, we're going to start with a single 
     from langchain_graph_retriever.adapters.chroma import ChromaAdapter
 
     simple = GraphRetriever(
-        store = ChromaAdapter(vector_store, metadata_denormalizer, {"keywords"}),
+        store = ChromaAdapter(vector_store, shredder, {"keywords"}),
         edges = [("habitat", "habitat"), ("origin", "origin"), ("keywords", "keywords")],
         strategy = Eager(k=10, start_k=1, depth=2),
     )
     ```
 
-!!! note "Denormalization"
+!!! note "Shredding"
 
-    The above code is exactly the same for all stores, however adapters for denormalized stores (Chroma and Apache Cassandra) require configuration to specify which metadata fields need to be rewritten when issuing queries.
+    The above code is exactly the same for all stores, however adapters for shredded stores (Chroma and Apache Cassandra) require configuration to specify which metadata fields need to be rewritten when issuing queries.
 
 The above creates a graph traversing retriever that starts with the nearest animal (`start_k=1`), retrieves 10 documents (`k=10`) and limits the search to documents that are at most 2 steps away from the first animal (`depth=2`).
 
