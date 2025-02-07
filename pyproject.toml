@@ -139,11 +139,11 @@ sequence = [
 
 [tool.poe.tasks.nbstripout]
 help = "Runs `nbstripout` to remove output"
-cmd = "fd *.ipynb . -x nbstripout {} +"
+shell = "find . -name '*.ipynb' | awk 'system(\"git check-ignore --quiet \" $0)' | xargs nbstripout"
 
 [tool.poe.tasks.nbstripout-check]
 help = "Runs `nbstripout` to remove output"
-cmd = "fd *.ipynb . -x nbstripout --verify {} +"
+shell = "find . -name '*.ipynb' | awk 'system(\"git check-ignore --quiet \" $0)' | xargs nbstripout --verify"
 
 [tool.poe.tasks.lint]
 help = "Runs all formatting, lints, and checks (fixing where possible)"
