@@ -1,10 +1,12 @@
 # Get Started
 
-This page demonstrates how to combine Graph Traversal and Vector Search using `langchain-graph-retriever` with `langchain`.
+This page demonstrates how to combine Graph Traversal and Vector Search using
+`langchain-graph-retriever` with `langchain`.
 
 ## Pre-requisites
 
-We assume you already have a working `langchain` installation, including an LLM and embedding model as well as a [supported vector store](./adapters.md).
+We assume you already have a working `langchain` installation, including an LLM and
+embedding model as well as a [supported vector store](./adapters.md).
 
 In that case, you only need to install `langchain-graph-retriever`:
 
@@ -14,10 +16,13 @@ pip install langchain langchain-graph-retriever
 
 ## Preparing Data
 
-Loading data is exactly the same as for whichever vector store you use.
-The main thing to consider is what structured information you wish to include in the metadata to support traversal.
+Loading data is exactly the same as for whichever vector store you use. The main thing
+to consider is what structured information you wish to include in the metadata to
+support traversal.
 
-For this guide, I have a JSON file with information about animals. Several example entries are shown below. The actual file has one entry per line, making it easy to load into `Document`s.
+For this guide, I have a JSON file with information about animals. Several example
+entries are shown below. The actual file has one entry per line, making it easy to
+load into `Document`s.
 
 ```json
 {
@@ -135,7 +140,8 @@ The following shows how to populate a variety of vector stores with the animal d
 
 ## Simple Traversal
 
-For our first retrieval and graph traversal, we're going to start with a single animal best matching the query, and then traverse to other animals with the same `habitat` and/or `origin`.
+For our first retrieval and graph traversal, we're going to start with a single animal best
+matching the query, and then traverse to other animals with the same `habitat` and/or `origin`.
 
 === "Astra"
 
@@ -158,7 +164,7 @@ For our first retrieval and graph traversal, we're going to start with a single 
     from langchain_graph_retriever.adapters.cassandra import CassandraAdapter
 
     simple = GraphRetriever(
-        store = store = CassandraAdapter(vector_store, shredder, {"keywords"}),,
+        store = CassandraAdapter(vector_store, shredder, {"keywords"}),,
         edges = [("habitat", "habitat"), ("origin", "origin"), ("keywords", "keywords")],
         strategy = Eager(k=10, start_k=1, depth=2),
     )
@@ -194,11 +200,16 @@ For our first retrieval and graph traversal, we're going to start with a single 
 
 !!! note "Shredding"
 
-    The above code is exactly the same for all stores, however adapters for shredded stores (Chroma and Apache Cassandra) require configuration to specify which metadata fields need to be rewritten when issuing queries.
+    The above code is exactly the same for all stores, however adapters for shredded
+    stores (Chroma and Apache Cassandra) require configuration to specify which metadata
+    fields need to be rewritten when issuing queries.
 
-The above creates a graph traversing retriever that starts with the nearest animal (`start_k=1`), retrieves 10 documents (`k=10`) and limits the search to documents that are at most 2 steps away from the first animal (`depth=2`).
+The above creates a graph traversing retriever that starts with the nearest animal
+(`start_k=1`), retrieves 10 documents (`k=10`) and limits the search to documents that
+are at most 2 steps away from the first animal (`depth=2`).
 
-The edges define how metadata values can be used for traversal. In this case, every animal is connected to other animals with the same habitat and/or same origin.
+The edges define how metadata values can be used for traversal. In this case, every
+animal is connected to other animals with the same habitat and/or same origin.
 
 ```python
 simple_results = simple.invoke("what mammals could be found near a capybara")
@@ -209,8 +220,8 @@ for doc in simple_results:
 
 ## Visualizing
 
-`langchain-graph-retrievers` includes code for converting the document graph into a `networkx` graph, for rendering and other analysis.
-See @fig-document-graph
+`langchain-graph-retrievers` includes code for converting the document graph into a
+`networkx` graph, for rendering and other analysis. See @fig-document-graph
 
 ```python title="Graph retrieved documents"
 import networkx as nx
