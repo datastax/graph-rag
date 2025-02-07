@@ -1,0 +1,20 @@
+<!-- See https://squidfunk.github.io/mkdocs-material/customization/#overriding-blocks -->
+
+{% extends "base.html" %}
+
+{% block content %}
+{% if page.nb_url %}
+    <a href="{{ page.nb_url }}" title="Download Notebook" class="md-content__button md-icon">
+        <span class="twemoji">
+            {% include ".icons/material/download.svg" %}
+        </span>
+    </a>
+    <a href="https://colab.research.google.com/github/datastax/graph-rag/blob/main/docs/{{ page.file.src_uri}}" title="Open in Colab" class="md-content__button md-icon">
+        <span class="twemoji colab">
+            {% include ".icons/simple/googlecolab.svg" %}
+        </span>
+    </a>
+{% endif %}
+
+{{ super() }}
+{% endblock content %}

@@ -17,6 +17,7 @@ plugins:
 - search
 - blog
 - mkdocs-jupyter:
+    include_source: True
     remove_tag_config:
       remove_input_tags: ["hide_code"]
       remove_cell_tags: ["hide_cell"]
