@@ -52,6 +52,7 @@ dev = [
     "pytest-cov>=4.0.0",
     "pytest-asyncio>=0.25.2",
     "poethepoet>=0.32.1",
+    "nbstripout>=0.8.1",
 ]
 
 docs = [
@@ -135,6 +136,14 @@ sequence = [
     {cmd = "uvx ${DEPTRY} src tests", cwd = "packages/langchain-graph-retriever"},
     {cmd = "uvx ${DEPTRY} src tests", cwd = "packages/graph-rag-example-helpers"},
 ]
+
+[tool.poe.tasks.nbstripout]
+help = "Runs `nbstripout` to remove output"
+cmd = "fd *.ipynb . -x nbstripout {} +"
+
+[tool.poe.tasks.nbstripout-check]
+help = "Runs `nbstripout` to remove output"
+cmd = "fd *.ipynb . -x nbstripout --verify {} +"
 
 [tool.poe.tasks.lint]
 help = "Runs all formatting, lints, and checks (fixing where possible)"

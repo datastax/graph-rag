@@ -51,6 +51,11 @@ jobs:
         # Runs this as long as setup succeeds.
         if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
 
+      - name: Run `nbstripout-check`
+        run: uv run poe nbstripout-check
+        # Runs this as long as setup succeeds.
+        if: ${{ !cancelled() && steps.setup.conclusion == 'success' }}
+
   tests-and-type-check:
     runs-on: ubuntu-latest
     strategy:
