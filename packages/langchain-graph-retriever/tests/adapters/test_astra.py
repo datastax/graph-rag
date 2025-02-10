@@ -1,7 +1,8 @@
 import dataclasses
 import os
 import time
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
+from typing import Any
 
 import pytest
 from astrapy.authentication import StaticTokenProvider
@@ -12,106 +13,170 @@ from graph_retriever.testing.adapter_tests import (
 from langchain_astradb.utils.vector_store_codecs import _DefaultVSDocumentCodec
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
-from langchain_graph_retriever.adapters.astra import AstraAdapter, _QueryHelper
+from langchain_graph_retriever.adapters.astra import AstraAdapter, _queries
 from typing_extensions import override
 
 TEST_CODEC = _DefaultVSDocumentCodec("page_content", ignore_invalid_documents=True)
 
 
+def sort_keys(query: Any) -> Any:
+    if isinstance(query, dict):
+        keys = list(query.keys())
+        keys.sort()
+
+        result_dict: dict[str, Any] = {}
+        for key in keys:
+            result_dict[key] = sort_keys(query[key])
+        return result_dict
+    elif isinstance(query, list):
+        result_list: list[Any] = [sort_keys(v) for v in query]
+        if len(result_list) > 0 and isinstance(query[0], int | str):
+            result_list.sort()
+        elif all([isinstance(v, dict) and len(v) == 1 for v in result_list]):
+            result_list.sort(key=lambda d: list(d.keys())[0])
+        return result_list
+    else:
+        return query
+
+
+def create_queries(
+    user_filters: dict[str, Any],
+    ids: Iterable[str] = (),
+    metadata: dict[str, Iterable[Any]] = {},
+) -> list[dict[str, Any]]:
+    return [
+        sort_keys(v)
+        for v in _queries(
+            codec=TEST_CODEC,
+            user_filters=user_filters,
+            ids=ids,
+            metadata=metadata,
+        )
+    ]
+
+
+def create_query(
+    user_filters: dict[str, Any],
+    ids: Iterable[str] = (),
+    metadata: dict[str, Iterable[Any]] = {},
+) -> dict[str, Any]:
+    queries = create_queries(user_filters=user_filters, ids=ids, metadata=metadata)
+    assert len(queries) == 1
+    return queries[0]
+
+
 def test_create_ids_query_no_user() -> None:
-    query_helper = _QueryHelper(TEST_CODEC, {})
+    assert create_query({}, ids=["1"]) == {"_id": "1"}
 
-    assert query_helper.create_ids_query(["1"]) == {"_id": "1"}
-
-    query = query_helper.create_ids_query(["1", "2", "3"])
-    assert query is not None
-    assert query["_id"]["$in"] == ["1", "2", "3"]
+    assert create_query({}, ids=["1", "2", "3"]) == {"_id": {"$in": ["1", "2", "3"]}}
 
 
 def test_create_ids_query_user() -> None:
-    query_helper = _QueryHelper(TEST_CODEC, {"answer": 42})
-
-    assert query_helper.create_ids_query(["1"]) == {
+    assert create_query({"answer": 42}, ids=["1"]) == {
         "$and": [
             {"_id": "1"},
             {"metadata.answer": 42},
         ]
     }
 
-    query = query_helper.create_ids_query(["1", "2", "3"])
-    assert query is not None
-    assert query["$and"][0]["_id"]["$in"] == ["1", "2", "3"]
+    assert create_query({"answer": 42}, ids=["1", "2", "3"]) == {
+        "$and": [
+            {"_id": {"$in": ["1", "2", "3"]}},
+            {"metadata.answer": 42},
+        ]
+    }
 
 
 def test_create_metadata_query_no_user() -> None:
-    query_helper = _QueryHelper(TEST_CODEC, {})
+    assert create_queries({}, metadata={}) == []
 
-    assert query_helper.create_metadata_query({}) is None
-    assert query_helper.create_metadata_query({"foo": []}) is None
-    assert query_helper.create_metadata_query({"foo": [5]}) == {"metadata.foo": 5}
+    assert create_query({}, metadata={"foo": [5]}) == {"metadata.foo": 5}
 
-    query = query_helper.create_metadata_query({"foo": [5, 6]})
-    assert query is not None
-    assert sorted(query["metadata.foo"]["$in"]) == [5, 6]
+    assert create_query({}, metadata={"foo": [5, 6]}) == {
+        "metadata.foo": {"$in": [5, 6]}
+    }
 
-    assert query_helper.create_metadata_query({"foo": [5], "bar": [7]}) == {
+    assert create_query({}, metadata={"foo": [5], "bar": [7]}) == {
         "$or": [
-            {"metadata.foo": 5},
             {"metadata.bar": 7},
+            {"metadata.foo": 5},
         ],
     }
 
-    query = query_helper.create_metadata_query({"foo": [5, 6], "bar": [7, 8]})
-    assert query is not None
-    assert sorted(query["$or"][0]["metadata.foo"]["$in"]) == [5, 6]
-    assert sorted(query["$or"][1]["metadata.bar"]["$in"]) == [7, 8]
+    assert create_query(
+        {},
+        metadata={"foo": [5, 6], "bar": [7, 8]},
+    ) == {
+        "$or": [
+            {"metadata.bar": {"$in": [7, 8]}},
+            {"metadata.foo": {"$in": [5, 6]}},
+        ]
+    }
 
-    query = query_helper.create_metadata_query({"foo": list(range(0, 200))})
-    assert query is not None
-    assert sorted(query["$or"][0]["metadata.foo"]["$in"]) == list(range(0, 100))
-    assert sorted(query["$or"][1]["metadata.foo"]["$in"]) == list(range(100, 200))
+    assert create_query({}, metadata={"foo": list(range(0, 200))}) == {
+        "$or": [
+            {"metadata.foo": {"$in": list(range(0, 100))}},
+            {"metadata.foo": {"$in": list(range(100, 200))}},
+        ]
+    }
 
 
 def test_create_metadata_query_user() -> None:
-    query_helper = _QueryHelper(TEST_CODEC, {"answer": 42})
-
-    assert query_helper.create_metadata_query({}) is None
-    assert query_helper.create_metadata_query({"foo": []}) is None
-    assert query_helper.create_metadata_query({"foo": [5]}) == {
+    USER = {"answer": 42}
+    assert create_queries(USER, metadata={}) == []
+    assert create_queries(USER, metadata={"foo": []}) == []
+    assert create_query(USER, metadata={"foo": [5]}) == {
         "$and": [
-            {"metadata.foo": 5},
             {"metadata.answer": 42},
+            {"metadata.foo": 5},
         ],
     }
 
-    query = query_helper.create_metadata_query({"foo": [5, 6]})
-    assert query is not None
-    assert query["$and"][0]["metadata.foo"]["$in"] == [5, 6]
-    assert query["$and"][1] == {"metadata.answer": 42}
+    assert create_query(USER, metadata={"foo": [5, 6]}) == {
+        "$and": [
+            {"metadata.answer": 42},
+            {"metadata.foo": {"$in": [5, 6]}},
+        ],
+    }
 
-    assert query_helper.create_metadata_query({"foo": [5], "bar": [7]}) == {
+    assert create_query(USER, metadata={"foo": [5], "bar": [7]}) == {
         "$and": [
             {
                 "$or": [
-                    {"metadata.foo": 5},
                     {"metadata.bar": 7},
-                ],
+                    {"metadata.foo": 5},
+                ]
             },
             {"metadata.answer": 42},
         ],
     }
 
-    query = query_helper.create_metadata_query({"foo": [5, 6], "bar": [7, 8]})
-    assert query is not None
-    assert query["$and"][0]["$or"][0]["metadata.foo"]["$in"] == [5, 6]
-    assert query["$and"][0]["$or"][1]["metadata.bar"]["$in"] == [7, 8]
-    assert query["$and"][1] == {"metadata.answer": 42}
+    assert create_query(
+        USER,
+        metadata={"foo": [5, 6], "bar": [7, 8]},
+    ) == {
+        "$and": [
+            {
+                "$or": [
+                    {"metadata.bar": {"$in": [7, 8]}},
+                    {"metadata.foo": {"$in": [5, 6]}},
+                ]
+            },
+            {"metadata.answer": 42},
+        ],
+    }
 
-    query = query_helper.create_metadata_query({"foo": list(range(0, 200))})
-    assert query is not None
-    assert query["$and"][0]["$or"][0]["metadata.foo"]["$in"] == list(range(0, 100))
-    assert query["$and"][0]["$or"][1]["metadata.foo"]["$in"] == list(range(100, 200))
-    assert query["$and"][1] == {"metadata.answer": 42}
+    assert create_query(USER, metadata={"foo": list(range(0, 200))}) == {
+        "$and": [
+            {
+                "$or": [
+                    {"metadata.foo": {"$in": list(range(0, 100))}},
+                    {"metadata.foo": {"$in": list(range(100, 200))}},
+                ]
+            },
+            {"metadata.answer": 42},
+        ],
+    }
 
 
 @dataclasses.dataclass

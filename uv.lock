@@ -1315,8 +1315,8 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "numpy", specifier = ">=1.26.4" },
+    { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest", marker = "extra == 'testing'", specifier = ">=8.3.4" },
-    { name = "pytest", extras = ["testing"], specifier = ">=8.3.4" },
     { name = "simsimd", marker = "extra == 'simsimd'", specifier = ">=6.2.1" },
     { name = "typing-extensions", specifier = ">=4.12.2" },
 ]
