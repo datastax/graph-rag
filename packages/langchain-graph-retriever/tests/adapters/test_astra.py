@@ -19,40 +19,17 @@ from typing_extensions import override
 TEST_CODEC = _DefaultVSDocumentCodec("page_content", ignore_invalid_documents=True)
 
 
-def sort_keys(query: Any) -> Any:
-    if isinstance(query, dict):
-        keys = list(query.keys())
-        keys.sort()
-
-        result_dict: dict[str, Any] = {}
-        for key in keys:
-            result_dict[key] = sort_keys(query[key])
-        return result_dict
-    elif isinstance(query, list):
-        result_list: list[Any] = [sort_keys(v) for v in query]
-        if len(result_list) > 0 and isinstance(query[0], int | str):
-            result_list.sort()
-        elif all([isinstance(v, dict) and len(v) == 1 for v in result_list]):
-            result_list.sort(key=lambda d: list(d.keys())[0])
-        return result_list
-    else:
-        return query
-
-
 def create_queries(
     user_filters: dict[str, Any],
     ids: Iterable[str] = (),
     metadata: dict[str, Iterable[Any]] = {},
 ) -> list[dict[str, Any]]:
-    return [
-        sort_keys(v)
-        for v in _queries(
+    return list(_queries(
             codec=TEST_CODEC,
             user_filters=user_filters,
             ids=ids,
             metadata=metadata,
-        )
-    ]
+    ))
 
 
 def create_query(
@@ -96,29 +73,24 @@ def test_create_metadata_query_no_user() -> None:
         "metadata.foo": {"$in": [5, 6]}
     }
 
-    assert create_query({}, metadata={"foo": [5], "bar": [7]}) == {
-        "$or": [
-            {"metadata.bar": 7},
-            {"metadata.foo": 5},
-        ],
-    }
+    assert create_queries({}, metadata={"foo": [5], "bar": [7]}) == [
+        {"metadata.foo": 5},
+        {"metadata.bar": 7},
+    ]
 
-    assert create_query(
+    assert create_queries(
         {},
         metadata={"foo": [5, 6], "bar": [7, 8]},
-    ) == {
-        "$or": [
-            {"metadata.bar": {"$in": [7, 8]}},
-            {"metadata.foo": {"$in": [5, 6]}},
-        ]
-    }
+    ) == [
+        {"metadata.foo": {"$in": [5, 6]}},
+        {"metadata.bar": {"$in": [7, 8]}},
+    ]
 
-    assert create_query({}, metadata={"foo": list(range(0, 200))}) == {
-        "$or": [
-            {"metadata.foo": {"$in": list(range(0, 100))}},
-            {"metadata.foo": {"$in": list(range(100, 200))}},
-        ]
-    }
+    assert create_queries({}, metadata={"foo": list(range(0, 200)), "bar": [7]}) == [
+        {"metadata.foo": {"$in": list(range(0, 100))}},
+        {"metadata.foo": {"$in": list(range(100, 200))}},
+        {"metadata.bar": 7},
+    ]
 
 
 def test_create_metadata_query_user() -> None:
@@ -127,56 +99,71 @@ def test_create_metadata_query_user() -> None:
     assert create_queries(USER, metadata={"foo": []}) == []
     assert create_query(USER, metadata={"foo": [5]}) == {
         "$and": [
-            {"metadata.answer": 42},
             {"metadata.foo": 5},
+            {"metadata.answer": 42},
         ],
     }
 
     assert create_query(USER, metadata={"foo": [5, 6]}) == {
         "$and": [
-            {"metadata.answer": 42},
             {"metadata.foo": {"$in": [5, 6]}},
-        ],
-    }
-
-    assert create_query(USER, metadata={"foo": [5], "bar": [7]}) == {
-        "$and": [
-            {
-                "$or": [
-                    {"metadata.bar": 7},
-                    {"metadata.foo": 5},
-                ]
-            },
             {"metadata.answer": 42},
         ],
     }
 
-    assert create_query(
+    assert create_queries(USER, metadata={"foo": [5], "bar": [7]}) == [
+        {
+            "$and": [
+                {"metadata.foo": 5},
+                {"metadata.answer": 42},
+            ],
+        },
+        {
+            "$and": [
+                {"metadata.bar": 7},
+                {"metadata.answer": 42},
+            ],
+        },
+    ]
+
+    assert create_queries(
         USER,
         metadata={"foo": [5, 6], "bar": [7, 8]},
-    ) == {
-        "$and": [
-            {
-                "$or": [
-                    {"metadata.bar": {"$in": [7, 8]}},
-                    {"metadata.foo": {"$in": [5, 6]}},
-                ]
-            },
-            {"metadata.answer": 42},
-        ],
-    }
+    ) == [
+        {
+            "$and": [
+                {"metadata.foo": {"$in": [5, 6]}},
+                {"metadata.answer": 42},
+            ],
+        },
+        {
+            "$and": [
+                {"metadata.bar": {"$in": [7, 8]}},
+                {"metadata.answer": 42},
+            ],
+        },
+    ]
 
-    assert create_query(USER, metadata={"foo": list(range(0, 200))}) == {
-        "$and": [
-            {
-                "$or": [
-                    {"metadata.foo": {"$in": list(range(0, 100))}},
-                    {"metadata.foo": {"$in": list(range(100, 200))}},
-                ]
-            },
-            {"metadata.answer": 42},
-        ],
-    }
+    assert create_queries(USER, metadata={"foo": list(range(0, 200)), "bar": [7, 8]}) == [
+        {
+            "$and": [
+                {"metadata.foo": {"$in": list(range(0, 100))}},
+                {"metadata.answer": 42},
+            ]
+        },
+        {
+            "$and": [
+                {"metadata.foo": {"$in": list(range(100, 200))}},
+                {"metadata.answer": 42},
+            ]
+        },
+        {
+            "$and": [
+                {"metadata.bar": {"$in": [7, 8]}},
+                {"metadata.answer": 42},
+            ]
+        },
+    ]
 
 
 @dataclasses.dataclass

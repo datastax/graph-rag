@@ -59,40 +59,56 @@ def _queries(
     metadata: dict[str, Iterable[Any]] = {},
     ids: Iterable[str] = (),
 ) -> Iterator[dict[str, Any]]:
-    encoded_user_filters = codec.encode_filter(user_filters) if user_filters else {}
+    """
+    Generate queries for matching all user_filters and any `metadata`.
+
+    The results of the queries can be merged to produce the results.
+
+    Results will match at least one metadata value in one of the metadata fields
+    or one of the IDs.
+
+    Results will also match all of the `user_filters`.
+
+    Parameters
+    ----------
+    codec :
+        Codec to use for encoding the queries.
+    user_filters :
+        User filters that all results must match.
+    metadata :
+        Any item with a metadata key containing a value from the iterable matches an edge.
+    ids :
+        Any item with an `_id` matching a value in this set matches an edge.
+
+    Yields
+    ------
+    :
+        Queries corresponding to `user_filters AND (metadata OR ids)`.
+    """
 
     if user_filters:
-        user_filters = codec.encode_filter(user_filters)
-
-        def with_user_filters(encoded_filter: dict[str, Any]) -> dict[str, Any]:
-            return {"$and": [encoded_filter, encoded_user_filters]}
+        encoded_user_filters = codec.encode_filter(user_filters) if user_filters else {}
+        def with_user_filters(filter: dict[str, Any], *, encoded: bool) -> dict[str, Any]:
+            return {"$and": [filter if encoded else codec.encode_filter(filter), encoded_user_filters]}
     else:
+        def with_user_filters(filter: dict[str, Any], *, encoded: bool) -> dict[str, Any]:
+            return filter if encoded else codec.encode_filter(filter)
 
-        def with_user_filters(encoded_filter: dict[str, Any]) -> dict[str, Any]:
-            return encoded_filter
-
-    parts = []
     for k, v in metadata.items():
         for v_batch in batched(v, 100):
             batch = list(v_batch)
-            if len(batch) == 0:
-                continue
             if len(batch) == 1:
-                parts.append({k: batch[0]})
+                yield(with_user_filters({k: batch[0]}, encoded=False))
             else:
-                parts.append({k: {"$in": batch}})
-    if len(parts) == 1:
-        yield with_user_filters(codec.encode_filter(parts[0]))
-    elif len(parts) > 0:
-        yield with_user_filters(codec.encode_filter({"$or": parts}))
+                yield(with_user_filters({k: {"$in": batch}}, encoded=False))
 
     for id_batch in batched(ids, 100):
         ids = list(id_batch)
         if len(ids) == 1:
-            yield with_user_filters({"_id": ids[0]})
+            yield with_user_filters({"_id": ids[0]}, encoded=True)
         else:
             assert len(ids) > 1 and len(ids) <= 100
-            yield with_user_filters({"_id": {"$in": ids}})
+            yield with_user_filters({"_id": {"$in": ids}}, encoded=True)
 
 
 class AstraAdapter(Adapter):
@@ -234,7 +250,7 @@ class AstraAdapter(Adapter):
     def get(
         self, ids: Sequence[str], filter: dict[str, Any] | None = None, **kwargs: Any
     ) -> list[Content]:
-        return self._execute_queries(
+        return self._execute_and_merge(
             _queries(
                 codec=self.vector_store.document_codec,
                 user_filters=filter,
@@ -246,7 +262,7 @@ class AstraAdapter(Adapter):
     async def aget(
         self, ids: Sequence[str], filter: dict[str, Any] | None = None, **kwargs: Any
     ) -> list[Content]:
-        return await self._aexecute_queries(
+        return await self._aexecute_and_merge(
             _queries(
                 codec=self.vector_store.document_codec,
                 user_filters=filter,
@@ -272,7 +288,7 @@ class AstraAdapter(Adapter):
             ids=ids,
         )
 
-        results = self._execute_queries(
+        results = self._execute_and_merge(
             filters=filters,
             sort=sort,
             limit=k,
@@ -297,14 +313,14 @@ class AstraAdapter(Adapter):
             ids=ids,
         )
 
-        results = await self._aexecute_queries(
+        results = await self._aexecute_and_merge(
             filters=filters,
             sort=sort,
             limit=k,
         )
         return top_k(results, embedding=query_embedding, k=k)
 
-    def _execute_queries(
+    def _execute_and_merge(
         self,
         filters: Iterator[dict[str, Any]],
         limit: int | None = None,
@@ -339,7 +355,7 @@ class AstraAdapter(Adapter):
 
         return list(results.values())
 
-    async def _aexecute_queries(
+    async def _aexecute_and_merge(
         self,
         filters: Iterator[dict[str, Any]],
         limit: int | None = None,
