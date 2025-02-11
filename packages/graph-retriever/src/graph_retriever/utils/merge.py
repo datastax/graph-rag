@@ -35,12 +35,7 @@ async def amerge(
     """
     queue: asyncio.Queue[T | _Done] = asyncio.Queue(queue_size)
 
-    done_event = asyncio.Event()
-    pending_lock = asyncio.Lock()
-    pending_count = len(async_iterables)
-
     async def pump(aiter: AsyncIterator[T]) -> None:
-        nonlocal done_event, pending_lock, pending_count
         try:
             async for item in aiter:
                 await queue.put(item)
