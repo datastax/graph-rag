@@ -1,13 +1,12 @@
 import asyncio
+import dataclasses
 from collections.abc import AsyncIterator
 from typing import TypeVar
-
-from attr import dataclass
 
 T = TypeVar("T")
 
 
-@dataclass
+@dataclasses.dataclass
 class _Done:
     exception: bool = False
 
