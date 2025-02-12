@@ -76,9 +76,12 @@ def _queries(
     user_filters :
         User filters that all results must match.
     metadata :
-        Any item with a metadata key containing a value from the iterable matches an edge.
+        An item matches the queries if it matches all user filters, and
+        there exists a `key` such that `metadata[key]` has a non-empty
+        intersection with the actual values of `item.metadata[key]`.
     ids :
-        Any item with an `_id` matching a value in this set matches an edge.
+        An item matches the queries if it matches all user filters, and
+        it has an `item.id` in `ids`.
 
     Yields
     ------
