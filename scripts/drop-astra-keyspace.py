@@ -1,10 +1,15 @@
 import os
+import sys
 
 from astrapy import AstraDBDatabaseAdmin
 from astrapy.authentication import StaticTokenProvider
 
 token = StaticTokenProvider(os.environ["ASTRA_DB_APPLICATION_TOKEN"])
-keyspace = os.environ.get("ASTRA_DB_KEYSPACE", "default_keyspace")
+keyspace = os.environ.get("ASTRA_DB_KEYSPACE")
+if keyspace is None:
+    print("No keyspace to drop.")
+    sys.exit()
+
 api_endpoint = os.environ["ASTRA_DB_API_ENDPOINT"]
 
 admin = AstraDBDatabaseAdmin(api_endpoint=api_endpoint, token=token)
