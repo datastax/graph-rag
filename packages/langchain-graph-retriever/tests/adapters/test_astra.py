@@ -24,12 +24,14 @@ def create_queries(
     ids: Iterable[str] = (),
     metadata: dict[str, Iterable[Any]] = {},
 ) -> list[dict[str, Any]]:
-    return list(_queries(
+    return list(
+        _queries(
             codec=TEST_CODEC,
             user_filters=user_filters,
             ids=ids,
             metadata=metadata,
-    ))
+        )
+    )
 
 
 def create_query(
@@ -144,7 +146,9 @@ def test_create_metadata_query_user() -> None:
         },
     ]
 
-    assert create_queries(USER, metadata={"foo": list(range(0, 200)), "bar": [7, 8]}) == [
+    assert create_queries(
+        USER, metadata={"foo": list(range(0, 200)), "bar": [7, 8]}
+    ) == [
         {
             "$and": [
                 {"metadata.foo": {"$in": list(range(0, 100))}},

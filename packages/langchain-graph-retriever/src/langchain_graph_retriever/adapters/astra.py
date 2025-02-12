@@ -85,22 +85,32 @@ def _queries(
     :
         Queries corresponding to `user_filters AND (metadata OR ids)`.
     """
-
     if user_filters:
         encoded_user_filters = codec.encode_filter(user_filters) if user_filters else {}
-        def with_user_filters(filter: dict[str, Any], *, encoded: bool) -> dict[str, Any]:
-            return {"$and": [filter if encoded else codec.encode_filter(filter), encoded_user_filters]}
+
+        def with_user_filters(
+            filter: dict[str, Any], *, encoded: bool
+        ) -> dict[str, Any]:
+            return {
+                "$and": [
+                    filter if encoded else codec.encode_filter(filter),
+                    encoded_user_filters,
+                ]
+            }
     else:
-        def with_user_filters(filter: dict[str, Any], *, encoded: bool) -> dict[str, Any]:
+
+        def with_user_filters(
+            filter: dict[str, Any], *, encoded: bool
+        ) -> dict[str, Any]:
             return filter if encoded else codec.encode_filter(filter)
 
     for k, v in metadata.items():
         for v_batch in batched(v, 100):
             batch = list(v_batch)
             if len(batch) == 1:
-                yield(with_user_filters({k: batch[0]}, encoded=False))
+                yield (with_user_filters({k: batch[0]}, encoded=False))
             else:
-                yield(with_user_filters({k: {"$in": batch}}, encoded=False))
+                yield (with_user_filters({k: {"$in": batch}}, encoded=False))
 
     for id_batch in batched(ids, 100):
         ids = list(id_batch)
@@ -350,7 +360,10 @@ class AstraAdapter(Adapter):
             )
 
             for hit in hits:
-                if hit["_id"] not in results and (content := self._decode_hit(hit)) is not None:
+                if (
+                    hit["_id"] not in results
+                    and (content := self._decode_hit(hit)) is not None
+                ):
                     results[content.id] = content
 
         return list(results.values())
@@ -387,7 +400,10 @@ class AstraAdapter(Adapter):
 
         results: dict[str, Content] = {}
         async for hit in merge.amerge(*cursors):
-            if hit["_id"] not in results and (content := self._decode_hit(hit)) is not None:
+            if (
+                hit["_id"] not in results
+                and (content := self._decode_hit(hit)) is not None
+            ):
                 results[content.id] = content
 
         return list(results.values())
