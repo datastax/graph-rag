@@ -7,7 +7,7 @@ from astrapy.authentication import StaticTokenProvider
 token = StaticTokenProvider(os.environ["ASTRA_DB_APPLICATION_TOKEN"])
 keyspace = os.environ.get("ASTRA_DB_KEYSPACE")
 if keyspace is None:
-    print("No keyspace to drop.")
+    print("No keyspace to drop.")  # noqa: T201
     sys.exit()
 
 api_endpoint = os.environ["ASTRA_DB_API_ENDPOINT"]

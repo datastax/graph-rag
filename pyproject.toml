@@ -148,7 +148,7 @@ shell = "find . -name '*.ipynb' | awk 'system(\"git check-ignore --quiet \" $0)'
 
 [tool.poe.tasks.lint]
 help = "Runs all formatting, lints, and checks (fixing where possible)"
-sequence = [ "docs-build", "lock-fix", "fmt-fix", "lint-fix", "type-check", "dep-check" ]
+sequence = [ "lock-fix", "fmt-fix", "lint-fix", "type-check", "dep-check", "docs-build" ]
 
 [tool.poe.tasks.test-gr]
 help = "Runs graph-retriever tests (against in-memory stores)"
