@@ -111,11 +111,15 @@ The following shows how to populate a variety of vector stores with the animal d
     vector_store = OpenSearchVectorSearch.from_documents(
         opensearch_url=OPEN_SEARCH_URL,
         index_name="animals",
-        embedding_function=OpenAIEmbeddings(),
+        embedding=OpenAIEmbeddings(),
         engine="faiss",
         documents=animals,
+        bulk_size=500, # (1)!
     )
     ```
+
+    1. There is currently a bug in the OpenSearchVectorStore implementation that
+    requires this extra parameter.
 
 === "Chroma"
 

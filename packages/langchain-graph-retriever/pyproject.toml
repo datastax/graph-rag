@@ -67,12 +67,12 @@ langchain-astradb = "langchain_astradb"
 langchain-chroma = "langchain_chroma"
 langchain-community = "langchain_community"
 langchain-core = "langchain_core"
-langchain-opensearch = "langchain_opensearch"
 langchain-tests = "langchain_tests"
 mypy = "mypy"
 networkx = "networkx"
 networkx-stubs = "networkx_stubs"
 numpy = "numpy"
+opensearch-py = "opensearch_py"
 pydantic = "pydantic"
 pytest = "pytest"
 pytest-asyncio = "pytest_asyncio"
@@ -86,7 +86,7 @@ types-beautifulsoup4 = "types_beautifulsoup4"
 typing-extensions = "typing_extensions"
 
 [tool.deptry.per_rule_ignores]
-DEP002 = ["cassio"]
+DEP002 = ["cassio", "opensearch-py"]
 
 [tool.uv.sources]
 graph-retriever = { workspace = true }
@@ -116,6 +116,7 @@ keybert = [
 ]
 opensearch = [
    "langchain-community>=0.3.14",
+   "opensearch-py>=2.8.0",
 ]
 spacy = [
     "spacy>=3.8.4",
@@ -131,7 +132,6 @@ dev = [
     "langchain-astradb>=0.5.3",
     "langchain-chroma>=0.2.0",
     "langchain-community>=0.3.14",
-    "langchain-opensearch>=0.0.2",
     "mypy>=1.14.1",
     "networkx-stubs>=0.0.1",
     "pytest>=8.3.4",
@@ -142,4 +142,3 @@ dev = [
     "langchain-tests>=0.3.8",
     "types-beautifulsoup4>=4.12.0.20250204",
 ]
-

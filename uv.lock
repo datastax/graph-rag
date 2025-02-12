@@ -1315,8 +1315,8 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "numpy", specifier = ">=1.26.4" },
+    { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest", marker = "extra == 'testing'", specifier = ">=8.3.4" },
-    { name = "pytest", extras = ["testing"], specifier = ">=8.3.4" },
     { name = "simsimd", marker = "extra == 'simsimd'", specifier = ">=6.2.1" },
     { name = "typing-extensions", specifier = ">=4.12.2" },
 ]
@@ -2201,6 +2201,7 @@ keybert = [
 ]
 opensearch = [
     { name = "langchain-community" },
+    { name = "opensearch-py" },
 ]
 spacy = [
     { name = "spacy" },
@@ -2212,7 +2213,6 @@ dev = [
     { name = "langchain-astradb" },
     { name = "langchain-chroma" },
     { name = "langchain-community" },
-    { name = "langchain-opensearch" },
     { name = "langchain-tests" },
     { name = "mypy" },
     { name = "networkx-stubs" },
@@ -2241,6 +2241,7 @@ requires-dist = [
     { name = "langchain-community", marker = "extra == 'opensearch'", specifier = ">=0.3.14" },
     { name = "langchain-core", specifier = ">=0.3.29" },
     { name = "networkx", specifier = ">=3.4.2" },
+    { name = "opensearch-py", marker = "extra == 'opensearch'", specifier = ">=2.8.0" },
     { name = "pydantic", specifier = ">=2.10.4" },
     { name = "spacy", marker = "extra == 'spacy'", specifier = ">=3.8.4" },
     { name = "typing-extensions", specifier = ">=4.12.2" },
@@ -2252,7 +2253,6 @@ dev = [
     { name = "langchain-astradb", specifier = ">=0.5.3" },
     { name = "langchain-chroma", specifier = ">=0.2.0" },
     { name = "langchain-community", specifier = ">=0.3.14" },
-    { name = "langchain-opensearch", specifier = ">=0.0.2" },
     { name = "langchain-tests", specifier = ">=0.3.8" },
     { name = "mypy", specifier = ">=1.14.1" },
     { name = "networkx-stubs", specifier = ">=0.0.1" },
@@ -2276,22 +2276,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/85/01/8fa0e1a708f1634a88df0c239f1e9733a2848c62fcd6aaea08cee4857ec1/langchain_openai-0.3.1.tar.gz", hash = "sha256:cce314f1437b2cad73e0ed2b55e74dc399bc1bbc43594c4448912fb51c5e4447", size = 48216 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8d/9e/388aaa4a727e86c3f61238df059a0d438de1a68ee369957182436d976a8a/langchain_openai-0.3.1-py3-none-any.whl", hash = "sha256:5cf2a1e115b12570158d89c22832fa381803c3e1e11d1eb781195c8d9e454bd5", size = 54311 },
-]
-
-[[package]]
-name = "langchain-opensearch"
-version = "0.0.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "langchain-community" },
-    { name = "langchain-core" },
-    { name = "langchain-text-splitters" },
-    { name = "opensearch-py" },
-    { name = "setuptools" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/5b/b6/2889c77bedc21d06b17f4bdddf96bc7d222258bfa9bd88b82891769745ba/langchain_opensearch-0.0.2.tar.gz", hash = "sha256:26d04175e85dab48af8761c154e4942695e0cf731a6d6676e1e9ba9da51a28c6", size = 3382 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b4/1a/9e7c1c13fe209c48f6ac5ac1efe5d3ae2e6422d2c46f9f237ad4a1e23dac/langchain_opensearch-0.0.2-py3-none-any.whl", hash = "sha256:16432ecd6c78232433fd8067e3bf91ba3365ca9cbf6bfac97c55f71eb0eef943", size = 4472 },
 ]
 
 [[package]]
