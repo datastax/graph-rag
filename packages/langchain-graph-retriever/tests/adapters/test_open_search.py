@@ -8,11 +8,11 @@ from langchain_core.embeddings import Embeddings
 
 
 class TestOpenSearch(AdapterComplianceSuite):
-    def expected(self, method, case):
-        CASES = ({"dict_in_list", "dict_in_list_multiple", "absent_dict"},)
-        if method in ["adjacent", "aadjacent"] and case in CASES:
-            pytest.xfail("OpenSearch doesn't support edges with dict values.")
-        return super().expected(method, case)
+    def supports_nested_metadata(self) -> bool:
+        return False
+
+    def supports_dict_in_list(self) -> bool:
+        return False
 
     @pytest.fixture(scope="class")
     def adapter(

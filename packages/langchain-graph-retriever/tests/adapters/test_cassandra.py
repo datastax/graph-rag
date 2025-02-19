@@ -48,6 +48,9 @@ def cluster(
 
 
 class TestCassandraAdapter(AdapterComplianceSuite):
+    def supports_nested_metadata(self) -> bool:
+        return False
+
     @pytest.fixture(scope="class")
     def adapter(
         self,

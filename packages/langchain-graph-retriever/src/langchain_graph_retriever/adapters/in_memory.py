@@ -99,7 +99,11 @@ class InMemoryAdapter(LangchainAdapter[InMemoryVectorStore]):
             True if and only if `metadata[key] == value` or `metadata[key]` is a
             list containing `value`.
         """
-        actual = metadata.get(key, SENTINEL)
+        actual = metadata
+        for key_part in key.split("."):
+            actual = actual.get(key_part, SENTINEL)
+            if actual is SENTINEL:
+                break
         if actual == value:
             return True
 

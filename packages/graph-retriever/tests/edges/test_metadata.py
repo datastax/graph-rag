@@ -38,6 +38,14 @@ def test_edge_function():
     )
 
 
+def test_nested_edge():
+    edge_function = MetadataEdgeFunction([("a.b", "b.c")])
+    assert edge_function(mk_node({"a": {"b": 5}, "b": {"c": 7}})) == Edges(
+        {MetadataEdge("b.c", 7)},
+        {MetadataEdge("b.c", 5)},
+    )
+
+
 def test_link_to_id():
     edge_function = MetadataEdgeFunction([("mentions", Id())])
     result = edge_function(mk_node({"mentions": ["a", "c"]}))

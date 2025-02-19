@@ -9,6 +9,9 @@ from langchain_graph_retriever.transformers import ShreddingTransformer
 
 
 class TestChroma(AdapterComplianceSuite):
+    def supports_nested_metadata(self) -> bool:
+        return False
+
     @pytest.fixture(scope="class")
     def adapter(
         self,
@@ -25,6 +28,16 @@ class TestChroma(AdapterComplianceSuite):
         )
 
         shredder = ShreddingTransformer()
+
+        # Chroma doesn't even support *writing* nested data currently, so we
+        # filter it out.
+        def remove_nested_metadata(doc: Document) -> Document:
+            metadata = doc.metadata.copy()
+            metadata.pop("nested", None)
+            return Document(id=doc.id, page_content=doc.page_content, metadata=metadata)
+
+        animal_docs = [remove_nested_metadata(doc) for doc in animal_docs]
+
         docs = list(shredder.transform_documents(animal_docs))
         store = Chroma.from_documents(
             docs,

@@ -41,6 +41,15 @@ id_to_mentions_edge       = (Id(), "mentions)
 """
 
 
+def _nested_get(metadata: dict[str, Any], key: str) -> Any:
+    value = metadata
+    for key_part in key.split("."):
+        value = value.get(key_part, SENTINEL)
+        if value is SENTINEL:
+            break
+    return value
+
+
 class MetadataEdgeFunction:
     """
     Helper for extracting and encoding edges in metadata.
@@ -116,7 +125,7 @@ class MetadataEdgeFunction:
             if isinstance(source_key, Id):
                 edges.add(mk_edge(id))
             else:
-                value = metadata.get(source_key, SENTINEL)
+                value = _nested_get(metadata, source_key)
                 if isinstance(value, BASIC_TYPES):
                     edges.add(mk_edge(value))
                 elif isinstance(value, Iterable):

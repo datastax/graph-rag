@@ -40,7 +40,7 @@ def assert_ids_any_order(
     assert set(result_ids) == set(expected), "should contain exactly expected IDs"
 
 
-@dataclass
+@dataclass(kw_only=True)
 class AdapterComplianceCase(abc.ABC):
     """
     Base dataclass for test cases.
@@ -56,6 +56,9 @@ class AdapterComplianceCase(abc.ABC):
 
     id: str
     expected: list[str]
+
+    requires_nested: bool = False
+    requires_dict_in_list: bool = False
 
 
 @dataclass
@@ -314,6 +317,7 @@ ADJACENT_CASES: list[AdjacentCase] = [
         expected=[
             "aardvark",
         ],
+        requires_dict_in_list=True,
     ),
     AdjacentCase(
         id="dict_in_list_multiple",
@@ -326,6 +330,7 @@ ADJACENT_CASES: list[AdjacentCase] = [
             "aardvark",
             "albatross",
         ],
+        requires_dict_in_list=True,
     ),
     AdjacentCase(
         id="absent_dict",
@@ -334,6 +339,47 @@ ADJACENT_CASES: list[AdjacentCase] = [
             MetadataEdge("tags", {"a": 5, "b": 10}),
         },
         expected=[],
+        requires_dict_in_list=True,
+    ),
+    AdjacentCase(
+        id="nested",
+        query="domesticated hunters",
+        edges={
+            MetadataEdge("nested.a", 5),
+        },
+        expected=[
+            "alligator",
+            "alpaca",
+        ],
+        requires_nested=True,
+    ),
+    AdjacentCase(
+        id="nested_same_field",
+        query="domesticated hunters",
+        edges={
+            MetadataEdge("nested.a", 5),
+            MetadataEdge("nested.a", 6),
+        },
+        expected=[
+            "alligator",
+            "alpaca",
+            "ant",
+        ],
+        requires_nested=True,
+    ),
+    AdjacentCase(
+        id="nested_diff_field",
+        query="domesticated hunters",
+        edges={
+            MetadataEdge("nested.a", 5),
+            MetadataEdge("nested.b", 5),
+        },
+        expected=[
+            "alligator",
+            "alpaca",
+            "anteater",
+        ],
+        requires_nested=True,
     ),
 ]
 
@@ -346,6 +392,14 @@ class AdapterComplianceSuite(abc.ABC):
     `adapter` which returns an `Adapter` with the documents from `animals.jsonl`
     loaded.
     """
+
+    def supports_nested_metadata(self) -> bool:
+        """Return whether nested metadata is expected to work."""
+        return True
+
+    def supports_dict_in_list(self) -> bool:
+        """Return whether dicts can appear in list fields in metadata."""
+        return True
 
     def expected(self, method: str, case: AdapterComplianceCase) -> list[str]:
         """
@@ -373,6 +427,10 @@ class AdapterComplianceSuite(abc.ABC):
         :
             The expected animals.
         """
+        if not self.supports_nested_metadata() and case.requires_nested:
+            pytest.xfail("nested metadata not supported")
+        if not self.supports_dict_in_list() and case.requires_dict_in_list:
+            pytest.xfail("dict-in-list fields is not supported")
         return case.expected
 
     @pytest.fixture(params=GET_CASES, ids=lambda c: c.id)
