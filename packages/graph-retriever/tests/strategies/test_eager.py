@@ -302,8 +302,8 @@ async def test_edge_functions(sync_or_async: SyncOrAsync):
         links = node.metadata.get("links", [])
         incoming = node.metadata.get("incoming", [])
         return Edges(
-            incoming={MetadataEdge("incoming", v) for v in incoming},
-            outgoing={MetadataEdge("incoming", v) for v, _weight in links},
+            incoming={MetadataEdge({"incoming": v}) for v in incoming},
+            outgoing={MetadataEdge({"incoming": v}) for v, _weight in links},
         )
 
     traversal = sync_or_async.traverse_sorted_ids(

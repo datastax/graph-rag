@@ -111,7 +111,7 @@ class MetadataEdgeFunction:
             else:
 
                 def mk_edge(v) -> Edge:
-                    return MetadataEdge(incoming_field=target_key, value=v)
+                    return MetadataEdge({target_key: v})
 
             if isinstance(source_key, Id):
                 edges.add(mk_edge(id))

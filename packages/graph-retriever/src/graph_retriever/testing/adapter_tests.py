@@ -1,7 +1,7 @@
 import abc
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Sequence
 
 import pytest
 
@@ -163,7 +163,7 @@ class AdjacentCase(AdapterComplianceCase):
     """A test case for `get_adjacent` and `aget_adjacent`."""
 
     query: str
-    edges: set[Edge]
+    edges: Sequence[Edge]
 
     k: int = 4
     filter: dict[str, Any] | None = None
@@ -173,16 +173,16 @@ ADJACENT_CASES: list[AdjacentCase] = [
     AdjacentCase(
         id="one_edge",
         query="domesticated hunters",
-        edges={MetadataEdge("type", "mammal")},
+        edges=[MetadataEdge({"type": "mammal"})],
         expected=["horse", "alpaca", "dog", "cat"],
     ),
     AdjacentCase(
         id="two_edges_same_field",
         query="domesticated hunters",
-        edges={
-            MetadataEdge("type", "mammal"),
-            MetadataEdge("type", "crustacean"),
-        },
+        edges=[
+            MetadataEdge({"type": "mammal"}),
+            MetadataEdge({"type": "crustacean"}),
+        ],
         expected=[
             "alpaca",
             "cat",
@@ -193,9 +193,9 @@ ADJACENT_CASES: list[AdjacentCase] = [
     AdjacentCase(
         id="one_ids",
         query="domesticated hunters",
-        edges={
+        edges=[
             IdEdge("cat"),
-        },
+        ],
         expected=[
             "cat",
         ],
@@ -203,12 +203,12 @@ ADJACENT_CASES: list[AdjacentCase] = [
     AdjacentCase(
         id="many_ids",
         query="domesticated hunters",
-        edges={
+        edges=[
             IdEdge("cat"),
             IdEdge("dog"),
             IdEdge("unicorn"),
             IdEdge("crab"),
-        },
+        ],
         expected=[
             "cat",
             "dog",
@@ -218,12 +218,12 @@ ADJACENT_CASES: list[AdjacentCase] = [
     AdjacentCase(
         id="ids_limit_k",
         query="domesticated hunters",
-        edges={
+        edges=[
             IdEdge("cat"),
             IdEdge("dog"),
             IdEdge("unicorn"),
             IdEdge("antelope"),
-        },
+        ],
         k=2,
         expected=[
             "cat",
@@ -233,12 +233,12 @@ ADJACENT_CASES: list[AdjacentCase] = [
     AdjacentCase(
         id="filtered_ids",
         query="domesticated hunters",
-        edges={
+        edges=[
             IdEdge("boar"),
             IdEdge("chinchilla"),
             IdEdge("unicorn"),
             IdEdge("griaffe"),
-        },
+        ],
         filter={"keywords": "andes"},
         expected=[
             "chinchilla",
@@ -247,10 +247,10 @@ ADJACENT_CASES: list[AdjacentCase] = [
     AdjacentCase(
         id="metadata_and_id",
         query="domesticated hunters",
-        edges={
+        edges=[
             IdEdge("cat"),
-            MetadataEdge("type", "reptile"),
-        },
+            MetadataEdge({"type": "reptile"}),
+        ],
         k=6,
         expected=[
             "alligator",  # reptile
@@ -261,6 +261,26 @@ ADJACENT_CASES: list[AdjacentCase] = [
             "komodo dragon",  # reptile
         ],
     ),
+    AdjacentCase(
+        id="multi_metadata_values",
+        query="domesticated hunters",
+        edges=[
+            MetadataEdge({"type": "reptile", "number_of_legs": 0})
+        ],
+        expected=[
+            "cobra",
+        ]
+    ),
+    AdjacentCase(
+        id="multi_metadata_contains",
+        query="domesticated hunters",
+        edges=[
+            MetadataEdge({"type": "reptile", "keywords": "venomous"})
+        ],
+        expected=[
+            "cobra",
+        ]
+    )
 ]
 
 

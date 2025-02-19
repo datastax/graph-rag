@@ -1,7 +1,9 @@
 import abc
 from collections.abc import Callable
 from dataclasses import dataclass
+import dataclasses
 from typing import Any, TypeAlias
+from immutabledict import immutabledict
 
 from graph_retriever import Content
 
@@ -28,15 +30,17 @@ class MetadataEdge(Edge):
 
     Parameters
     ----------
-    incoming_field :
-        The name of the metadata field storing incoming edges.
-    value :
-        The value associated with the key for this edge
+    fields :
+        The fields constrained by this edge.
     """
 
-    incoming_field: str
-    value: Any
+    fields: immutabledict[str, Any]
 
+    def __init__(self, fields: dict[str, Any] | immutabledict[str, Any]) -> None:
+        # self.fields and setattr(self, ...) -- don't work because of frozen.
+        # we need to call `__setattr__` directly (as the default `__init__` would do)
+        # to initialize the fields of the frozen dataclass.
+        object.__setattr__(self, "fields", immutabledict(fields))
 
 @dataclass(frozen=True)
 class IdEdge(Edge):
