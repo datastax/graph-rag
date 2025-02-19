@@ -40,6 +40,7 @@ id_to_mentions_edge       = (Id(), "mentions)
 ```
 """
 
+
 def _nested_get(metadata: dict[str, Any], key: str) -> Any:
     value = metadata
     for key_part in key.split("."):

@@ -1,6 +1,5 @@
 from collections.abc import Iterator
 
-from posthog import page
 import pytest
 from graph_retriever.adapters import Adapter
 from graph_retriever.testing.adapter_tests import AdapterComplianceSuite
@@ -30,15 +29,12 @@ class TestChroma(AdapterComplianceSuite):
 
         shredder = ShreddingTransformer()
 
-        # Chroma doesn't even support *writing* nested data currently, so we filter it out.
+        # Chroma doesn't even support *writing* nested data currently, so we
+        # filter it out.
         def remove_nested_metadata(doc: Document) -> Document:
             metadata = doc.metadata.copy()
             metadata.pop("nested", None)
-            return Document(
-                id = doc.id,
-                page_content = doc.page_content,
-                metadata = metadata
-            )
+            return Document(id=doc.id, page_content=doc.page_content, metadata=metadata)
 
         animal_docs = [remove_nested_metadata(doc) for doc in animal_docs]
 

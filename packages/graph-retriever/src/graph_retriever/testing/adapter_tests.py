@@ -1,7 +1,6 @@
 import abc
 from collections.abc import Iterable
 from dataclasses import dataclass
-from importlib.metadata import requires
 from typing import Any
 
 import pytest
@@ -9,7 +8,6 @@ import pytest
 from graph_retriever import Content
 from graph_retriever.adapters import Adapter
 from graph_retriever.edges import Edge, IdEdge, MetadataEdge
-from regex import B
 
 
 def assert_valid_result(content: Content):
@@ -270,7 +268,7 @@ ADJACENT_CASES: list[AdjacentCase] = [
         edges={
             MetadataEdge("nested.a", 5),
         },
-        expected = [
+        expected=[
             "alligator",
             "alpaca",
         ],
@@ -283,7 +281,7 @@ ADJACENT_CASES: list[AdjacentCase] = [
             MetadataEdge("nested.a", 5),
             MetadataEdge("nested.a", 6),
         },
-        expected = [
+        expected=[
             "alligator",
             "alpaca",
             "ant",
@@ -297,7 +295,7 @@ ADJACENT_CASES: list[AdjacentCase] = [
             MetadataEdge("nested.a", 5),
             MetadataEdge("nested.b", 5),
         },
-        expected = [
+        expected=[
             "alligator",
             "alpaca",
             "anteater",
@@ -317,6 +315,7 @@ class AdapterComplianceSuite(abc.ABC):
     """
 
     def supports_nested_metadata(self) -> bool:
+        """Return whether nested metadata is expected to work."""
         return True
 
     def expected(self, method: str, case: AdapterComplianceCase) -> list[str]:
