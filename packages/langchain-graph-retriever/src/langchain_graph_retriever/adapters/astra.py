@@ -121,7 +121,9 @@ def _queries(
                 if len(batch) == 1:
                     yield with_user_filters({k: {"$all": [batch[0]]}}, encoded=False)
                 else:
-                    yield with_user_filters({"$or": [{k: {"$all": [v]}} for v in batch]}, encoded=False)
+                    yield with_user_filters(
+                        {"$or": [{k: {"$all": [v]}} for v in batch]}, encoded=False
+                    )
             else:
                 if len(batch) == 1:
                     yield (with_user_filters({k: batch[0]}, encoded=False))

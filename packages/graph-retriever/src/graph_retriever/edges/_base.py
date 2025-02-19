@@ -3,8 +3,9 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, TypeAlias
 
-from graph_retriever import Content
 from immutabledict import immutabledict
+
+from graph_retriever import Content
 
 
 class Edge(abc.ABC):

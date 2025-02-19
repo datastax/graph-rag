@@ -3,7 +3,6 @@
 from collections.abc import Sequence
 from typing import Any
 
-from immutabledict import immutabledict
 from typing_extensions import override
 
 try:
@@ -69,23 +68,23 @@ class OpenSearchAdapter(LangchainAdapter[OpenSearchVectorSearch]):
         -------
         :
             Filter query for OpenSearch.
+
+        Raises
+        ------
+        ValueError
+            If the query is not supported by OpenSearch adapter.
         """
         if filter is None:
             return None
 
-
         filters = []
         for key, value in filter.items():
             if isinstance(value, list):
-                filters.append({"terms": { f"metadata.{key}": value }})
+                filters.append({"terms": {f"metadata.{key}": value}})
             elif isinstance(value, dict):
-                for vk, vv in value.items():
-                    if isinstance(vv, list):
-                        filters.append({"terms": { f"metadata.{key}.{vk}": vv }})
-                    else:
-                        filters.append({"term": { f"metadata.{key}.{vk}": str(vv) }})
+                raise ValueError("Open Search doesn't suport dictionary searches.")
             else:
-                filters.append({"term": { f"metadata.{key}": value }})
+                filters.append({"term": {f"metadata.{key}": value}})
         return filters
 
     @override
@@ -100,9 +99,7 @@ class OpenSearchAdapter(LangchainAdapter[OpenSearchVectorSearch]):
             # use an efficient_filter to collect results that
             # are near the embedding vector until up to 'k'
             # documents that match the filter are found.
-            query = {
-                "bool": {"must": self._build_filter(filter=filter)}
-            }
+            query = {"bool": {"must": self._build_filter(filter=filter)}}
             kwargs["efficient_filter"] = query
 
         if k == 0:

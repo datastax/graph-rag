@@ -4,7 +4,6 @@ import json
 from collections.abc import Sequence
 from typing import Any
 
-from immutabledict import immutabledict
 from langchain_core.documents import BaseDocumentTransformer, Document
 from typing_extensions import override
 

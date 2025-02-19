@@ -35,6 +35,8 @@ class TestChroma(AdapterComplianceSuite):
             collection_metadata={"hnsw:space": "cosine"},
         )
 
-        yield ChromaAdapter(store, shredder, nested_metadata_fields={"keywords", "tags"})
+        yield ChromaAdapter(
+            store, shredder, nested_metadata_fields={"keywords", "tags"}
+        )
 
         store.delete_collection()

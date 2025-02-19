@@ -6,7 +6,6 @@ from typing import Any, Generic, TypeVar
 
 from graph_retriever import Content
 from graph_retriever.adapters import Adapter
-from graph_retriever.edges import Edge, MetadataEdge
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.runnables import run_in_executor
@@ -357,6 +356,7 @@ class LangchainAdapter(Generic[StoreT], Adapter):
             filter,
             **kwargs,
         )
+
 
 class ShreddedLangchainAdapter(LangchainAdapter[StoreT]):
     """

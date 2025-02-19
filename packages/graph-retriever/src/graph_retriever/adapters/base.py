@@ -5,11 +5,12 @@ import asyncio
 from collections.abc import Iterable, Sequence
 from typing import Any
 
+from immutabledict import immutabledict
+
 from graph_retriever.content import Content
 from graph_retriever.edges import Edge, IdEdge, MetadataEdge
 from graph_retriever.utils.run_in_executor import run_in_executor
 from graph_retriever.utils.top_k import top_k
-from immutabledict import immutabledict
 
 
 class Adapter(abc.ABC):
@@ -381,7 +382,4 @@ class Adapter(abc.ABC):
         value = edge.value
         if isinstance(value, immutabledict):
             value = dict(value)
-        return {
-            edge.incoming_field: value,
-            **(base_filter or {})
-        }
+        return {edge.incoming_field: value, **(base_filter or {})}

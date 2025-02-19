@@ -196,7 +196,7 @@ ADJACENT_CASES: list[AdjacentCase] = [
         edges={
             MetadataEdge("number_of_legs", 0),
         },
-        k=20, # more than match the filter so we get all
+        k=20,  # more than match the filter so we get all
         expected=[
             "barracuda",
             "cobra",
@@ -215,7 +215,7 @@ ADJACENT_CASES: list[AdjacentCase] = [
             MetadataEdge("type", "reptile"),
             MetadataEdge("number_of_legs", 0),
         },
-        k=20, # more than match the filter so we get all
+        k=20,  # more than match the filter so we get all
         expected=[
             "alligator",
             "barracuda",
@@ -311,9 +311,9 @@ ADJACENT_CASES: list[AdjacentCase] = [
         edges={
             MetadataEdge("tags", {"a": 5, "b": 7}),
         },
-        expected = [
+        expected=[
             "aardvark",
-        ]
+        ],
     ),
     AdjacentCase(
         id="dict_in_list_multiple",
@@ -322,11 +322,19 @@ ADJACENT_CASES: list[AdjacentCase] = [
             MetadataEdge("tags", {"a": 5, "b": 7}),
             MetadataEdge("tags", {"a": 5, "b": 8}),
         },
-        expected = [
+        expected=[
             "aardvark",
             "albatross",
-        ]
-    )
+        ],
+    ),
+    AdjacentCase(
+        id="absent_dict",
+        query="domesticated hunters",
+        edges={
+            MetadataEdge("tags", {"a": 5, "b": 10}),
+        },
+        expected=[],
+    ),
 ]
 
 
