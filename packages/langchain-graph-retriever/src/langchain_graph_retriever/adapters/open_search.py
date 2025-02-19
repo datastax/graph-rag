@@ -49,7 +49,7 @@ class OpenSearchAdapter(LangchainAdapter[OpenSearchVectorSearch]):
         super().__init__(vector_store)
 
         if vector_store.is_aoss:
-            self._id_filed = "id"
+            self._id_field = "id"
         else:
             self._id_field = "_id"
 
@@ -88,6 +88,9 @@ class OpenSearchAdapter(LangchainAdapter[OpenSearchVectorSearch]):
         filter: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> list[Document]:
+        if k == 0:
+            return []
+
         if filter is not None:
             # use an efficient_filter to collect results that
             # are near the embedding vector until up to 'k'
@@ -95,9 +98,6 @@ class OpenSearchAdapter(LangchainAdapter[OpenSearchVectorSearch]):
             kwargs["efficient_filter"] = {
                 "bool": {"must": self._build_filter(filter=filter)}
             }
-
-        if k == 0:
-            return []
 
         docs = self.vector_store.similarity_search_by_vector(
             embedding=embedding,

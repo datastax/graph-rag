@@ -105,7 +105,7 @@ def test_create_multi_metadata_query_no_user() -> None:
         multi_metadata=(
             {"a": 5, "b": 7},
         )
-    ) == {"metadata.a": 5, "metadata.b": 7}
+    ) == {"$and": [{"metadata.a": 5}, {"metadata.b": 7}]}
 
     assert create_query(
         {},
@@ -115,8 +115,8 @@ def test_create_multi_metadata_query_no_user() -> None:
         )
     ) == {
         "$or": [
-            {"metadata.a": 5, "metadata.b": 7},
-            {"metadata.a": 6, "metadata.b": 8},
+            {"$and": [{"metadata.a": 5}, {"metadata.b": 7}]},
+            {"$and": [{"metadata.a": 6}, {"metadata.b": 8}]},
         ]
     }
 
