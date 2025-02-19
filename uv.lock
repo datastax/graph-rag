@@ -2181,6 +2181,7 @@ source = { editable = "packages/langchain-graph-retriever" }
 dependencies = [
     { name = "backoff" },
     { name = "graph-retriever" },
+    { name = "immutabledict" },
     { name = "langchain-core" },
     { name = "networkx" },
     { name = "pydantic" },
@@ -2245,6 +2246,7 @@ requires-dist = [
     { name = "gliner", marker = "extra == 'gliner'", specifier = "==0.2.13" },
     { name = "graph-retriever", editable = "packages/graph-retriever" },
     { name = "httpx", marker = "extra == 'astra'", specifier = ">=0.28.1" },
+    { name = "immutabledict", specifier = ">=4.2.1" },
     { name = "keybert", marker = "extra == 'keybert'", specifier = ">=0.8.5" },
     { name = "langchain-astradb", marker = "extra == 'astra'", specifier = ">=0.5.3" },
     { name = "langchain-chroma", marker = "extra == 'chroma'", specifier = ">=0.2.0" },

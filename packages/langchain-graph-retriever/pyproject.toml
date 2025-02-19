@@ -42,6 +42,7 @@ classifiers = [
 dependencies = [
     "backoff>=2.2.1",
     "graph-retriever",
+    "immutabledict>=4.2.1",
     "langchain-core>=0.3.29",
     "networkx>=3.4.2",
     "pydantic>=2.10.4",
