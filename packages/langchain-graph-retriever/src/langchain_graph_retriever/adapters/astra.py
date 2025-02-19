@@ -37,26 +37,47 @@ _EXCEPTIONS_TO_RETRY = (
 _MAX_RETRIES = 3
 
 
-def _extract_queries(edges: set[Edge]) -> tuple[dict[str, Iterable[Any]], set[str]]:
-    metadata: dict[str, set[Any]] = {}
+def _extract_queries(edges: set[Edge]) -> tuple[dict[str, Iterable[Any]], Sequence[dict[str, Any]], set[str]]:
+    # This combines queries for single fields -- `{"a": 5}` and `{"a": 7}`
+    # becomes `{"a": {5, 7}}` allowing for an efficient `$in` query.
+    #
+    # It does so only for edges with single field constraints. In *theory* it
+    # could combine cases where all the *other* constraints were equal -- `{"a":
+    # 5, "b": 3}` and `{"a": 5, "b" 7}` could become `{"a": 5, "b": {"$in": [3,
+    # 7]}}` but that would require deeper analysis. It is a possible future
+    # improvement. To make that efficient, we may wish to know which field is
+    # more "varying" (e.g, if one field is "entity type" from a small enum and
+    # the other is "entity label" from a large set of values), then we could
+    # collect constraints with the entity type in common. It may be possible to
+    # encode this information in the edge itself, so the edge function is
+    # responsible for guiding the combining.
+    single_metadata: dict[str, set[Any]] = {}
+    multi_metadata: list[dict[str, Any]] = []
     ids: set[str] = set()
 
     for edge in edges:
         if isinstance(edge, MetadataEdge):
-            metadata.setdefault(edge.incoming_field, set()).add(edge.value)
+            if len(edge.fields) == 1:
+                k, v = next(iter(edge.fields.items()))
+                single_metadata.setdefault(k, set()).add(v)
+            else:
+                multi_metadata.append(edge.fields)
         elif isinstance(edge, IdEdge):
             ids.add(edge.id)
         else:
             raise ValueError(f"Unsupported edge {edge}")
 
-    return (cast(dict[str, Iterable[Any]], metadata), ids)
+    return (cast(dict[str, Iterable[Any]], single_metadata),
+            cast(Sequence[dict[str, Any]], multi_metadata),
+            ids)
 
 
 def _queries(
     codec: _AstraDBVectorStoreDocumentCodec,
     user_filters: dict[str, Any] | None,
     *,
-    metadata: dict[str, Iterable[Any]] = {},
+    single_metadata: dict[str, Iterable[Any]] = {},
+    multi_metadata: Sequence[dict[str, Any]] = (),
     ids: Iterable[str] = (),
 ) -> Iterator[dict[str, Any]]:
     """
@@ -75,10 +96,16 @@ def _queries(
         Codec to use for encoding the queries.
     user_filters :
         User filters that all results must match.
-    metadata :
+    single_metadata :
         An item matches the queries if it matches all user filters, and
         there exists a `key` such that `metadata[key]` has a non-empty
         intersection with the actual values of `item.metadata[key]`.
+
+        These are collected from metadata edges affecting the single fields,
+        which allows a simpler implementaiton of `ANY` by simply using a `$in`.
+    multi_metadata :
+        An item matches the queries if it matches all user filters and any
+        of the filters in this list.
     ids :
         An item matches the queries if it matches all user filters, and
         it has an `item.id` in `ids`.
@@ -107,13 +134,25 @@ def _queries(
         ) -> dict[str, Any]:
             return filter if encoded else codec.encode_filter(filter)
 
-    for k, v in metadata.items():
+    for k, v in single_metadata.items():
         for v_batch in batched(v, 100):
             batch = list(v_batch)
             if len(batch) == 1:
-                yield (with_user_filters({k: batch[0]}, encoded=False))
+                yield with_user_filters({k: batch[0]}, encoded=False)
             else:
-                yield (with_user_filters({k: {"$in": batch}}, encoded=False))
+                yield with_user_filters({k: {"$in": batch}}, encoded=False)
+
+    for filter_batch in batched(multi_metadata, 100):
+        def rewrite_multi(multi: dict[str, Any]) -> dict[str, Any]:
+            if len(multi) == 1:
+                return multi
+            else:
+                return {"$and": [{k: v} for k, v in multi.items()]}
+        batch = [rewrite_multi(f) for f in filter_batch]
+        if len(batch) == 1:
+            yield with_user_filters(batch[0], encoded=False)
+        else:
+            yield with_user_filters({"$or": batch}, encoded=False)
 
     for id_batch in batched(ids, 100):
         ids = list(id_batch)
@@ -293,11 +332,14 @@ class AstraAdapter(Adapter):
         **kwargs: Any,
     ) -> Iterable[Content]:
         sort = self.vector_store.document_codec.encode_vector_sort(query_embedding)
-        metadata, ids = _extract_queries(edges)
+        single_metadata, multi_metadata, ids = _extract_queries(edges)
+        if multi_metadata:
+            print(f"MULTI: {multi_metadata}")
         filters = _queries(
             codec=self.vector_store.document_codec,
             user_filters=filter,
-            metadata=metadata,
+            single_metadata=single_metadata,
+            multi_metadata=multi_metadata,
             ids=ids,
         )
 
@@ -318,11 +360,12 @@ class AstraAdapter(Adapter):
         **kwargs: Any,
     ) -> Iterable[Content]:
         sort = self.vector_store.document_codec.encode_vector_sort(query_embedding)
-        metadata, ids = _extract_queries(edges)
+        single_metadata, multi_metadata, ids = _extract_queries(edges)
         filters = _queries(
             codec=self.vector_store.document_codec,
             user_filters=filter,
-            metadata=metadata,
+            single_metadata=single_metadata,
+            multi_metadata=multi_metadata,
             ids=ids,
         )
 
@@ -352,6 +395,7 @@ class AstraAdapter(Adapter):
 
         results: dict[str, Content] = {}
         for filter in filters:
+            print(f"FILTER: {filter}")
             # TODO: Look at a thread-pool for this.
             hits = astra_env.collection.find(
                 filter=filter,

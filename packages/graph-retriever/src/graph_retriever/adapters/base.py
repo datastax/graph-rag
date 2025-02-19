@@ -376,10 +376,8 @@ class Adapter(abc.ABC):
         :
             The metadata dictionary to use for the given filter.
         """
-        metadata_filter = {**(base_filter or {})}
         assert isinstance(edge, MetadataEdge)
-        if edge is None:
-            metadata_filter
-        else:
-            metadata_filter[edge.incoming_field] = edge.value
+        metadata_filter = {
+            **edge.fields,
+            **(base_filter or {})}
         return metadata_filter

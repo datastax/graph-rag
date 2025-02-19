@@ -23,18 +23,18 @@ def test_initialization():
 def test_edge_function():
     edge_function = MetadataEdgeFunction([("href", "url")])
     assert edge_function(mk_node({"href": "a", "url": "b"})) == Edges(
-        {MetadataEdge("url", "b")},
-        {MetadataEdge("url", "a")},
+        {MetadataEdge({"url": "b"})},
+        {MetadataEdge({"url": "a"})},
     )
 
     assert edge_function(mk_node({"href": ["a", "c"], "url": "b"})) == Edges(
-        {MetadataEdge("url", "b")},
-        {MetadataEdge("url", "a"), MetadataEdge("url", "c")},
+        {MetadataEdge({"url": "b"})},
+        {MetadataEdge({"url": "a"}), MetadataEdge({"url": "c"})},
     )
 
     assert edge_function(mk_node({"href": ["a", "c"], "url": ["b", "d"]})) == Edges(
-        {MetadataEdge("url", "b"), MetadataEdge("url", "d")},
-        {MetadataEdge("url", "a"), MetadataEdge("url", "c")},
+        {MetadataEdge({"url": "b"}), MetadataEdge({"url": "d"})},
+        {MetadataEdge({"url": "a"}), MetadataEdge({"url": "c"})},
     )
 
 
@@ -51,10 +51,10 @@ def test_link_from_id():
     result = edge_function(mk_node({"mentions": ["a", "c"]}))
 
     assert result.incoming == {
-        MetadataEdge("mentions", "a"),
-        MetadataEdge("mentions", "c"),
+        MetadataEdge({"mentions": "a"}),
+        MetadataEdge({"mentions": "c"}),
     }
-    assert result.outgoing == {MetadataEdge("mentions", "id")}
+    assert result.outgoing == {MetadataEdge({"mentions": "id"})}
 
 
 def test_unsupported_values():

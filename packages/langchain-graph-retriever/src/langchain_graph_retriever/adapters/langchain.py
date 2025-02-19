@@ -381,13 +381,8 @@ class LangchainAdapter(Generic[StoreT], Adapter):
         :
             The metadata dictionary to use for the given filter.
         """
-        metadata_filter = {**(base_filter or {})}
         assert isinstance(edge, MetadataEdge)
-        if edge is None:
-            metadata_filter
-        else:
-            metadata_filter[edge.incoming_field] = edge.value
-        return metadata_filter
+        return {**edge.fields, **(base_filter or {})}
 
 
 class ShreddedLangchainAdapter(LangchainAdapter[StoreT]):

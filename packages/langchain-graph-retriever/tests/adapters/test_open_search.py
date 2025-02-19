@@ -57,3 +57,13 @@ class TestOpenSearch(AdapterComplianceSuite):
 
         if store.index_exists():
             store.delete_index()
+
+    def expected(self, method, case):
+        MULTI_METADATA_CASES = {
+            "multi_metadata_values",
+            "two_multi_metadata_values",
+            "multi_metadata_contains",
+        }
+        if method in {"adjacent", "aadjacent"} and case.id in MULTI_METADATA_CASES:
+            pytest.xfail("Opensearch doesn't yet support multi-metadata")
+        return super().expected(method, case)
