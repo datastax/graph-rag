@@ -8,6 +8,9 @@ from langchain_core.embeddings import Embeddings
 
 
 class TestOpenSearch(AdapterComplianceSuite):
+    def supports_nested_metadata(self) -> bool:
+        return False
+
     @pytest.fixture(scope="class")
     def adapter(
         self,

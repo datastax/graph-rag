@@ -113,7 +113,11 @@ class InMemoryBase(Adapter, abc.ABC):
             return True
 
         for key, filter_value in filter.items():
-            content_value = content.metadata.get(key, SENTINEL)
+            content_value = content.metadata
+            for key_part in key.split("."):
+                content_value = content_value.get(key_part, SENTINEL)
+                if content_value is SENTINEL:
+                    break
             if not self._value_matches(filter_value, content_value):
                 return False
         return True

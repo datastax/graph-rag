@@ -1,6 +1,7 @@
 import abc
 from collections.abc import Iterable
 from dataclasses import dataclass
+from importlib.metadata import requires
 from typing import Any
 
 import pytest
@@ -8,6 +9,7 @@ import pytest
 from graph_retriever import Content
 from graph_retriever.adapters import Adapter
 from graph_retriever.edges import Edge, IdEdge, MetadataEdge
+from regex import B
 
 
 def assert_valid_result(content: Content):
@@ -40,7 +42,7 @@ def assert_ids_any_order(
     assert set(result_ids) == set(expected), "should contain exactly expected IDs"
 
 
-@dataclass
+@dataclass(kw_only=True)
 class AdapterComplianceCase(abc.ABC):
     """
     Base dataclass for test cases.
@@ -56,6 +58,7 @@ class AdapterComplianceCase(abc.ABC):
 
     id: str
     expected: list[str]
+    requires_nested: bool = False
 
 
 @dataclass
@@ -261,6 +264,46 @@ ADJACENT_CASES: list[AdjacentCase] = [
             "komodo dragon",  # reptile
         ],
     ),
+    AdjacentCase(
+        id="nested",
+        query="domesticated hunters",
+        edges={
+            MetadataEdge("nested.a", 5),
+        },
+        expected = [
+            "alligator",
+            "alpaca",
+        ],
+        requires_nested=True,
+    ),
+    AdjacentCase(
+        id="nested_same_field",
+        query="domesticated hunters",
+        edges={
+            MetadataEdge("nested.a", 5),
+            MetadataEdge("nested.a", 6),
+        },
+        expected = [
+            "alligator",
+            "alpaca",
+            "ant",
+        ],
+        requires_nested=True,
+    ),
+    AdjacentCase(
+        id="nested_diff_field",
+        query="domesticated hunters",
+        edges={
+            MetadataEdge("nested.a", 5),
+            MetadataEdge("nested.b", 5),
+        },
+        expected = [
+            "alligator",
+            "alpaca",
+            "anteater",
+        ],
+        requires_nested=True,
+    ),
 ]
 
 
@@ -272,6 +315,9 @@ class AdapterComplianceSuite(abc.ABC):
     `adapter` which returns an `Adapter` with the documents from `animals.jsonl`
     loaded.
     """
+
+    def supports_nested_metadata(self) -> bool:
+        return True
 
     def expected(self, method: str, case: AdapterComplianceCase) -> list[str]:
         """
@@ -299,6 +345,8 @@ class AdapterComplianceSuite(abc.ABC):
         :
             The expected animals.
         """
+        if not self.supports_nested_metadata() and case.requires_nested:
+            pytest.xfail("nested metadata not supported")
         return case.expected
 
     @pytest.fixture(params=GET_CASES, ids=lambda c: c.id)
