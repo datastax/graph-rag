@@ -212,7 +212,8 @@ def astra_config(enabled_stores: set[str]) -> Iterator[_AstraConfig | None]:
     assert found, f"Keyspace '{keyspace}' not created"
     yield _AstraConfig(token=token, keyspace=keyspace, api_endpoint=api_endpoint)
 
-    admin.drop_keyspace(keyspace)
+    if keyspace != "default_keyspace":
+        admin.drop_keyspace(keyspace)
 
 
 class TestAstraAdapter(AdapterComplianceSuite):

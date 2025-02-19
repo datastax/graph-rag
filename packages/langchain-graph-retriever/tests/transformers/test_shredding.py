@@ -33,7 +33,7 @@ def test_transform_documents(animal_docs: list[Document]):
     assert list_key in json.loads(shredded_metadata[SHREDDED_KEYS_KEY])
 
     # confirm the shredded key has the expected value
-    shredded_key = f"{list_key}{DEFAULT_PATH_DELIMITER}{first_keyword}"
+    shredded_key = f'{list_key}{DEFAULT_PATH_DELIMITER}"{first_keyword}"'
     assert shredded_key in shredded_metadata
     assert shredded_metadata[shredded_key] == DEFAULT_STATIC_VALUE
 

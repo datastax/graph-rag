@@ -4,6 +4,7 @@ import json
 from collections.abc import Sequence
 from typing import Any
 
+from immutabledict import immutabledict
 from langchain_core.documents import BaseDocumentTransformer, Document
 from typing_extensions import override
 
@@ -110,9 +111,10 @@ class ShreddingTransformer(BaseDocumentTransformer):
                     and value == self.static_value
                 ):
                     original_key, original_value = split_key
+                    value = json.loads(original_value)
                     if original_key not in new_doc.metadata:
                         new_doc.metadata[original_key] = []
-                    new_doc.metadata[original_key].append(original_value)
+                    new_doc.metadata[original_key].append(value)
                 else:
                     # Retain non-shredded metadata as is
                     new_doc.metadata[key] = value
@@ -137,7 +139,7 @@ class ShreddingTransformer(BaseDocumentTransformer):
         str
             the shredded key
         """
-        return f"{key}{self.path_delimiter}{value}"
+        return f"{key}{self.path_delimiter}{json.dumps(value)}"
 
     def shredded_value(self) -> str:
         """

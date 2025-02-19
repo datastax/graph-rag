@@ -12,6 +12,7 @@ from graph_retriever.edges import Edge, IdEdge, MetadataEdge
 from graph_retriever.utils import merge
 from graph_retriever.utils.batched import batched
 from graph_retriever.utils.top_k import top_k
+from immutabledict import immutabledict
 from typing_extensions import override
 
 try:
@@ -107,13 +108,25 @@ def _queries(
         ) -> dict[str, Any]:
             return filter if encoded else codec.encode_filter(filter)
 
+    def process_value(v: Any) -> Any:
+        if isinstance(v, immutabledict):
+            return dict(v)
+        else:
+            return v
+
     for k, v in metadata.items():
         for v_batch in batched(v, 100):
-            batch = list(v_batch)
-            if len(batch) == 1:
-                yield (with_user_filters({k: batch[0]}, encoded=False))
+            batch = [process_value(v) for v in v_batch]
+            if isinstance(batch[0], dict):
+                if len(batch) == 1:
+                    yield with_user_filters({k: {"$all": [batch[0]]}}, encoded=False)
+                else:
+                    yield with_user_filters({"$or": [{k: {"$all": [v]}} for v in batch]}, encoded=False)
             else:
-                yield (with_user_filters({k: {"$in": batch}}, encoded=False))
+                if len(batch) == 1:
+                    yield (with_user_filters({k: batch[0]}, encoded=False))
+                else:
+                    yield (with_user_filters({k: {"$in": batch}}, encoded=False))
 
     for id_batch in batched(ids, 100):
         ids = list(id_batch)

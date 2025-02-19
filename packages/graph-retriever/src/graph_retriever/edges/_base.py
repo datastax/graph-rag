@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any, TypeAlias
 
 from graph_retriever import Content
+from immutabledict import immutabledict
 
 
 class Edge(abc.ABC):
@@ -33,6 +34,17 @@ class MetadataEdge(Edge):
     value :
         The value associated with the key for this edge
     """
+
+    def __init__(self, incoming_field: str, value: Any) -> None:
+        # `self.field = value` and `setattr(self, "field", value)` -- don't work
+        # because of frozen. we need to call `__setattr__` directly (as the
+        # default `__init__` would do) to initialize the fields of the frozen
+        # dataclass.
+        object.__setattr__(self, "incoming_field", incoming_field)
+
+        if isinstance(value, dict):
+            value = immutabledict(value)
+        object.__setattr__(self, "value", value)
 
     incoming_field: str
     value: Any

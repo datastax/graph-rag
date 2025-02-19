@@ -51,6 +51,7 @@ class ChromaAdapter(ShreddedLangchainAdapter[Chroma]):
         filter: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> list[Document]:
+        print(f"Filter: {filter}")
         try:
             from chromadb.api.types import IncludeEnum
         except (ImportError, ModuleNotFoundError):

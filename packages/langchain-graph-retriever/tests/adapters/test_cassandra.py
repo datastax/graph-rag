@@ -80,7 +80,7 @@ class TestCassandraAdapter(AdapterComplianceSuite):
         )
         docs = list(shredder.transform_documents(animal_docs))
         store.add_documents(docs)
-        yield CassandraAdapter(store, shredder, {"keywords"})
+        yield CassandraAdapter(store, shredder, {"keywords", "tags"})
 
         if session:
             session.shutdown()

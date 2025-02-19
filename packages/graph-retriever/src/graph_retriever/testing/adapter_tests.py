@@ -191,6 +191,50 @@ ADJACENT_CASES: list[AdjacentCase] = [
         ],
     ),
     AdjacentCase(
+        id="numeric",
+        query="domesticated hunters",
+        edges={
+            MetadataEdge("number_of_legs", 0),
+        },
+        k=20, # more than match the filter so we get all
+        expected=[
+            "barracuda",
+            "cobra",
+            "dolphin",
+            "eel",
+            "fish",
+            "jellyfish",
+            "manatee",
+            "narwhal",
+        ],
+    ),
+    AdjacentCase(
+        id="two_edges_diff_field",
+        query="domesticated hunters",
+        edges={
+            MetadataEdge("type", "reptile"),
+            MetadataEdge("number_of_legs", 0),
+        },
+        k=20, # more than match the filter so we get all
+        expected=[
+            "alligator",
+            "barracuda",
+            "chameleon",
+            "cobra",
+            "crocodile",
+            "dolphin",
+            "eel",
+            "fish",
+            "gecko",
+            "iguana",
+            "jellyfish",
+            "komodo dragon",
+            "lizard",
+            "manatee",
+            "narwhal",
+        ],
+    ),
+    AdjacentCase(
         id="one_ids",
         query="domesticated hunters",
         edges={
@@ -261,6 +305,28 @@ ADJACENT_CASES: list[AdjacentCase] = [
             "komodo dragon",  # reptile
         ],
     ),
+    AdjacentCase(
+        id="dict_in_list",
+        query="domesticated hunters",
+        edges={
+            MetadataEdge("tags", {"a": 5, "b": 7}),
+        },
+        expected = [
+            "aardvark",
+        ]
+    ),
+    AdjacentCase(
+        id="dict_in_list_multiple",
+        query="domesticated hunters",
+        edges={
+            MetadataEdge("tags", {"a": 5, "b": 7}),
+            MetadataEdge("tags", {"a": 5, "b": 8}),
+        },
+        expected = [
+            "aardvark",
+            "albatross",
+        ]
+    )
 ]
 
 

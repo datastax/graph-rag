@@ -3,6 +3,7 @@
 from collections.abc import Sequence
 from typing import Any
 
+from immutabledict import immutabledict
 from typing_extensions import override
 
 try:
@@ -54,7 +55,7 @@ class OpenSearchAdapter(LangchainAdapter[OpenSearchVectorSearch]):
             self._id_field = "_id"
 
     def _build_filter(
-        self, filter: dict[str, str] | None = None
+        self, filter: dict[str, Any] | None = None
     ) -> list[dict[str, Any]] | None:
         """
         Build a filter query for OpenSearch based on metadata.
@@ -71,14 +72,21 @@ class OpenSearchAdapter(LangchainAdapter[OpenSearchVectorSearch]):
         """
         if filter is None:
             return None
-        return [
-            {
-                "terms" if isinstance(value, list) else "term": {
-                    f"metadata.{key}.keyword": value
-                }
-            }
-            for key, value in filter.items()
-        ]
+
+
+        filters = []
+        for key, value in filter.items():
+            if isinstance(value, list):
+                filters.append({"terms": { f"metadata.{key}": value }})
+            elif isinstance(value, dict):
+                for vk, vv in value.items():
+                    if isinstance(vv, list):
+                        filters.append({"terms": { f"metadata.{key}.{vk}": vv }})
+                    else:
+                        filters.append({"term": { f"metadata.{key}.{vk}": str(vv) }})
+            else:
+                filters.append({"term": { f"metadata.{key}": value }})
+        return filters
 
     @override
     def _search(
@@ -92,9 +100,10 @@ class OpenSearchAdapter(LangchainAdapter[OpenSearchVectorSearch]):
             # use an efficient_filter to collect results that
             # are near the embedding vector until up to 'k'
             # documents that match the filter are found.
-            kwargs["efficient_filter"] = {
+            query = {
                 "bool": {"must": self._build_filter(filter=filter)}
             }
+            kwargs["efficient_filter"] = query
 
         if k == 0:
             return []
