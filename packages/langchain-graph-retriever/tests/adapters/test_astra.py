@@ -2,7 +2,7 @@ import dataclasses
 import os
 import time
 from collections.abc import Iterable, Iterator
-from typing import Any
+from typing import Any, Sequence
 
 import pytest
 from astrapy.authentication import StaticTokenProvider
@@ -22,14 +22,16 @@ TEST_CODEC = _DefaultVSDocumentCodec("page_content", ignore_invalid_documents=Tr
 def create_queries(
     user_filters: dict[str, Any],
     ids: Iterable[str] = (),
-    metadata: dict[str, Iterable[Any]] = {},
+    single_metadata: dict[str, Iterable[Any]] = {},
+    multi_metadata: Sequence[dict[str, Any]] = (),
 ) -> list[dict[str, Any]]:
     return list(
         _queries(
             codec=TEST_CODEC,
             user_filters=user_filters,
             ids=ids,
-            metadata=metadata,
+            single_metadata=single_metadata,
+            multi_metadata=multi_metadata,
         )
     )
 
@@ -37,9 +39,11 @@ def create_queries(
 def create_query(
     user_filters: dict[str, Any],
     ids: Iterable[str] = (),
-    metadata: dict[str, Iterable[Any]] = {},
+    single_metadata: dict[str, Iterable[Any]] = {},
+    multi_metadata: Sequence[dict[str, Any]] = (),
 ) -> dict[str, Any]:
-    queries = create_queries(user_filters=user_filters, ids=ids, metadata=metadata)
+    queries = create_queries(user_filters=user_filters, ids=ids, single_metadata=single_metadata,
+                             multi_metadata=multi_metadata,)
     assert len(queries) == 1
     return queries[0]
 
@@ -67,53 +71,74 @@ def test_create_ids_query_user() -> None:
 
 
 def test_create_metadata_query_no_user() -> None:
-    assert create_queries({}, metadata={}) == []
+    assert create_queries({}, single_metadata={}) == []
 
-    assert create_query({}, metadata={"foo": [5]}) == {"metadata.foo": 5}
+    assert create_query({}, single_metadata={"foo": [5]}) == {"metadata.foo": 5}
 
-    assert create_query({}, metadata={"foo": [5, 6]}) == {
+    assert create_query({}, single_metadata={"foo": [5, 6]}) == {
         "metadata.foo": {"$in": [5, 6]}
     }
 
-    assert create_queries({}, metadata={"foo": [5], "bar": [7]}) == [
+    assert create_queries({}, single_metadata={"foo": [5], "bar": [7]}) == [
         {"metadata.foo": 5},
         {"metadata.bar": 7},
     ]
 
     assert create_queries(
         {},
-        metadata={"foo": [5, 6], "bar": [7, 8]},
+        single_metadata={"foo": [5, 6], "bar": [7, 8]},
     ) == [
         {"metadata.foo": {"$in": [5, 6]}},
         {"metadata.bar": {"$in": [7, 8]}},
     ]
 
-    assert create_queries({}, metadata={"foo": list(range(0, 200)), "bar": [7]}) == [
+    assert create_queries({}, single_metadata={"foo": list(range(0, 200)), "bar": [7]}) == [
         {"metadata.foo": {"$in": list(range(0, 100))}},
         {"metadata.foo": {"$in": list(range(100, 200))}},
         {"metadata.bar": 7},
     ]
 
 
+def test_create_multi_metadata_query_no_user() -> None:
+    assert create_query(
+        {},
+        multi_metadata=(
+            {"a": 5, "b": 7},
+        )
+    ) == {"metadata.a": 5, "metadata.b": 7}
+
+    assert create_query(
+        {},
+        multi_metadata=(
+            {"a": 5, "b": 7},
+            {"a": 6, "b": 8},
+        )
+    ) == {
+        "$or": [
+            {"metadata.a": 5, "metadata.b": 7},
+            {"metadata.a": 6, "metadata.b": 8},
+        ]
+    }
+
 def test_create_metadata_query_user() -> None:
     USER = {"answer": 42}
-    assert create_queries(USER, metadata={}) == []
-    assert create_queries(USER, metadata={"foo": []}) == []
-    assert create_query(USER, metadata={"foo": [5]}) == {
+    assert create_queries(USER, single_metadata={}) == []
+    assert create_queries(USER, single_metadata={"foo": []}) == []
+    assert create_query(USER, single_metadata={"foo": [5]}) == {
         "$and": [
             {"metadata.foo": 5},
             {"metadata.answer": 42},
         ],
     }
 
-    assert create_query(USER, metadata={"foo": [5, 6]}) == {
+    assert create_query(USER, single_metadata={"foo": [5, 6]}) == {
         "$and": [
             {"metadata.foo": {"$in": [5, 6]}},
             {"metadata.answer": 42},
         ],
     }
 
-    assert create_queries(USER, metadata={"foo": [5], "bar": [7]}) == [
+    assert create_queries(USER, single_metadata={"foo": [5], "bar": [7]}) == [
         {
             "$and": [
                 {"metadata.foo": 5},
@@ -130,7 +155,7 @@ def test_create_metadata_query_user() -> None:
 
     assert create_queries(
         USER,
-        metadata={"foo": [5, 6], "bar": [7, 8]},
+        single_metadata={"foo": [5, 6], "bar": [7, 8]},
     ) == [
         {
             "$and": [
@@ -147,7 +172,7 @@ def test_create_metadata_query_user() -> None:
     ]
 
     assert create_queries(
-        USER, metadata={"foo": list(range(0, 200)), "bar": [7, 8]}
+        USER, single_metadata={"foo": list(range(0, 200)), "bar": [7, 8]}
     ) == [
         {
             "$and": [

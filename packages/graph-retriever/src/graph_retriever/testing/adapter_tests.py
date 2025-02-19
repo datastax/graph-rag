@@ -265,10 +265,22 @@ ADJACENT_CASES: list[AdjacentCase] = [
         id="multi_metadata_values",
         query="domesticated hunters",
         edges=[
-            MetadataEdge({"type": "reptile", "number_of_legs": 0})
+            MetadataEdge({"type": "reptile", "number_of_legs": 0}),
         ],
         expected=[
             "cobra",
+        ]
+    ),
+    AdjacentCase(
+        id="two_multi_metadata_values",
+        query="domesticated hunters",
+        edges=[
+            MetadataEdge({"type": "reptile", "number_of_legs": 0}),
+            MetadataEdge({"type": "crustacean", "number_of_legs": 8}),
+        ],
+        expected=[
+            "cobra",
+            "crab",
         ]
     ),
     AdjacentCase(
