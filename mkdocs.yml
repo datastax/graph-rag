@@ -16,6 +16,8 @@ plugins:
 - social
 - search
 - blog
+- macros:
+    on_undefined: strict
 - mkdocs-jupyter:
     include_source: True
     remove_tag_config:

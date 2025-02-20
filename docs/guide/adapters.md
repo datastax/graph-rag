@@ -1,19 +1,26 @@
+---
+i:
+    y: :material-check-circle:{.green}
+    n: :material-close-circle:{.red}
+    m: :material-alert-circle:{.yellow}
+---
+
 # Adapters
 
 Adapters allow `graph-retriever` to connect to specific vector stores.
 
-| Vector Store                   | Supported                       | Collection Support               | Dict-In-List                    | Nested Metadata                 | Optimized Adjacency             |
-| ------------------------------ | | | | | |
-| [DataStax Astra](#astra)       | :material-check-circle:{.green} | :material-check-circle:{.green}  | :material-check-circle:{.green} | :material-check-circle:{.green} | :material-check-circle:{.green} |
-| [OpenSearch](#opensearch)      | :material-check-circle:{.green} | :material-check-circle:{.green}  |                                 |                                 |                                 |
-| [Apache Cassandra](#cassandra) | :material-check-circle:{.green} | :material-alert-circle:{.yellow} | :material-check-circle:{.green} |                                 |                                 |
-| [Chroma](#chroma)              | :material-check-circle:{.green} | :material-alert-circle:{.yellow} | :material-check-circle:{.green} |                                 |                                 |
+| Vector Store                   | Supported | Collections | Dict-In-List | Nested Metadata | Optimized Adjacency |
+| ------------------------------ | :-------: | :---------: | :----------: | :-------------: | :-----------------: |
+| [DataStax Astra](#astra)       | {{ i.y }} | {{ i.y }}   | {{ i.y }}    | {{ i.y }}       | {{ i.y }}           |
+| [OpenSearch](#opensearch)      | {{ i.y }} | {{ i.y }}   | {{ i.n }}    | {{ i.n }}       | {{ i.n }}           |
+| [Apache Cassandra](#cassandra) | {{ i.y }} | {{ i.m }}   | {{ i.y }}    | {{ i.n }}       | {{ i.n }}           |
+| [Chroma](#chroma)              | {{ i.y }} | {{ i.m }}   | {{ i.y }}    | {{ i.n }}       | {{ i.n }}           |
 
 __Supported__
 
 : Indicates whether a given store is completely supported (:material-check-circle:{.green}) or has limited support (:material-alert-circle:{.yellow}).
 
-__Collection Support__
+__Collections__
 
 : Indicates whether the store supports lists in metadata values or not. Stores which do not support it directly (:material-alert-circle:{.yellow}) can be used by applying the [ShreddingTransformer][langchain_graph_retriever.transformers.ShreddingTransformer] document transformer to documents before writing, which spreads the items of the collection into multiple metadata keys.
 
