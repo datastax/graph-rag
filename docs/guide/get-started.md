@@ -156,7 +156,7 @@ matching the query, and then traverse to other animals with the same `habitat` a
     simple = GraphRetriever(
         store = vector_store,
         edges = [("habitat", "habitat"), ("origin", "origin"), ("keywords", "keywords")],
-        strategy = Eager(k=10, start_k=1, depth=2),
+        strategy = Eager(k=10, start_k=1, max_depth=2),
     )
     ```
 
@@ -170,7 +170,7 @@ matching the query, and then traverse to other animals with the same `habitat` a
     simple = GraphRetriever(
         store = CassandraAdapter(vector_store, shredder, {"keywords"}),,
         edges = [("habitat", "habitat"), ("origin", "origin"), ("keywords", "keywords")],
-        strategy = Eager(k=10, start_k=1, depth=2),
+        strategy = Eager(k=10, start_k=1, max_depth=2),
     )
     ```
 
@@ -183,7 +183,7 @@ matching the query, and then traverse to other animals with the same `habitat` a
     simple = GraphRetriever(
         store = vector_store,
         edges = [("habitat", "habitat"), ("origin", "origin"), ("keywords", "keywords")],
-        strategy = Eager(k=10, start_k=1, depth=2),
+        strategy = Eager(k=10, start_k=1, max_depth=2),
     )
     ```
 
@@ -198,7 +198,7 @@ matching the query, and then traverse to other animals with the same `habitat` a
     simple = GraphRetriever(
         store = ChromaAdapter(vector_store, shredder, {"keywords"}),
         edges = [("habitat", "habitat"), ("origin", "origin"), ("keywords", "keywords")],
-        strategy = Eager(k=10, start_k=1, depth=2),
+        strategy = Eager(k=10, start_k=1, max_depth=2),
     )
     ```
 
@@ -210,7 +210,7 @@ matching the query, and then traverse to other animals with the same `habitat` a
 
 The above creates a graph traversing retriever that starts with the nearest animal
 (`start_k=1`), retrieves 10 documents (`k=10`) and limits the search to documents that
-are at most 2 steps away from the first animal (`depth=2`).
+are at most 2 steps away from the first animal (`max_depth=2`).
 
 The edges define how metadata values can be used for traversal. In this case, every
 animal is connected to other animals with the same habitat and/or same origin.
