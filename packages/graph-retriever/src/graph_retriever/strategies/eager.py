@@ -5,7 +5,7 @@ from collections.abc import Iterable
 
 from typing_extensions import override
 
-from graph_retriever.strategies.base import Strategy
+from graph_retriever.strategies.base import NodeTracker, Strategy
 from graph_retriever.types import Node
 
 
@@ -32,13 +32,6 @@ class Eager(Strategy):
         Maximum traversal depth. If `None`, there is no limit.
     """
 
-    # iteration(discovered: dict[str, Node]) -> None : Called after each iteration.
-    # finish() -> Nodes: Called to finalize the selected nodes.
-
-    # traverse(nodes) -> None: Called to set the nodes to traverse in the next iteration.
-    # select(nodes) -> None: Called to set the nodes to select at the end.
-
     @override
-    def iteration(self, nodes: dict[str, Node]) -> None:
-        self.traverse(nodes)
-        self.select(nodes)
+    def iteration(self, nodes: dict[str, Node], tracker: NodeTracker) -> None:
+        tracker.select_and_traverse(nodes)
