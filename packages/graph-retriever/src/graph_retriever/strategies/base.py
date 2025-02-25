@@ -9,6 +9,19 @@ from typing import Any
 
 from graph_retriever.types import Node
 
+class NodeTracker():
+    visited: dict[str, Node] = {}
+    to_traverse: dict[str, Node] = {}
+    selected: dict[str, Node] = {}
+
+    def select(self, nodes: dict[str, Node]) -> None:
+        ...
+
+    def traverse(self, nodes: dict[str, Node]) -> None:
+        ...
+
+    def select_and_traverse(self, nodes: dict[str, Node]) -> None:
+        ...
 
 @dataclasses.dataclass(kw_only=True)
 class Strategy(abc.ABC):
@@ -22,12 +35,14 @@ class Strategy(abc.ABC):
     Parameters
     ----------
     k :
-        Maximum number of nodes to retrieve during traversal.
+        Maximum number of nodes to select and return during traversal.
     start_k :
         Number of documents to fetch via similarity for starting the traversal.
         Added to any initial roots provided to the traversal.
     adjacent_k :
         Number of documents to fetch for each outgoing edge.
+    traverse_k :
+        Maximum number of nodes to traverse outgoing edges from before returning.
     max_depth :
         Maximum traversal depth. If `None`, there is no limit.
     """
@@ -35,17 +50,20 @@ class Strategy(abc.ABC):
     k: int = 5
     start_k: int = 4
     adjacent_k: int = 10
+    traverse_k: int = 4 # max_traverse?
     max_depth: int | None = None
 
     _query_embedding: list[float] = dataclasses.field(default_factory=list)
 
     @abc.abstractmethod
-    def discover_nodes(self, nodes: dict[str, Node]) -> None:
+    def iteration(self, *, discovered: dict[str, Node],
+                  tracker: NodeTracker) -> None:
         """
-        Add discovered nodes to the strategy.
+        Called on each iteration with the newly discovered nodes.
 
-        This method updates the strategy's state with nodes discovered during
-        the traversal process.
+        This method should call `traverse` and/or `select` as appropriate
+        to update the nodes that need to be traversed in this iteration or
+        selected at the end of the retrieval, respectively.
 
         Parameters
         ----------
@@ -54,43 +72,61 @@ class Strategy(abc.ABC):
         """
         ...
 
-    @abc.abstractmethod
-    def select_nodes(self, *, limit: int) -> Iterable[Node]:
-        """
-        Select discovered nodes to visit in the next iteration.
+    # def traverse(self, nodes: dict[str, Node]) -> None:
+    #     """
+    #     Called to queue nodes for traversal.
+    #     """
+    #     for node in nodes.values():
+    #         # TODO: Have the strategy track the visited nodes?
+    #         self._to_traverse.setdefault(node.id, node)
 
-        This method determines which nodes will be traversed next. If it returns
-        an empty list, traversal ends even if fewer than `k` nodes have been selected.
+    # def select(self, nodes: Iterable[Node]):
+    #     """
+    #     Called by a strategy to indicate the given nodes are selected.
 
-        Parameters
-        ----------
-        limit :
-            Maximum number of nodes to select.
+    #     Should be called as soon as nodes are definitely going to be selected.
 
-        Returns
-        -------
-        :
-            Selected nodes for the next iteration. Traversal ends if this is empty.
-        """
-        ...
+    #     Parameters
+    #     ----------
+    #     nodes :
+    #         The nodes to select.
+    #     """
+    #     for node in nodes:
+    #         self.selected.setdefault(node.id, node)
 
-    def finalize_nodes(self, nodes: Iterable[Node]) -> Iterable[Node]:
+    # def next_traversal(self, *, limit: int) -> Iterable[Node]:
+    #     """
+    #     Select discovered nodes to visit in the next iteration.
+
+    #     This method determines which nodes will be traversed next. If it returns
+    #     an empty list, traversal ends even if fewer than `k` nodes have been selected.
+
+    #     Parameters
+    #     ----------
+    #     limit :
+    #         Maximum number of nodes to select.
+
+    #     Returns
+    #     -------
+    #     :
+    #         Selected nodes for the next iteration. Traversal ends if this is empty.
+    #     """
+    #     ...
+
+    def finalize_nodes(self, selected: Iterable[Node]) -> Iterable[Node]:
         """
         Finalize the selected nodes.
 
         This method is called before returning the final set of nodes.
-
-        Parameters
-        ----------
-        nodes :
-            Nodes selected for finalization.
 
         Returns
         -------
         :
             Finalized nodes.
         """
-        return nodes
+        # Take the first `self.k` selected items.
+        # Strategies may override finalize to perform reranking if needed.
+        return list(selected.values())[:self.k]
 
     @staticmethod
     def build(

@@ -32,14 +32,13 @@ class Eager(Strategy):
         Maximum traversal depth. If `None`, there is no limit.
     """
 
-    _nodes: list[Node] = dataclasses.field(default_factory=list)
+    # iteration(discovered: dict[str, Node]) -> None : Called after each iteration.
+    # finish() -> Nodes: Called to finalize the selected nodes.
+
+    # traverse(nodes) -> None: Called to set the nodes to traverse in the next iteration.
+    # select(nodes) -> None: Called to set the nodes to select at the end.
 
     @override
-    def discover_nodes(self, nodes: dict[str, Node]) -> None:
-        self._nodes.extend(nodes.values())
-
-    @override
-    def select_nodes(self, *, limit: int) -> Iterable[Node]:
-        nodes = self._nodes[:limit]
-        self._nodes = []
-        return nodes
+    def iteration(self, nodes: dict[str, Node]) -> None:
+        self.traverse(nodes)
+        self.select(nodes)

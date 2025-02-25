@@ -442,7 +442,7 @@ class _Traversal:
                 self.strategy.max_depth is None or node.depth <= self.strategy.max_depth
             )
         }
-        self.strategy.discover_nodes(nodes)
+        self.strategy.iteration(nodes)
         return nodes
 
     def visit_nodes(self, nodes: Iterable[Node]) -> set[Edge]:
@@ -505,7 +505,7 @@ class _Traversal:
         if remaining <= 0:
             return None
 
-        next_nodes = self.strategy.select_nodes(limit=remaining)
+        next_nodes = self.strategy.next_traversal(limit=remaining)
         if not next_nodes:
             return None
 

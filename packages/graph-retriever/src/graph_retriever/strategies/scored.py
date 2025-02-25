@@ -27,12 +27,12 @@ class Scored(Strategy):
     per_iteration_limit: int | None = None
 
     @override
-    def discover_nodes(self, nodes: dict[str, Node]) -> None:
+    def iteration(self, nodes: dict[str, Node]) -> None:
         for node in nodes.values():
             heapq.heappush(self._nodes, _ScoredNode(self.scorer(node), node))
 
     @override
-    def select_nodes(self, *, limit: int) -> Iterable[Node]:
+    def next_traversal(self, *, limit: int) -> Iterable[Node]:
         if self.per_iteration_limit and self.per_iteration_limit < limit:
             limit = self.per_iteration_limit
 

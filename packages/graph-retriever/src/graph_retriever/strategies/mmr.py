@@ -203,8 +203,7 @@ class Mmr(Strategy):
 
         return candidate, embedding
 
-    @override
-    def select_nodes(self, *, limit: int) -> Iterable[Node]:
+    def _next(self) -> dict[str, Node]:
         """
         Select and pop the best item being considered.
 
@@ -214,10 +213,8 @@ class Mmr(Strategy):
         -------
             A tuple containing the ID of the best item.
         """
-        if limit == 0:
-            return []
         if self._best_id is None or self._best_score < self.min_mmr_score:
-            return []
+            return {}
 
         # Get the selection and remove from candidates.
         selected_id = self._best_id
@@ -250,10 +247,10 @@ class Mmr(Strategy):
                     self._best_score = candidate.score
                     self._best_id = candidate.node.id
 
-        return [selected_node]
+        return {selected_node.id: selected_node}
 
     @override
-    def discover_nodes(self, nodes: dict[str, Node]) -> None:
+    def iteration(self, nodes: dict[str, Node]) -> None:
         """Add candidates to the consideration set."""
         # Determine the keys to actually include.
         # These are the candidates that aren't already selected
@@ -308,3 +305,7 @@ class Mmr(Strategy):
                 new_embeddings,
             )
         )
+
+        next = self._next()
+        self.traverse(next)
+        self.select(next)
