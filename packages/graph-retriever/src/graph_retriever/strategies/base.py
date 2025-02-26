@@ -9,19 +9,28 @@ from typing import Any
 
 from graph_retriever.types import Node
 
-class NodeTracker():
-    visited: dict[str, Node] = {}
-    to_traverse: dict[str, Node] = {}
-    selected: dict[str, Node] = {}
+
+class NodeTracker:
+    """Helper class for tracking traversal progress."""
+
+    def __init__(self) -> None:
+        self.visited_ids: set[str] = set()
+        self.to_traverse: dict[str, Node] = {}
+        self.selected: dict[str, Node] = {}
 
     def select(self, nodes: dict[str, Node]) -> None:
-        ...
+        """Select nodes to be included in the result set."""
+        self.selected.update(nodes)
 
     def traverse(self, nodes: dict[str, Node]) -> None:
-        ...
+        """Select nodes to be included in the next traversal."""
+        self.to_traverse.update(nodes)
 
     def select_and_traverse(self, nodes: dict[str, Node]) -> None:
-        ...
+        """Select nodes to be included in the result set and the next traversal."""
+        self.select(nodes=nodes)
+        self.traverse(nodes=nodes)
+
 
 @dataclasses.dataclass(kw_only=True)
 class Strategy(abc.ABC):
@@ -50,16 +59,15 @@ class Strategy(abc.ABC):
     k: int = 5
     start_k: int = 4
     adjacent_k: int = 10
-    traverse_k: int = 4 # max_traverse?
+    traverse_k: int = 4  # max_traverse?
     max_depth: int | None = None
 
     _query_embedding: list[float] = dataclasses.field(default_factory=list)
 
     @abc.abstractmethod
-    def iteration(self, *, discovered: dict[str, Node],
-                  tracker: NodeTracker) -> None:
+    def iteration(self, *, nodes: dict[str, Node], tracker: NodeTracker) -> None:
         """
-        Called on each iteration with the newly discovered nodes.
+        Process the newly discovered nodes on each iteration.
 
         This method should call `traverse` and/or `select` as appropriate
         to update the nodes that need to be traversed in this iteration or
@@ -71,47 +79,6 @@ class Strategy(abc.ABC):
             Discovered nodes keyed by their IDs.
         """
         ...
-
-    # def traverse(self, nodes: dict[str, Node]) -> None:
-    #     """
-    #     Called to queue nodes for traversal.
-    #     """
-    #     for node in nodes.values():
-    #         # TODO: Have the strategy track the visited nodes?
-    #         self._to_traverse.setdefault(node.id, node)
-
-    # def select(self, nodes: Iterable[Node]):
-    #     """
-    #     Called by a strategy to indicate the given nodes are selected.
-
-    #     Should be called as soon as nodes are definitely going to be selected.
-
-    #     Parameters
-    #     ----------
-    #     nodes :
-    #         The nodes to select.
-    #     """
-    #     for node in nodes:
-    #         self.selected.setdefault(node.id, node)
-
-    # def next_traversal(self, *, limit: int) -> Iterable[Node]:
-    #     """
-    #     Select discovered nodes to visit in the next iteration.
-
-    #     This method determines which nodes will be traversed next. If it returns
-    #     an empty list, traversal ends even if fewer than `k` nodes have been selected.
-
-    #     Parameters
-    #     ----------
-    #     limit :
-    #         Maximum number of nodes to select.
-
-    #     Returns
-    #     -------
-    #     :
-    #         Selected nodes for the next iteration. Traversal ends if this is empty.
-    #     """
-    #     ...
 
     def finalize_nodes(self, selected: Iterable[Node]) -> Iterable[Node]:
         """
@@ -126,7 +93,7 @@ class Strategy(abc.ABC):
         """
         # Take the first `self.k` selected items.
         # Strategies may override finalize to perform reranking if needed.
-        return list(selected.values())[:self.k]
+        return list(selected)[: self.k]
 
     @staticmethod
     def build(

@@ -1,7 +1,6 @@
 """Provide eager (breadth-first) traversal strategy."""
 
 import dataclasses
-from collections.abc import Iterable
 
 from typing_extensions import override
 

@@ -252,29 +252,17 @@ class Mmr(Strategy):
     @override
     def iteration(self, nodes: dict[str, Node], tracker: NodeTracker) -> None:
         """Add candidates to the consideration set."""
-        # Determine the keys to actually include.
-        # These are the candidates that aren't already selected
-        # or under consideration.
-
-        # This may not be needed (as much) since the nodes will be
-        # newly discovered (eg, it shouldn't need the diff)?
-
-        include_ids_set = set(nodes.keys())
-        include_ids_set.difference_update(self._selected_ids)
-        include_ids_set.difference_update(self._candidate_id_to_index.keys())
-        include_ids = list(include_ids_set)
-
-        if include_ids:
-            # Now, build up a matrix of the remaining candidate embeddings.
-            # And add them to the
+        if len(nodes) > 0:
+            # Build up a matrix of the remaining candidate embeddings.
+            # And add them to the candidate set
             new_embeddings: NDArray[np.float32] = np.ndarray(
                 (
-                    len(include_ids),
+                    len(nodes),
                     self._dimensions,
                 )
             )
             offset = self._candidate_embeddings.shape[0]
-            for index, candidate_id in enumerate(include_ids):
+            for index, candidate_id in enumerate(nodes.keys()):
                 self._candidate_id_to_index[candidate_id] = offset + index
                 new_embeddings[index] = nodes[candidate_id].embedding
 
@@ -286,7 +274,7 @@ class Mmr(Strategy):
             redundancy = cosine_similarity(
                 new_embeddings, self._already_selected_embeddings()
             )
-            for index, candidate_id in enumerate(include_ids):
+            for index, candidate_id in enumerate(nodes.keys()):
                 max_redundancy = 0.0
                 if redundancy.shape[0] > 0:
                     max_redundancy = redundancy[index].max()

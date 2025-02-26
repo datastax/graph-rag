@@ -152,17 +152,20 @@ async def test_animals_initial_roots(animals: Adapter, sync_or_async: SyncOrAsyn
     )
 
     assert await traversal(initial_root_ids=["bobcat"], max_depth=0) == [
-        "bear",
         "bobcat",
     ]
     assert await traversal(initial_root_ids=["bobcat"], max_depth=1) == [
+        "bear",
+        "bobcat",
+    ]
+    assert await traversal(initial_root_ids=["bobcat"], max_depth=2) == [
         "bear",
         "bobcat",
         "moose",
         "ostrich",
     ]
     assert await traversal(
-        initial_root_ids=["bobcat", "cheetah"], k=20, max_depth=1
+        initial_root_ids=["bobcat", "cheetah"], k=20, max_depth=2
     ) == [
         "bear",
         "bobcat",
