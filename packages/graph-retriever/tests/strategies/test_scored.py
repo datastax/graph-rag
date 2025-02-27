@@ -26,8 +26,8 @@ async def test_animals_keywords(animals: Adapter, sync_or_async: SyncOrAsync):
         "fox",
         "mongoose",
     ]
-    # k=8, we start with 2 closest and choose 6 more with shortest names
-    assert await traversal(k=8, max_depth=1) == [
+    # select_k=8, we start with 2 closest and choose 6 more with shortest names
+    assert await traversal(select_k=8, max_depth=1) == [
         "cat",
         "coyote",
         "fox",
@@ -36,9 +36,9 @@ async def test_animals_keywords(animals: Adapter, sync_or_async: SyncOrAsync):
         "jackal",
         "mongoose",
     ]
-    # k=4, we start with 2 closest and choose 2 more with shortest names
+    # select_k=4, we start with 2 closest and choose 2 more with shortest names
     # (from "cat", "coyote", "gazelle", "hyena", "jackal")
-    assert await traversal(k=4, max_depth=1) == [
+    assert await traversal(select_k=4, max_depth=1) == [
         "cat",
         "fox",
         "hyena",

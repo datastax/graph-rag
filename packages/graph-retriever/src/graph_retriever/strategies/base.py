@@ -13,23 +13,36 @@ from graph_retriever.types import Node
 class NodeTracker:
     """Helper class for tracking traversal progress."""
 
-    def __init__(self) -> None:
-        self.visited_ids: set[str] = set()
+    def __init__(self, select_k: int, max_depth: int| None) -> None:
+        self._select_k: int = select_k
+        self._max_depth: int | None = max_depth
+        self._visited_nodes: set[int] = set()
         self.to_traverse: dict[str, Node] = {}
         self.selected: dict[str, Node] = {}
+
+    @property
+    def remaining(self):
+        """The remaining number of nodes to be selected"""
+        return max(self._select_k - len(self.selected), 0)
 
     def select(self, nodes: dict[str, Node]) -> None:
         """Select nodes to be included in the result set."""
         self.selected.update(nodes)
 
-    def traverse(self, nodes: dict[str, Node]) -> None:
+    def traverse(self, nodes: dict[str, Node]) -> int:
         """Select nodes to be included in the next traversal."""
-        self.to_traverse.update(nodes)
+        for id, node in nodes.items():
+            if id in self._visited_nodes:
+                continue
+            if self._max_depth is None or node.depth <= self._max_depth:
+                continue
+            self.to_traverse[id] = node
+        return len(self.to_traverse)
 
     def select_and_traverse(self, nodes: dict[str, Node]) -> None:
         """Select nodes to be included in the result set and the next traversal."""
-        self.select(nodes=nodes)
-        self.traverse(nodes=nodes)
+        self.select(nodes)
+        self.traverse(nodes)
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -43,23 +56,24 @@ class Strategy(abc.ABC):
 
     Parameters
     ----------
-    k :
+    select_k :
         Maximum number of nodes to select and return during traversal.
     start_k :
-        Number of documents to fetch via similarity for starting the traversal.
+        Number of nodes to fetch via similarity for starting the traversal.
         Added to any initial roots provided to the traversal.
     adjacent_k :
-        Number of documents to fetch for each outgoing edge.
-    traverse_k :
+        Number of nodes to fetch for each outgoing edge.
+    max_traverse :
         Maximum number of nodes to traverse outgoing edges from before returning.
+        If `None`, there is no limit.
     max_depth :
         Maximum traversal depth. If `None`, there is no limit.
     """
 
-    k: int = 5
+    select_k: int = 5
     start_k: int = 4
     adjacent_k: int = 10
-    traverse_k: int = 4  # max_traverse?
+    max_traverse: int | None = None
     max_depth: int | None = None
 
     _query_embedding: list[float] = dataclasses.field(default_factory=list)
@@ -93,7 +107,7 @@ class Strategy(abc.ABC):
         """
         # Take the first `self.k` selected items.
         # Strategies may override finalize to perform reranking if needed.
-        return list(selected)[: self.k]
+        return list(selected)[: self.select_k]
 
     @staticmethod
     def build(

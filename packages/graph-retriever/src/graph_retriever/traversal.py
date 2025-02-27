@@ -156,8 +156,7 @@ class _Traversal:
         self._used = False
         self._visited_edges: set[Edge] = set()
         self._edge_depths: dict[Edge, int] = {}
-        self._existing_nodes: set[str] = set()
-        self._node_tracker: NodeTracker = NodeTracker()
+        self._node_tracker: NodeTracker = NodeTracker(select_k=strategy.select_k, max_depth=strategy.max_depth)
 
     def _check_first_use(self):
         assert not self._used, "Traversals cannot be re-used."
@@ -178,22 +177,19 @@ class _Traversal:
         self._check_first_use()
 
         # Retrieve initial candidates.
-        initial_content = self._fetch_initial_candidates()
+        content = self._fetch_initial_candidates()
         if self.initial_root_ids:
-            initial_content.extend(self.store.get(self.initial_root_ids))
-
-        self.iteration(initial_content, depth=0)
+            content.extend(self.store.get(self.initial_root_ids))
 
         while True:
-            next_outgoing_edges = self.select_next_edges()
-            if next_outgoing_edges is None:
+            nodes = [self._content_to_node(c, depth=0) for c in content]
+            self.strategy.iteration(nodes={n.id: n for n in nodes}, tracker=self._node_tracker)
+
+            if self._node_tracker.remaining == 0 or len(self._node_tracker.to_traverse) == 0:
                 break
-            elif next_outgoing_edges:
-                # Find the (new) document with incoming edges from those edges.
-                adjacent_content = self._fetch_adjacent(next_outgoing_edges)
-                self.iteration(adjacent_content)
-            else:
-                self.iteration({})
+
+            next_outgoing_edges = self.select_next_edges(self._node_tracker.to_traverse)
+            content = self._fetch_adjacent(next_outgoing_edges)
 
         return self.finish()
 
@@ -212,23 +208,19 @@ class _Traversal:
         self._check_first_use()
 
         # Retrieve initial candidates.
-        initial_content = await self._afetch_initial_candidates()
-
+        content = await self._afetch_initial_candidates()
         if self.initial_root_ids:
-            initial_content.extend(await self.store.aget(self.initial_root_ids))
-
-        self.iteration(initial_content, depth=0)
+            content.extend(await self.store.aget(self.initial_root_ids))
 
         while True:
-            next_outgoing_edges = self.select_next_edges()
-            if next_outgoing_edges is None:
+            nodes = [self._content_to_node(c, depth=0) for c in content]
+            self.strategy.iteration(nodes={n.id: n for n in nodes}, tracker=self._node_tracker)
+
+            if self._node_tracker.remaining == 0 or len(self._node_tracker.to_traverse) == 0:
                 break
-            elif next_outgoing_edges:
-                # Find the (new) content with incoming edges from those edges.
-                adjacent_content = await self._afetch_adjacent(next_outgoing_edges)
-                self.iteration(adjacent_content)
-            else:
-                self.iteration({})
+
+            next_outgoing_edges = self.select_next_edges(self._node_tracker.to_traverse)
+            content = await self._afetch_adjacent(next_outgoing_edges)
 
         return self.finish()
 
@@ -310,15 +302,14 @@ class _Traversal:
             **self.store_kwargs,
         )
 
-    def _content_to_new_node(
+    def _content_to_node(
         self, content: Content, *, depth: int | None = None
     ) -> Node | None:
         """
-        Convert a content into a new node for the traversal.
+        Converts a content object into a node for traversal.
 
-        This method checks whether the document has already been processed. If not,
-        it creates a new `Node` instance, associates it with the document's metadata,
-        and calculates its depth based on the incoming edges.
+        This method creates a new `Node` instance, associates it with the document's
+        metadata, and calculates its depth based on the incoming edges.
 
         Parameters
         ----------
@@ -334,8 +325,6 @@ class _Traversal:
             The newly created node, or None if the document has already been
             processed.
         """
-        if content.id in self._existing_nodes:
-            return None
 
         # Determine incoming/outgoing edges.
         edges = self.edge_function(content)
@@ -351,7 +340,7 @@ class _Traversal:
                 default=0,
             )
 
-        node = Node(
+        return Node(
             id=content.id,
             content=content.content,
             depth=depth,
@@ -361,52 +350,18 @@ class _Traversal:
             outgoing_edges=edges.outgoing,
         )
 
-        self._existing_nodes.add(node.id)
-
-        return node
-
-    def iteration(
-        self, contents: Iterable[Content], *, depth: int | None = None
-    ) -> None:
+    def select_next_edges(self, nodes: Iterable[Node]) -> set[Edge]:
         """
-        Convert a bunch of content into nodes and send them to strategy iteration.
+        Find the unvisited outgoing edges from the set of new nodes to traverse.
 
-        This method records the depth of new nodes, filters them based on the
-        strategy's maximum depth and sends the filtered set to the next strategy
-        iteration.
-
-        Parameters
-        ----------
-        contents :
-            The contents to add.
-        depth :
-            The depth to assign to the nodes. If None, the depth is inferred
-            based on the incoming edges.
-        """
-        # Record the depth of new nodes.
-        nodes = {
-            node.id: node
-            for c in contents
-            if (node := self._content_to_new_node(c, depth=depth)) is not None
-            if (
-                self.strategy.max_depth is None or node.depth <= self.strategy.max_depth
-            )
-        }
-        self.strategy.iteration(nodes=nodes, tracker=self._node_tracker)
-
-    def visit_nodes(self, nodes: Iterable[Node]) -> set[Edge]:
-        """
-        Mark nodes as visited and return their new outgoing edges.
-
-        This method updates the traversal state by marking the provided nodes as visited
-        and recording their outgoing edges. Outgoing edges that have not been visited
-        before are identified and added to the set of edges to explore in subsequent
-        traversal steps.
+        This method updates the traversal state by recording the outgoing edges of the
+        provided nodes. Outgoing edges that have not been visited before are identified
+        and added to the set of edges to explore in subsequent traversal steps.
 
         Parameters
         ----------
         nodes :
-            The nodes to mark as visited.
+            The new nodes to traverse
 
         Returns
         -------
@@ -434,37 +389,8 @@ class _Traversal:
 
         new_outgoing_edge_set = set(new_outgoing_edges.keys())
         self._visited_edges.update(new_outgoing_edge_set)
-        self._node_tracker.visited_ids.update([n.id for n in nodes])
         return new_outgoing_edge_set
 
-    def select_next_edges(self) -> set[Edge] | None:
-        """
-        Select the next set of edges to explore.
-
-        This method uses the node tracker to select the next batch of nodes
-        and identifies new outgoing edges for exploration.
-
-        Returns
-        -------
-        :
-            The set of new edges to explore, or None if the traversal is
-            complete.
-        """
-        remaining = self.strategy.k - len(self._node_tracker.selected)
-        if remaining <= 0:
-            return None
-
-        next_nodes = self._node_tracker.to_traverse.values()
-        if not next_nodes:
-            return None
-
-        filtered_nodes = [
-            n for n in next_nodes if n.id not in self._node_tracker.visited_ids
-        ]
-        if len(filtered_nodes) == 0:
-            return None
-
-        return self.visit_nodes(filtered_nodes)
 
     def finish(self) -> list[Node]:
         """
