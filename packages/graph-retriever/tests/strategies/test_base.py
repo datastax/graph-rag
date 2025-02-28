@@ -39,7 +39,10 @@ def test_build_strategy_base_override():
 
     # override base strategy and change params
     strategy = Strategy.build(
-        base_strategy=base_strategy, strategy=override_strategy, select_k=3, adjacent_k=7
+        base_strategy=base_strategy,
+        strategy=override_strategy,
+        select_k=3,
+        adjacent_k=7,
     )
     assert strategy == Eager(select_k=3, start_k=4, adjacent_k=7, max_depth=3)
 
@@ -64,7 +67,9 @@ def test_build_strategy_base_override():
 
 def test_build_strategy_base_override_mmr():
     base_strategy = Eager(select_k=6, start_k=5, adjacent_k=9, max_depth=2)
-    override_strategy = Mmr(select_k=7, start_k=4, adjacent_k=8, max_depth=3, lambda_mult=0.3)
+    override_strategy = Mmr(
+        select_k=7, start_k=4, adjacent_k=8, max_depth=3, lambda_mult=0.3
+    )
 
     # override base strategy with mmr kwarg
     with pytest.raises(
@@ -81,9 +86,14 @@ def test_build_strategy_base_override_mmr():
 
     # override base strategy with mmr strategy and mmr arg
     strategy = Strategy.build(
-        base_strategy=base_strategy, strategy=override_strategy, select_k=4, lambda_mult=0.2
+        base_strategy=base_strategy,
+        strategy=override_strategy,
+        select_k=4,
+        lambda_mult=0.2,
     )
-    assert strategy == Mmr(select_k=4, start_k=4, adjacent_k=8, max_depth=3, lambda_mult=0.2)
+    assert strategy == Mmr(
+        select_k=4, start_k=4, adjacent_k=8, max_depth=3, lambda_mult=0.2
+    )
 
     # start with override strategy, change to base, try to set mmr arg
     with pytest.raises(

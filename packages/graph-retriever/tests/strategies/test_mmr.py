@@ -18,13 +18,18 @@ async def test_animals_keywords(animals: Adapter, sync_or_async: SyncOrAsync):
     )
 
     assert await traversal(select_k=4, max_depth=0) == ANIMALS_DEPTH_0_EXPECTED
-    assert await traversal(select_k=4, max_depth=1) == ["cat", "gazelle", "hyena", "mongoose"]
-    assert await traversal(select_k=6, max_depth=2) == [
-        "bison",
-        "cat",
+    assert await traversal(select_k=4, max_depth=1) == [
         "fox",
         "gazelle",
-        "hyena",
+        "jackal",
+        "mongoose",
+    ]
+    assert await traversal(select_k=6, max_depth=2) == [
+        "cockroach",
+        "dingo",
+        "fox",
+        "gazelle",
+        "jackal",
         "mongoose",
     ]
 

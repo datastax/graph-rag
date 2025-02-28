@@ -298,4 +298,14 @@ class Mmr(Strategy):
                 )
             )
 
-        tracker.select_and_traverse(self._next())
+        while True:
+            if tracker.remaining == 0:
+                break
+
+            next = self._next()
+            if next == {}:
+                break
+
+            num_traversing = tracker.select_and_traverse(next)
+            if num_traversing == 1:
+                break

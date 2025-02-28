@@ -156,7 +156,9 @@ class _Traversal:
         self._used = False
         self._visited_edges: set[Edge] = set()
         self._edge_depths: dict[Edge, int] = {}
-        self._node_tracker: NodeTracker = NodeTracker(select_k=strategy.select_k, max_depth=strategy.max_depth)
+        self._node_tracker: NodeTracker = NodeTracker(
+            select_k=strategy.select_k, max_depth=strategy.max_depth
+        )
 
     def _check_first_use(self):
         assert not self._used, "Traversals cannot be re-used."
@@ -177,19 +179,36 @@ class _Traversal:
         self._check_first_use()
 
         # Retrieve initial candidates.
-        content = self._fetch_initial_candidates()
+        initial_content = self._fetch_initial_candidates()
         if self.initial_root_ids:
-            content.extend(self.store.get(self.initial_root_ids))
+            initial_content.extend(self.store.get(self.initial_root_ids))
+        nodes = [self._content_to_node(c, depth=0) for c in initial_content]
 
         while True:
-            nodes = [self._content_to_node(c, depth=0) for c in content]
-            self.strategy.iteration(nodes={n.id: n for n in nodes}, tracker=self._node_tracker)
+            self.strategy.iteration(
+                nodes={n.id: n for n in nodes}, tracker=self._node_tracker
+            )
 
-            if self._node_tracker.remaining == 0 or len(self._node_tracker.to_traverse) == 0:
+            print(f"self._node_tracker.remaining: {self._node_tracker.remaining}")
+            print(
+                f"len(self._node_tracker.to_traverse): {len(self._node_tracker.to_traverse)}"
+            )
+
+            if (
+                self._node_tracker.remaining == 0
+                or len(self._node_tracker.to_traverse) == 0
+            ):
                 break
 
             next_outgoing_edges = self.select_next_edges(self._node_tracker.to_traverse)
-            content = self._fetch_adjacent(next_outgoing_edges)
+            new_content = self._fetch_adjacent(next_outgoing_edges)
+            nodes = [
+                self._content_to_node(c)
+                for c in new_content
+                if c.id not in self._node_tracker._visited_nodes
+            ]
+
+            self._node_tracker.to_traverse.clear()
 
         return self.finish()
 
@@ -208,19 +227,31 @@ class _Traversal:
         self._check_first_use()
 
         # Retrieve initial candidates.
-        content = await self._afetch_initial_candidates()
+        initial_content = await self._afetch_initial_candidates()
         if self.initial_root_ids:
-            content.extend(await self.store.aget(self.initial_root_ids))
+            initial_content.extend(await self.store.aget(self.initial_root_ids))
+        nodes = [self._content_to_node(c, depth=0) for c in initial_content]
 
         while True:
-            nodes = [self._content_to_node(c, depth=0) for c in content]
-            self.strategy.iteration(nodes={n.id: n for n in nodes}, tracker=self._node_tracker)
+            self.strategy.iteration(
+                nodes={n.id: n for n in nodes}, tracker=self._node_tracker
+            )
 
-            if self._node_tracker.remaining == 0 or len(self._node_tracker.to_traverse) == 0:
+            if (
+                self._node_tracker.remaining == 0
+                or len(self._node_tracker.to_traverse) == 0
+            ):
                 break
 
             next_outgoing_edges = self.select_next_edges(self._node_tracker.to_traverse)
-            content = await self._afetch_adjacent(next_outgoing_edges)
+            new_content = await self._afetch_adjacent(next_outgoing_edges)
+            nodes = [
+                self._content_to_node(c)
+                for c in new_content
+                if c.id not in self._node_tracker._visited_nodes
+            ]
+
+            self._node_tracker.to_traverse.clear()
 
         return self.finish()
 
@@ -302,9 +333,7 @@ class _Traversal:
             **self.store_kwargs,
         )
 
-    def _content_to_node(
-        self, content: Content, *, depth: int | None = None
-    ) -> Node | None:
+    def _content_to_node(self, content: Content, *, depth: int | None = None) -> Node:
         """
         Converts a content object into a node for traversal.
 
@@ -322,10 +351,8 @@ class _Traversal:
         Returns
         -------
         :
-            The newly created node, or None if the document has already been
-            processed.
+            The newly created node.
         """
-
         # Determine incoming/outgoing edges.
         edges = self.edge_function(content)
 
@@ -350,7 +377,7 @@ class _Traversal:
             outgoing_edges=edges.outgoing,
         )
 
-    def select_next_edges(self, nodes: Iterable[Node]) -> set[Edge]:
+    def select_next_edges(self, nodes: dict[str, Node]) -> set[Edge]:
         """
         Find the unvisited outgoing edges from the set of new nodes to traverse.
 
@@ -378,7 +405,7 @@ class _Traversal:
         from the provided nodes.
         """
         new_outgoing_edges: dict[Edge, int] = {}
-        for node in nodes:
+        for node in nodes.values():
             node_new_outgoing_edges = node.outgoing_edges - self._visited_edges
             for edge in node_new_outgoing_edges:
                 depth = new_outgoing_edges.setdefault(edge, node.depth + 1)
@@ -390,7 +417,6 @@ class _Traversal:
         new_outgoing_edge_set = set(new_outgoing_edges.keys())
         self._visited_edges.update(new_outgoing_edge_set)
         return new_outgoing_edge_set
-
 
     def finish(self) -> list[Node]:
         """

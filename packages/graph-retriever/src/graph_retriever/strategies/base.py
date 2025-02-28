@@ -13,10 +13,10 @@ from graph_retriever.types import Node
 class NodeTracker:
     """Helper class for tracking traversal progress."""
 
-    def __init__(self, select_k: int, max_depth: int| None) -> None:
+    def __init__(self, select_k: int, max_depth: int | None) -> None:
         self._select_k: int = select_k
         self._max_depth: int | None = max_depth
-        self._visited_nodes: set[int] = set()
+        self._visited_nodes: set[str] = set()
         self.to_traverse: dict[str, Node] = {}
         self.selected: dict[str, Node] = {}
 
@@ -33,16 +33,21 @@ class NodeTracker:
         """Select nodes to be included in the next traversal."""
         for id, node in nodes.items():
             if id in self._visited_nodes:
+                print(f"{id} is visited, skipping traversal")
                 continue
-            if self._max_depth is None or node.depth <= self._max_depth:
+            if self._max_depth is not None and node.depth >= self._max_depth:
+                print(
+                    f"{id} depth {node.depth} is beyond {self._max_depth}, skipping traversal"
+                )
                 continue
             self.to_traverse[id] = node
+            self._visited_nodes.add(id)
         return len(self.to_traverse)
 
-    def select_and_traverse(self, nodes: dict[str, Node]) -> None:
+    def select_and_traverse(self, nodes: dict[str, Node]) -> int:
         """Select nodes to be included in the result set and the next traversal."""
         self.select(nodes)
-        self.traverse(nodes)
+        return self.traverse(nodes)
 
 
 @dataclasses.dataclass(kw_only=True)

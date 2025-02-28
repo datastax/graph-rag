@@ -24,18 +24,23 @@ class Scored(Strategy):
     scorer: Callable[[Node], float]
     _nodes: list[_ScoredNode] = dataclasses.field(default_factory=list)
 
-    per_iteration_limit: int = 2
+    per_iteration_limit: int | None = None
 
     @override
     def iteration(self, nodes: dict[str, Node], tracker: NodeTracker) -> None:
         for node in nodes.values():
+            print(f"adding node: {node.id} to heap")
             heapq.heappush(self._nodes, _ScoredNode(self.scorer(node), node))
 
-        selected = {}
-        for _x in range(self.per_iteration_limit):
+        limit = tracker.remaining
+        if self.per_iteration_limit and self.per_iteration_limit < limit:
+            limit = self.per_iteration_limit
+
+        for _x in range(limit):
             if not self._nodes:
+                print("no nodes remaining, ending iteration")
                 break
 
             node = heapq.heappop(self._nodes).node
-            selected[node.id] = node
-        tracker.select_and_traverse(selected)
+            print(f"popped node: {node.id} off heap, adding to select and traverse")
+            tracker.select_and_traverse({node.id: node})
