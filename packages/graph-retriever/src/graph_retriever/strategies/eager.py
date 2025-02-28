@@ -21,7 +21,7 @@ class Eager(Strategy):
 
     Parameters
     ----------
-    k :
+    select_k :
         Maximum number of nodes to retrieve during traversal.
     start_k :
         Number of documents to fetch via similarity for starting the traversal.

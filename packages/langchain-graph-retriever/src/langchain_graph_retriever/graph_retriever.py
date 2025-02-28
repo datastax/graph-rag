@@ -67,6 +67,8 @@ class GraphRetriever(BaseRetriever):
             The updated GraphRetriever instance.
         """
         if self.model_extra:
+            if "k" in self.model_extra:
+                self.model_extra["select_k"] = self.model_extra.pop("k")
             self.strategy = dataclasses.replace(self.strategy, **self.model_extra)
             self.model_extra.clear()
         return self

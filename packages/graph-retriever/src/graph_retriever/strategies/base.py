@@ -165,6 +165,8 @@ class Strategy(abc.ABC):
 
         # Apply the kwargs to update the strategy.
         assert strategy is not None
+        if "k" in kwargs:
+            kwargs["select_k"] = kwargs.pop("k")
         strategy = dataclasses.replace(strategy, **kwargs)
 
         return strategy
