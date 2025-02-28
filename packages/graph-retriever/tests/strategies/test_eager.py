@@ -49,7 +49,7 @@ async def test_earth(sync_or_async: SyncOrAsync):
         store=store,
         query="Earth",
         edges=[("outgoing", "incoming"), ("keywords", "keywords")],
-        strategy=Eager(k=10),
+        strategy=Eager(select_k=10),
     )
 
     assert await traversal(start_k=1, max_depth=0) == ["doc2"]
@@ -63,7 +63,7 @@ async def test_animals_keywords(animals: Adapter, sync_or_async: SyncOrAsync):
         store=animals,
         query=ANIMALS_QUERY,
         edges=[("keywords", "keywords")],
-        strategy=Eager(k=100, start_k=2),
+        strategy=Eager(select_k=100, start_k=2),
     )
 
     assert await traversal(max_depth=0) == ANIMALS_DEPTH_0_EXPECTED
@@ -98,7 +98,7 @@ async def test_animals_habitat(animals: Adapter, sync_or_async: SyncOrAsync):
         store=animals,
         query=ANIMALS_QUERY,
         edges=[("habitat", "habitat")],
-        strategy=Eager(k=100, start_k=2),
+        strategy=Eager(select_k=100, start_k=2),
     )
 
     assert await traversal(max_depth=0) == ANIMALS_DEPTH_0_EXPECTED
@@ -128,7 +128,7 @@ async def test_animals_habitat_to_keywords(
         store=animals,
         query=ANIMALS_QUERY,
         edges=[("habitat", "keywords")],
-        strategy=Eager(k=10, start_k=2),
+        strategy=Eager(select_k=10, start_k=2),
     )
 
     assert await traversal(max_depth=0) == ANIMALS_DEPTH_0_EXPECTED
@@ -148,21 +148,24 @@ async def test_animals_initial_roots(animals: Adapter, sync_or_async: SyncOrAsyn
         store=animals,
         query=ANIMALS_QUERY,
         edges=[("keywords", "keywords")],
-        strategy=Eager(k=10, start_k=0),
+        strategy=Eager(select_k=10, start_k=0),
     )
 
     assert await traversal(initial_root_ids=["bobcat"], max_depth=0) == [
-        "bear",
         "bobcat",
     ]
     assert await traversal(initial_root_ids=["bobcat"], max_depth=1) == [
+        "bear",
+        "bobcat",
+    ]
+    assert await traversal(initial_root_ids=["bobcat"], max_depth=2) == [
         "bear",
         "bobcat",
         "moose",
         "ostrich",
     ]
     assert await traversal(
-        initial_root_ids=["bobcat", "cheetah"], k=20, max_depth=1
+        initial_root_ids=["bobcat", "cheetah"], select_k=20, max_depth=2
     ) == [
         "bear",
         "bobcat",
@@ -246,7 +249,7 @@ async def test_parsed(sync_or_async: SyncOrAsync):
         store=InMemory(embedding, documents),
         edges=[("out", "in"), ("tag", "tag")],
         query="[2, 10]",
-        strategy=Eager(k=10, start_k=2),
+        strategy=Eager(select_k=10, start_k=2),
     )
 
     assert await traversal(max_depth=0) == ["A0", "AR"]

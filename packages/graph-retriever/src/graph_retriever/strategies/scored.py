@@ -4,7 +4,7 @@ from collections.abc import Callable, Iterable
 
 from typing_extensions import override
 
-from graph_retriever.strategies.base import Strategy
+from graph_retriever.strategies.base import NodeTracker, Strategy
 from graph_retriever.types import Node
 
 
@@ -13,13 +13,13 @@ class _ScoredNode:
         self.score = score
         self.node = node
 
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other: "_ScoredNode") -> bool:
         return other.score < self.score
 
 
 @dataclasses.dataclass
 class Scored(Strategy):
-    """Strategy selecing nodes using a scoring function."""
+    """Strategy selecting nodes using a scoring function."""
 
     scorer: Callable[[Node], float]
     _nodes: list[_ScoredNode] = dataclasses.field(default_factory=list)
@@ -27,19 +27,17 @@ class Scored(Strategy):
     per_iteration_limit: int | None = None
 
     @override
-    def discover_nodes(self, nodes: dict[str, Node]) -> None:
-        for node in nodes.values():
+    def iteration(self, nodes: Iterable[Node], tracker: NodeTracker) -> None:
+        for node in nodes:
             heapq.heappush(self._nodes, _ScoredNode(self.scorer(node), node))
 
-    @override
-    def select_nodes(self, *, limit: int) -> Iterable[Node]:
+        limit = tracker.num_remaining
         if self.per_iteration_limit and self.per_iteration_limit < limit:
             limit = self.per_iteration_limit
 
-        selected = []
         for _x in range(limit):
             if not self._nodes:
                 break
 
-            selected.append(heapq.heappop(self._nodes).node)
-        return selected
+            node = heapq.heappop(self._nodes).node
+            tracker.select_and_traverse([node])

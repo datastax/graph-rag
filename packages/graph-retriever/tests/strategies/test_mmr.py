@@ -17,14 +17,19 @@ async def test_animals_keywords(animals: Adapter, sync_or_async: SyncOrAsync):
         strategy=Mmr(start_k=2),
     )
 
-    assert await traversal(k=4, max_depth=0) == ANIMALS_DEPTH_0_EXPECTED
-    assert await traversal(k=4, max_depth=1) == ["cat", "gazelle", "hyena", "mongoose"]
-    assert await traversal(k=6, max_depth=2) == [
-        "bison",
-        "cat",
+    assert await traversal(select_k=4, max_depth=0) == ANIMALS_DEPTH_0_EXPECTED
+    assert await traversal(select_k=4, max_depth=1) == [
         "fox",
         "gazelle",
-        "hyena",
+        "jackal",
+        "mongoose",
+    ]
+    assert await traversal(select_k=6, max_depth=2) == [
+        "cockroach",
+        "dingo",
+        "fox",
+        "gazelle",
+        "jackal",
         "mongoose",
     ]
 
@@ -35,7 +40,7 @@ async def test_animals_habitat(animals: Adapter, sync_or_async: SyncOrAsync):
         store=animals,
         query=ANIMALS_QUERY,
         edges=[("habitat", "habitat")],
-        strategy=Mmr(k=10, start_k=2),
+        strategy=Mmr(select_k=10, start_k=2),
     )
 
     assert await traversal(max_depth=0) == ANIMALS_DEPTH_0_EXPECTED
@@ -65,7 +70,7 @@ async def test_animals_habitat_to_keywords(
         store=animals,
         query=ANIMALS_QUERY,
         edges=[("habitat", "keywords")],
-        strategy=Mmr(k=10, start_k=2),
+        strategy=Mmr(select_k=10, start_k=2),
     )
 
     assert await traversal(max_depth=0) == ANIMALS_DEPTH_0_EXPECTED
@@ -93,7 +98,7 @@ async def test_angular(sync_or_async: SyncOrAsync):
          \\        //  v0
           \\______//                 (N.B. very crude drawing)
 
-    With start_k==2 and k==2, when query is at (1, ),
+    With start_k==2 and select_k==2, when query is at (1, ),
     one expects that v2 and v0 are returned (in some order)
     because v1 is "too close" to v0 (and v0 is closer than v1)).
 
@@ -110,7 +115,7 @@ async def test_angular(sync_or_async: SyncOrAsync):
         query="0.0",
         store=InMemory(embedding, [v0, v1, v2, v3]),
         edges=[("outgoing", "incoming")],
-        strategy=Mmr(k=2, start_k=2, max_depth=2),
+        strategy=Mmr(select_k=2, start_k=2, max_depth=2),
     )
 
     assert await traversal() == ["v0", "v2"]
@@ -126,5 +131,5 @@ async def test_angular(sync_or_async: SyncOrAsync):
     # v0 score is .46, v2 score is 0.16 so it won't be chosen.
     assert await traversal(min_mmr_score=0.2) == ["v0"]
 
-    # with k=4 we should get all of the documents.
-    assert await traversal(k=4) == ["v0", "v1", "v2", "v3"]
+    # with select_k=4 we should get all of the documents.
+    assert await traversal(select_k=4) == ["v0", "v1", "v2", "v3"]

@@ -5,7 +5,7 @@ from collections.abc import Iterable
 
 from typing_extensions import override
 
-from graph_retriever.strategies.base import Strategy
+from graph_retriever.strategies.base import NodeTracker, Strategy
 from graph_retriever.types import Node
 
 
@@ -21,7 +21,7 @@ class Eager(Strategy):
 
     Parameters
     ----------
-    k :
+    select_k :
         Maximum number of nodes to retrieve during traversal.
     start_k :
         Number of documents to fetch via similarity for starting the traversal.
@@ -32,14 +32,6 @@ class Eager(Strategy):
         Maximum traversal depth. If `None`, there is no limit.
     """
 
-    _nodes: list[Node] = dataclasses.field(default_factory=list)
-
     @override
-    def discover_nodes(self, nodes: dict[str, Node]) -> None:
-        self._nodes.extend(nodes.values())
-
-    @override
-    def select_nodes(self, *, limit: int) -> Iterable[Node]:
-        nodes = self._nodes[:limit]
-        self._nodes = []
-        return nodes
+    def iteration(self, nodes: Iterable[Node], tracker: NodeTracker) -> None:
+        tracker.select_and_traverse(nodes)

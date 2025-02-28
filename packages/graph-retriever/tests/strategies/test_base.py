@@ -9,15 +9,15 @@ from graph_retriever.strategies import (
 
 
 def test_build_strategy_base():
-    base_strategy = Eager(k=6, start_k=5, adjacent_k=9, max_depth=2)
+    base_strategy = Eager(select_k=6, start_k=5, adjacent_k=9, max_depth=2)
 
     # base strategy with no changes
     strategy = Strategy.build(base_strategy=base_strategy)
     assert strategy == base_strategy
 
     # base strategy with changed k
-    strategy = Strategy.build(base_strategy=base_strategy, k=7)
-    assert strategy == Eager(k=7, start_k=5, adjacent_k=9, max_depth=2)
+    strategy = Strategy.build(base_strategy=base_strategy, select_k=7)
+    assert strategy == Eager(select_k=7, start_k=5, adjacent_k=9, max_depth=2)
 
     # base strategy with invalid kwarg
     with pytest.raises(
@@ -28,20 +28,23 @@ def test_build_strategy_base():
 
 
 def test_build_strategy_base_override():
-    base_strategy = Eager(k=6, start_k=5, adjacent_k=9, max_depth=2)
-    override_strategy = Eager(k=7, start_k=4, adjacent_k=8, max_depth=3)
+    base_strategy = Eager(select_k=6, start_k=5, adjacent_k=9, max_depth=2)
+    override_strategy = Eager(select_k=7, start_k=4, adjacent_k=8, max_depth=3)
 
     # override base strategy
     strategy = Strategy.build(
-        base_strategy=base_strategy, strategy=override_strategy, k=4
+        base_strategy=base_strategy, strategy=override_strategy, select_k=4
     )
-    assert strategy == dataclasses.replace(override_strategy, k=4)
+    assert strategy == dataclasses.replace(override_strategy, select_k=4)
 
     # override base strategy and change params
     strategy = Strategy.build(
-        base_strategy=base_strategy, strategy=override_strategy, k=3, adjacent_k=7
+        base_strategy=base_strategy,
+        strategy=override_strategy,
+        select_k=3,
+        adjacent_k=7,
     )
-    assert strategy == Eager(k=3, start_k=4, adjacent_k=7, max_depth=3)
+    assert strategy == Eager(select_k=3, start_k=4, adjacent_k=7, max_depth=3)
 
     # override base strategy and invalid kwarg
     with pytest.raises(
@@ -50,7 +53,7 @@ def test_build_strategy_base_override():
         strategy = Strategy.build(
             base_strategy=base_strategy,
             strategy=override_strategy,
-            k=4,
+            select_k=4,
             invalid_kwarg=4,
         )
 
@@ -63,8 +66,10 @@ def test_build_strategy_base_override():
 
 
 def test_build_strategy_base_override_mmr():
-    base_strategy = Eager(k=6, start_k=5, adjacent_k=9, max_depth=2)
-    override_strategy = Mmr(k=7, start_k=4, adjacent_k=8, max_depth=3, lambda_mult=0.3)
+    base_strategy = Eager(select_k=6, start_k=5, adjacent_k=9, max_depth=2)
+    override_strategy = Mmr(
+        select_k=7, start_k=4, adjacent_k=8, max_depth=3, lambda_mult=0.3
+    )
 
     # override base strategy with mmr kwarg
     with pytest.raises(
@@ -75,15 +80,20 @@ def test_build_strategy_base_override_mmr():
 
     # override base strategy with mmr strategy
     strategy = Strategy.build(
-        base_strategy=base_strategy, strategy=override_strategy, k=4
+        base_strategy=base_strategy, strategy=override_strategy, select_k=4
     )
-    assert strategy == dataclasses.replace(override_strategy, k=4)
+    assert strategy == dataclasses.replace(override_strategy, select_k=4)
 
     # override base strategy with mmr strategy and mmr arg
     strategy = Strategy.build(
-        base_strategy=base_strategy, strategy=override_strategy, k=4, lambda_mult=0.2
+        base_strategy=base_strategy,
+        strategy=override_strategy,
+        select_k=4,
+        lambda_mult=0.2,
     )
-    assert strategy == Mmr(k=4, start_k=4, adjacent_k=8, max_depth=3, lambda_mult=0.2)
+    assert strategy == Mmr(
+        select_k=4, start_k=4, adjacent_k=8, max_depth=3, lambda_mult=0.2
+    )
 
     # start with override strategy, change to base, try to set mmr arg
     with pytest.raises(

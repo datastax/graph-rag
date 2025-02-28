@@ -8,7 +8,7 @@ import numpy as np
 from numpy.typing import NDArray
 from typing_extensions import override
 
-from graph_retriever.strategies.base import Strategy
+from graph_retriever.strategies.base import NodeTracker, Strategy
 from graph_retriever.types import Node
 from graph_retriever.utils.math import cosine_similarity
 
@@ -51,7 +51,7 @@ class Mmr(Strategy):
 
     Parameters
     ----------
-    k :
+    select_k :
         Maximum number of nodes to retrieve during traversal.
     start_k :
         Number of documents to fetch via similarity for starting the traversal.
@@ -111,7 +111,7 @@ class Mmr(Strategy):
         NDArray[np.float32]
             (N, dim) ndarray with a row for each selected node.
         """
-        return np.ndarray((self.k, self._dimensions), dtype=np.float32)
+        return np.ndarray((self.select_k, self._dimensions), dtype=np.float32)
 
     @cached_property
     def _candidate_embeddings(self) -> NDArray[np.float32]:
@@ -203,8 +203,7 @@ class Mmr(Strategy):
 
         return candidate, embedding
 
-    @override
-    def select_nodes(self, *, limit: int) -> Iterable[Node]:
+    def _next(self) -> Node | None:
         """
         Select and pop the best item being considered.
 
@@ -212,12 +211,10 @@ class Mmr(Strategy):
 
         Returns
         -------
-            A tuple containing the ID of the best item.
+            The best node available or None if none are available.
         """
-        if limit == 0:
-            return []
         if self._best_id is None or self._best_score < self.min_mmr_score:
-            return []
+            return None
 
         # Get the selection and remove from candidates.
         selected_id = self._best_id
@@ -250,61 +247,66 @@ class Mmr(Strategy):
                     self._best_score = candidate.score
                     self._best_id = candidate.node.id
 
-        return [selected_node]
+        return selected_node
 
     @override
-    def discover_nodes(self, nodes: dict[str, Node]) -> None:
+    def iteration(self, nodes: Iterable[Node], tracker: NodeTracker) -> None:
         """Add candidates to the consideration set."""
-        # Determine the keys to actually include.
-        # These are the candidates that aren't already selected
-        # or under consideration.
-
-        include_ids_set = set(nodes.keys())
-        include_ids_set.difference_update(self._selected_ids)
-        include_ids_set.difference_update(self._candidate_id_to_index.keys())
-        include_ids = list(include_ids_set)
-
-        # Now, build up a matrix of the remaining candidate embeddings.
-        # And add them to the
-        new_embeddings: NDArray[np.float32] = np.ndarray(
-            (
-                len(include_ids),
-                self._dimensions,
+        node_count = len(list(nodes))
+        if node_count > 0:
+            # Build up a matrix of the remaining candidate embeddings.
+            # And add them to the candidate set
+            new_embeddings: NDArray[np.float32] = np.ndarray(
+                (
+                    node_count,
+                    self._dimensions,
+                )
             )
-        )
-        offset = self._candidate_embeddings.shape[0]
-        for index, candidate_id in enumerate(include_ids):
-            self._candidate_id_to_index[candidate_id] = offset + index
-            new_embeddings[index] = nodes[candidate_id].embedding
+            offset = self._candidate_embeddings.shape[0]
+            for index, candidate_node in enumerate(nodes):
+                self._candidate_id_to_index[candidate_node.id] = offset + index
+                new_embeddings[index] = candidate_node.embedding
 
-        # Compute the similarity to the query.
-        similarity = cosine_similarity(new_embeddings, self._nd_query_embedding)
+            # Compute the similarity to the query.
+            similarity = cosine_similarity(new_embeddings, self._nd_query_embedding)
 
-        # Compute the distance metrics of all of pairs in the selected set with
-        # the new candidates.
-        redundancy = cosine_similarity(
-            new_embeddings, self._already_selected_embeddings()
-        )
-        for index, candidate_id in enumerate(include_ids):
-            max_redundancy = 0.0
-            if redundancy.shape[0] > 0:
-                max_redundancy = redundancy[index].max()
-            candidate = _MmrCandidate(
-                node=nodes[candidate_id],
-                similarity=similarity[index][0],
-                weighted_similarity=self.lambda_mult * similarity[index][0],
-                weighted_redundancy=self._lambda_mult_complement * max_redundancy,
+            # Compute the distance metrics of all of pairs in the selected set with
+            # the new candidates.
+            redundancy = cosine_similarity(
+                new_embeddings, self._already_selected_embeddings()
             )
-            self._candidates.append(candidate)
+            for index, candidate_node in enumerate(nodes):
+                max_redundancy = 0.0
+                if redundancy.shape[0] > 0:
+                    max_redundancy = redundancy[index].max()
+                candidate = _MmrCandidate(
+                    node=candidate_node,
+                    similarity=similarity[index][0],
+                    weighted_similarity=self.lambda_mult * similarity[index][0],
+                    weighted_redundancy=self._lambda_mult_complement * max_redundancy,
+                )
+                self._candidates.append(candidate)
 
-            if candidate.score >= self._best_score:
-                self._best_score = candidate.score
-                self._best_id = candidate.node.id
+                if candidate.score >= self._best_score:
+                    self._best_score = candidate.score
+                    self._best_id = candidate.node.id
 
-        # Add the new embeddings to the candidate set.
-        self._candidate_embeddings = np.vstack(
-            (
-                self._candidate_embeddings,
-                new_embeddings,
+            # Add the new embeddings to the candidate set.
+            self._candidate_embeddings = np.vstack(
+                (
+                    self._candidate_embeddings,
+                    new_embeddings,
+                )
             )
-        )
+
+        while True:
+            if tracker.num_remaining == 0:
+                break
+
+            next = self._next()
+            if next is None:
+                break
+
+            num_traversing = tracker.select_and_traverse([next])
+            if num_traversing == 1:
+                break
