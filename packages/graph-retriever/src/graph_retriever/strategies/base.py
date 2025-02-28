@@ -34,12 +34,8 @@ class NodeTracker:
         """Select nodes to be included in the next traversal."""
         for node in nodes:
             if node.id in self._visited_node_ids:
-                print(f"{id} is visited, skipping traversal")
                 continue
             if self._max_depth is not None and node.depth >= self._max_depth:
-                print(
-                    f"{id} depth {node.depth} is beyond {self._max_depth}, skipping traversal"
-                )
                 continue
             self.to_traverse.add(node)
             self._visited_node_ids.add(node.id)
@@ -51,11 +47,11 @@ class NodeTracker:
         return self.traverse(nodes)
 
     def _not_visited(self, item: Content | Node):
-        """Returns true if the content or node has not been visited."""
+        """Return true if the content or node has not been visited."""
         return item.id not in self._visited_node_ids
 
     def _should_stop_traversal(self):
-        """Returns true if traversal should be stopped"""
+        """Return true if traversal should be stopped."""
         return self.num_remaining == 0 or len(self.to_traverse) == 0
 
 
@@ -97,14 +93,14 @@ class Strategy(abc.ABC):
         """
         Process the newly discovered nodes on each iteration.
 
-        This method should call `traverse` and/or `select` as appropriate
-        to update the nodes that need to be traversed in this iteration or
-        selected at the end of the retrieval, respectively.
+        This method should call `traverse` and/or `select` on the tracker
+        as appropriate to update the nodes that need to be traversed in this iteration
+        or selected at the end of the retrieval, respectively.
 
         Parameters
         ----------
         nodes :
-            Discovered nodes keyed by their IDs.
+            The newly discovered nodes.
         """
         ...
 

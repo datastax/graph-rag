@@ -23,7 +23,7 @@ def test_mmr_parameters() -> None:
 def test_init_parameters_override_strategy() -> None:
     store = InMemoryAdapter(vector_store=InMemoryVectorStore(FakeEmbeddings(size=8)))
     retriever = GraphRetriever(store=store, edges=[], k=87)  # type: ignore[call-arg]
-    assert retriever.strategy.k == 87
+    assert retriever.strategy.select_k == 87
 
 
 def test_infers_adapter() -> None:

@@ -49,9 +49,11 @@ class Node:
     extra_metadata: dict[str, Any] = field(default_factory=dict)
 
     def __hash__(self) -> int:
-        return hash(self.id)  # Hash based only on `id`
+        """Hash based only on `id`."""
+        return hash(self.id)
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, "Node"):
+        """Equality based only on `id`."""
+        if not isinstance(other, Node):
             return NotImplemented
-        return self.id == other.id  # Equality based only on `id`
+        return self.id == other.id

@@ -252,12 +252,13 @@ class Mmr(Strategy):
     @override
     def iteration(self, nodes: Iterable[Node], tracker: NodeTracker) -> None:
         """Add candidates to the consideration set."""
-        if len(nodes) > 0:
+        node_count = len(list(nodes))
+        if node_count > 0:
             # Build up a matrix of the remaining candidate embeddings.
             # And add them to the candidate set
             new_embeddings: NDArray[np.float32] = np.ndarray(
                 (
-                    len(nodes),
+                    node_count,
                     self._dimensions,
                 )
             )

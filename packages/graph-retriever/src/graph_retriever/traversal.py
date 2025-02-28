@@ -320,7 +320,7 @@ class _Traversal:
 
     def _content_to_node(self, content: Content, *, depth: int | None = None) -> Node:
         """
-        Converts a content object into a node for traversal.
+        Convert a content object into a node for traversal.
 
         This method creates a new `Node` instance, associates it with the document's
         metadata, and calculates its depth based on the incoming edges.
@@ -402,4 +402,3 @@ class _Traversal:
         new_outgoing_edge_set = set(new_outgoing_edges.keys())
         self._visited_edges.update(new_outgoing_edge_set)
         return new_outgoing_edge_set
-

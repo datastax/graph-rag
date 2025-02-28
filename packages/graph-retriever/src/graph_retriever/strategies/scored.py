@@ -29,7 +29,6 @@ class Scored(Strategy):
     @override
     def iteration(self, nodes: Iterable[Node], tracker: NodeTracker) -> None:
         for node in nodes:
-            print(f"adding node: {node.id} to heap")
             heapq.heappush(self._nodes, _ScoredNode(self.scorer(node), node))
 
         limit = tracker.num_remaining
@@ -38,9 +37,7 @@ class Scored(Strategy):
 
         for _x in range(limit):
             if not self._nodes:
-                print("no nodes remaining, ending iteration")
                 break
 
             node = heapq.heappop(self._nodes).node
-            print(f"popped node: {node.id} off heap, adding to select and traverse")
             tracker.select_and_traverse([node])
