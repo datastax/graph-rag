@@ -1,6 +1,6 @@
 import dataclasses
 import heapq
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 
 from typing_extensions import override
 
@@ -27,12 +27,12 @@ class Scored(Strategy):
     per_iteration_limit: int | None = None
 
     @override
-    def iteration(self, nodes: dict[str, Node], tracker: NodeTracker) -> None:
-        for node in nodes.values():
+    def iteration(self, nodes: Iterable[Node], tracker: NodeTracker) -> None:
+        for node in nodes:
             print(f"adding node: {node.id} to heap")
             heapq.heappush(self._nodes, _ScoredNode(self.scorer(node), node))
 
-        limit = tracker.remaining
+        limit = tracker.num_remaining
         if self.per_iteration_limit and self.per_iteration_limit < limit:
             limit = self.per_iteration_limit
 
@@ -43,4 +43,4 @@ class Scored(Strategy):
 
             node = heapq.heappop(self._nodes).node
             print(f"popped node: {node.id} off heap, adding to select and traverse")
-            tracker.select_and_traverse({node.id: node})
+            tracker.select_and_traverse([node])

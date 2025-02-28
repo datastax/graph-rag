@@ -1,6 +1,7 @@
 """Provide eager (breadth-first) traversal strategy."""
 
 import dataclasses
+from collections.abc import Iterable
 
 from typing_extensions import override
 
@@ -32,5 +33,5 @@ class Eager(Strategy):
     """
 
     @override
-    def iteration(self, nodes: dict[str, Node], tracker: NodeTracker) -> None:
+    def iteration(self, nodes: Iterable[Node], tracker: NodeTracker) -> None:
         tracker.select_and_traverse(nodes)

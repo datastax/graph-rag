@@ -7,6 +7,7 @@ import dataclasses
 from collections.abc import Iterable
 from typing import Any
 
+from graph_retriever.content import Content
 from graph_retriever.types import Node
 
 
@@ -16,23 +17,23 @@ class NodeTracker:
     def __init__(self, select_k: int, max_depth: int | None) -> None:
         self._select_k: int = select_k
         self._max_depth: int | None = max_depth
-        self._visited_nodes: set[str] = set()
-        self.to_traverse: dict[str, Node] = {}
-        self.selected: dict[str, Node] = {}
+        self._visited_node_ids: set[str] = set()
+        self.to_traverse: set[Node] = set()
+        self.selected: list[Node] = []
 
     @property
-    def remaining(self):
-        """The remaining number of nodes to be selected"""
+    def num_remaining(self):
+        """The remaining number of nodes to be selected."""
         return max(self._select_k - len(self.selected), 0)
 
-    def select(self, nodes: dict[str, Node]) -> None:
+    def select(self, nodes: Iterable[Node]) -> None:
         """Select nodes to be included in the result set."""
-        self.selected.update(nodes)
+        self.selected.extend(nodes)
 
-    def traverse(self, nodes: dict[str, Node]) -> int:
+    def traverse(self, nodes: Iterable[Node]) -> int:
         """Select nodes to be included in the next traversal."""
-        for id, node in nodes.items():
-            if id in self._visited_nodes:
+        for node in nodes:
+            if node.id in self._visited_node_ids:
                 print(f"{id} is visited, skipping traversal")
                 continue
             if self._max_depth is not None and node.depth >= self._max_depth:
@@ -40,14 +41,22 @@ class NodeTracker:
                     f"{id} depth {node.depth} is beyond {self._max_depth}, skipping traversal"
                 )
                 continue
-            self.to_traverse[id] = node
-            self._visited_nodes.add(id)
+            self.to_traverse.add(node)
+            self._visited_node_ids.add(node.id)
         return len(self.to_traverse)
 
-    def select_and_traverse(self, nodes: dict[str, Node]) -> int:
+    def select_and_traverse(self, nodes: Iterable[Node]) -> int:
         """Select nodes to be included in the result set and the next traversal."""
         self.select(nodes)
         return self.traverse(nodes)
+
+    def _not_visited(self, item: Content | Node):
+        """Returns true if the content or node has not been visited."""
+        return item.id not in self._visited_node_ids
+
+    def _should_stop_traversal(self):
+        """Returns true if traversal should be stopped"""
+        return self.num_remaining == 0 or len(self.to_traverse) == 0
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -84,7 +93,7 @@ class Strategy(abc.ABC):
     _query_embedding: list[float] = dataclasses.field(default_factory=list)
 
     @abc.abstractmethod
-    def iteration(self, *, nodes: dict[str, Node], tracker: NodeTracker) -> None:
+    def iteration(self, *, nodes: Iterable[Node], tracker: NodeTracker) -> None:
         """
         Process the newly discovered nodes on each iteration.
 

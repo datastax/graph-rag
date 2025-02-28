@@ -203,7 +203,7 @@ class Mmr(Strategy):
 
         return candidate, embedding
 
-    def _next(self) -> dict[str, Node]:
+    def _next(self) -> Node | None:
         """
         Select and pop the best item being considered.
 
@@ -211,10 +211,10 @@ class Mmr(Strategy):
 
         Returns
         -------
-            A tuple containing the ID of the best item.
+            The best node available or None if none are available.
         """
         if self._best_id is None or self._best_score < self.min_mmr_score:
-            return {}
+            return None
 
         # Get the selection and remove from candidates.
         selected_id = self._best_id
@@ -247,10 +247,10 @@ class Mmr(Strategy):
                     self._best_score = candidate.score
                     self._best_id = candidate.node.id
 
-        return {selected_node.id: selected_node}
+        return selected_node
 
     @override
-    def iteration(self, nodes: dict[str, Node], tracker: NodeTracker) -> None:
+    def iteration(self, nodes: Iterable[Node], tracker: NodeTracker) -> None:
         """Add candidates to the consideration set."""
         if len(nodes) > 0:
             # Build up a matrix of the remaining candidate embeddings.
@@ -262,9 +262,9 @@ class Mmr(Strategy):
                 )
             )
             offset = self._candidate_embeddings.shape[0]
-            for index, candidate_id in enumerate(nodes.keys()):
-                self._candidate_id_to_index[candidate_id] = offset + index
-                new_embeddings[index] = nodes[candidate_id].embedding
+            for index, candidate_node in enumerate(nodes):
+                self._candidate_id_to_index[candidate_node.id] = offset + index
+                new_embeddings[index] = candidate_node.embedding
 
             # Compute the similarity to the query.
             similarity = cosine_similarity(new_embeddings, self._nd_query_embedding)
@@ -274,12 +274,12 @@ class Mmr(Strategy):
             redundancy = cosine_similarity(
                 new_embeddings, self._already_selected_embeddings()
             )
-            for index, candidate_id in enumerate(nodes.keys()):
+            for index, candidate_node in enumerate(nodes):
                 max_redundancy = 0.0
                 if redundancy.shape[0] > 0:
                     max_redundancy = redundancy[index].max()
                 candidate = _MmrCandidate(
-                    node=nodes[candidate_id],
+                    node=candidate_node,
                     similarity=similarity[index][0],
                     weighted_similarity=self.lambda_mult * similarity[index][0],
                     weighted_redundancy=self._lambda_mult_complement * max_redundancy,
@@ -299,13 +299,13 @@ class Mmr(Strategy):
             )
 
         while True:
-            if tracker.remaining == 0:
+            if tracker.num_remaining == 0:
                 break
 
             next = self._next()
-            if next == {}:
+            if next is None:
                 break
 
-            num_traversing = tracker.select_and_traverse(next)
+            num_traversing = tracker.select_and_traverse([next])
             if num_traversing == 1:
                 break

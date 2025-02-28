@@ -185,19 +185,9 @@ class _Traversal:
         nodes = [self._content_to_node(c, depth=0) for c in initial_content]
 
         while True:
-            self.strategy.iteration(
-                nodes={n.id: n for n in nodes}, tracker=self._node_tracker
-            )
+            self.strategy.iteration(nodes=nodes, tracker=self._node_tracker)
 
-            print(f"self._node_tracker.remaining: {self._node_tracker.remaining}")
-            print(
-                f"len(self._node_tracker.to_traverse): {len(self._node_tracker.to_traverse)}"
-            )
-
-            if (
-                self._node_tracker.remaining == 0
-                or len(self._node_tracker.to_traverse) == 0
-            ):
+            if self._node_tracker._should_stop_traversal():
                 break
 
             next_outgoing_edges = self.select_next_edges(self._node_tracker.to_traverse)
@@ -205,12 +195,12 @@ class _Traversal:
             nodes = [
                 self._content_to_node(c)
                 for c in new_content
-                if c.id not in self._node_tracker._visited_nodes
+                if self._node_tracker._not_visited(c)
             ]
 
             self._node_tracker.to_traverse.clear()
 
-        return self.finish()
+        return list(self.strategy.finalize_nodes(self._node_tracker.selected))
 
     async def atraverse(self) -> list[Node]:
         """
@@ -233,14 +223,9 @@ class _Traversal:
         nodes = [self._content_to_node(c, depth=0) for c in initial_content]
 
         while True:
-            self.strategy.iteration(
-                nodes={n.id: n for n in nodes}, tracker=self._node_tracker
-            )
+            self.strategy.iteration(nodes=nodes, tracker=self._node_tracker)
 
-            if (
-                self._node_tracker.remaining == 0
-                or len(self._node_tracker.to_traverse) == 0
-            ):
+            if self._node_tracker._should_stop_traversal():
                 break
 
             next_outgoing_edges = self.select_next_edges(self._node_tracker.to_traverse)
@@ -248,12 +233,12 @@ class _Traversal:
             nodes = [
                 self._content_to_node(c)
                 for c in new_content
-                if c.id not in self._node_tracker._visited_nodes
+                if self._node_tracker._not_visited(c)
             ]
 
             self._node_tracker.to_traverse.clear()
 
-        return self.finish()
+        return list(self.strategy.finalize_nodes(self._node_tracker.selected))
 
     def _fetch_initial_candidates(self) -> list[Content]:
         """
@@ -377,7 +362,7 @@ class _Traversal:
             outgoing_edges=edges.outgoing,
         )
 
-    def select_next_edges(self, nodes: dict[str, Node]) -> set[Edge]:
+    def select_next_edges(self, nodes: set[Node]) -> set[Edge]:
         """
         Find the unvisited outgoing edges from the set of new nodes to traverse.
 
@@ -405,7 +390,7 @@ class _Traversal:
         from the provided nodes.
         """
         new_outgoing_edges: dict[Edge, int] = {}
-        for node in nodes.values():
+        for node in nodes:
             node_new_outgoing_edges = node.outgoing_edges - self._visited_edges
             for edge in node_new_outgoing_edges:
                 depth = new_outgoing_edges.setdefault(edge, node.depth + 1)
@@ -418,16 +403,3 @@ class _Traversal:
         self._visited_edges.update(new_outgoing_edge_set)
         return new_outgoing_edge_set
 
-    def finish(self) -> list[Node]:
-        """
-        Finalize the traversal and return the final set of nodes.
-
-        This method finalizes the selected nodes using the traversal strategy,
-        processes their metadata, and assembles the final list of nodes.
-
-        Returns
-        -------
-        :
-            The final set of nodes resulting from the traversal.
-        """
-        return list(self.strategy.finalize_nodes(self._node_tracker.selected.values()))

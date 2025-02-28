@@ -47,3 +47,11 @@ class Node:
     outgoing_edges: set[Edge] = field(default_factory=set)
 
     extra_metadata: dict[str, Any] = field(default_factory=dict)
+
+    def __hash__(self) -> int:
+        return hash(self.id)  # Hash based only on `id`
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, "Node"):
+            return NotImplemented
+        return self.id == other.id  # Equality based only on `id`
