@@ -12,6 +12,7 @@ def mk_node(metadata: dict[str, Any]) -> Node:
         metadata=metadata,
         depth=0,
         embedding=[],
+        similarity_score=0.2,
     )
 
 

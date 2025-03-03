@@ -29,6 +29,9 @@ class NodeTracker:
 
     def select(self, nodes: Iterable[Node]) -> None:
         """Select nodes to be included in the result set."""
+        for node in nodes:
+            node.extra_metadata["_depth"] = node.depth
+            node.extra_metadata["_similarity_score"] = node.similarity_score
         self.selected.extend(nodes)
 
     def traverse(self, nodes: Iterable[Node]) -> int:

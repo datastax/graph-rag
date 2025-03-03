@@ -40,6 +40,7 @@ class Node:
     id: str
     content: str
     depth: int
+    similarity_score: float
     embedding: list[float]
     metadata: dict[str, Any] = field(default_factory=dict)
 
