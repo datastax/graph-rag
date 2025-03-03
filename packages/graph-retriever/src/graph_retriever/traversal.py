@@ -311,7 +311,9 @@ class _Traversal:
             **self.store_kwargs,
         )
 
-    def _contents_to_nodes(self, contents: Iterable[Content], *, depth: int | None = None) -> Iterable[Node]:
+    def _contents_to_nodes(
+        self, contents: Iterable[Content], *, depth: int | None = None
+    ) -> Iterable[Node]:
         """
         Convert a content object into a node for traversal.
 
@@ -331,14 +333,15 @@ class _Traversal:
         :
             The newly created nodes.
         """
-
         # Determine which contents to include.
-        content_dict = { c.id: c for c in contents if self._node_tracker._not_visited(c) }
+        content_dict = {c.id: c for c in contents if self._node_tracker._not_visited(c)}
 
         # Compute scores (as needed).
         if any(c.score is None for c in content_dict.values()):
-            scores = cosine_similarity([self.strategy._query_embedding],
-                                       [c.embedding for c in content_dict.values() if c.score is None])[0]
+            scores = cosine_similarity(
+                [self.strategy._query_embedding],
+                [c.embedding for c in content_dict.values() if c.score is None],
+            )[0]
         else:
             scores = []
 
@@ -361,16 +364,18 @@ class _Traversal:
                 )
 
             score = content.score or next(scores_it)
-            nodes.append(Node(
-                id=content.id,
-                content=content.content,
-                depth=depth,
-                embedding=content.embedding,
-                similarity_score=score,
-                metadata=content.metadata,
-                incoming_edges=edges.incoming,
-                outgoing_edges=edges.outgoing,
-            ))
+            nodes.append(
+                Node(
+                    id=content.id,
+                    content=content.content,
+                    depth=depth,
+                    embedding=content.embedding,
+                    similarity_score=score,
+                    metadata=content.metadata,
+                    incoming_edges=edges.incoming,
+                    outgoing_edges=edges.outgoing,
+                )
+            )
         return nodes
 
     def select_next_edges(self, nodes: dict[str, Node]) -> set[Edge]:

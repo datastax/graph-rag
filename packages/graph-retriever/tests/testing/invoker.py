@@ -33,11 +33,11 @@ class SyncOrAsync(abc.ABC):
         )
 
     def traverse(
-            self,
-            store: Adapter,
-            query: str | None = None,
-            edges: list[EdgeSpec] | EdgeFunction | None = None,
-            strategy: Strategy | None = None,
+        self,
+        store: Adapter,
+        query: str | None = None,
+        edges: list[EdgeSpec] | EdgeFunction | None = None,
+        strategy: Strategy | None = None,
     ) -> TraversalCall[list[Node]]:
         return TraversalCall(
             transform=lambda nodes: nodes,
