@@ -113,9 +113,10 @@ class Strategy(abc.ABC):
         Parameters
         ----------
         nodes :
-            The newly discovered nodes. These are nodes which have not been visited before
-            which have an incoming edge which has not been visited before from a node which
-            is newly traversed in the previous iteration.
+            The newly discovered nodes. These are nodes which have not been
+            visited before which have an incoming edge which has not been
+            visited before from a node which is newly traversed in the previous
+            iteration.
         """
         ...
 
