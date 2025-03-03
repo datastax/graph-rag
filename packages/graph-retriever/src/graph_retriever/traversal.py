@@ -362,7 +362,7 @@ class _Traversal:
             outgoing_edges=edges.outgoing,
         )
 
-    def select_next_edges(self, nodes: set[Node]) -> set[Edge]:
+    def select_next_edges(self, nodes: dict[str, Node]) -> set[Edge]:
         """
         Find the unvisited outgoing edges from the set of new nodes to traverse.
 
@@ -390,7 +390,7 @@ class _Traversal:
         from the provided nodes.
         """
         new_outgoing_edges: dict[Edge, int] = {}
-        for node in nodes:
+        for node in nodes.values():
             node_new_outgoing_edges = node.outgoing_edges - self._visited_edges
             for edge in node_new_outgoing_edges:
                 depth = new_outgoing_edges.setdefault(edge, node.depth + 1)

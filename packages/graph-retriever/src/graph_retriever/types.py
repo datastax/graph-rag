@@ -8,7 +8,7 @@ from typing import Any
 from graph_retriever.edges import Edge
 
 
-@dataclass(unsafe_hash=True)
+@dataclass
 class Node:
     """
     Represents a node in the traversal graph.
@@ -37,13 +37,13 @@ class Node:
         metadata during traversal.
     """
 
-    id: str = field(compare=True)
-    content: str = field(compare=False)
-    depth: int = field(compare=False)
-    embedding: list[float] = field(compare=False)
-    metadata: dict[str, Any] = field(compare=False, default_factory=dict)
+    id: str
+    content: str
+    depth: int
+    embedding: list[float]
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    incoming_edges: set[Edge] = field(compare=False, default_factory=set)
-    outgoing_edges: set[Edge] = field(compare=False, default_factory=set)
+    incoming_edges: set[Edge] = field(default_factory=set)
+    outgoing_edges: set[Edge] = field(default_factory=set)
 
-    extra_metadata: dict[str, Any] = field(compare=False, default_factory=dict)
+    extra_metadata: dict[str, Any] = field(default_factory=dict)

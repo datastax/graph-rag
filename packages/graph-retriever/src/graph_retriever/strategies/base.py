@@ -18,7 +18,8 @@ class NodeTracker:
         self._select_k: int = select_k
         self._max_depth: int | None = max_depth
         self._visited_node_ids: set[str] = set()
-        self.to_traverse: set[Node] = set()
+        # use a dict to preserve order
+        self.to_traverse: dict[str, Node] = dict()
         self.selected: list[Node] = []
 
     @property
@@ -38,15 +39,13 @@ class NodeTracker:
         -------
         Number of nodes added for traversal.
         """
-        before = len(self.to_traverse)
-        for node in nodes:
-            if node.id in self._visited_node_ids:
-                continue
-            if self._max_depth is not None and node.depth >= self._max_depth:
-                continue
-            self.to_traverse.add(node)
-            self._visited_node_ids.add(node.id)
-        return len(self.to_traverse) - before
+        new_nodes = { n.id: n
+                      for n in nodes
+                      if self._not_visited(n)
+                      if self._max_depth is None or n.depth < self._max_depth }
+        self.to_traverse.update(new_nodes)
+        self._visited_node_ids.update(new_nodes.keys())
+        return len(new_nodes)
 
     def select_and_traverse(self, nodes: Iterable[Node]) -> int:
         """
