@@ -10,6 +10,7 @@ from graph_retriever.edges import Edge, EdgeFunction, EdgeSpec, MetadataEdgeFunc
 from graph_retriever.strategies import Strategy
 from graph_retriever.strategies.base import NodeTracker
 from graph_retriever.types import Node
+from graph_retriever.utils.math import cosine_similarity
 
 
 def traverse(
@@ -182,7 +183,7 @@ class _Traversal:
         initial_content = self._fetch_initial_candidates()
         if self.initial_root_ids:
             initial_content.extend(self.store.get(self.initial_root_ids))
-        nodes = [self._content_to_node(c, depth=0) for c in initial_content]
+        nodes = self._contents_to_nodes(initial_content, depth=0)
 
         while True:
             self.strategy.iteration(nodes=nodes, tracker=self._node_tracker)
@@ -192,11 +193,7 @@ class _Traversal:
 
             next_outgoing_edges = self.select_next_edges(self._node_tracker.to_traverse)
             new_content = self._fetch_adjacent(next_outgoing_edges)
-            nodes = [
-                self._content_to_node(c)
-                for c in new_content
-                if self._node_tracker._not_visited(c)
-            ]
+            nodes = self._contents_to_nodes(new_content)
 
             self._node_tracker.to_traverse.clear()
 
@@ -220,7 +217,7 @@ class _Traversal:
         initial_content = await self._afetch_initial_candidates()
         if self.initial_root_ids:
             initial_content.extend(await self.store.aget(self.initial_root_ids))
-        nodes = [self._content_to_node(c, depth=0) for c in initial_content]
+        nodes = self._contents_to_nodes(initial_content, depth=0)
 
         while True:
             self.strategy.iteration(nodes=nodes, tracker=self._node_tracker)
@@ -230,11 +227,7 @@ class _Traversal:
 
             next_outgoing_edges = self.select_next_edges(self._node_tracker.to_traverse)
             new_content = await self._afetch_adjacent(next_outgoing_edges)
-            nodes = [
-                self._content_to_node(c)
-                for c in new_content
-                if self._node_tracker._not_visited(c)
-            ]
+            nodes = self._contents_to_nodes(new_content)
 
             self._node_tracker.to_traverse.clear()
 
@@ -318,7 +311,9 @@ class _Traversal:
             **self.store_kwargs,
         )
 
-    def _content_to_node(self, content: Content, *, depth: int | None = None) -> Node:
+    def _contents_to_nodes(
+        self, contents: Iterable[Content], *, depth: int | None = None
+    ) -> Iterable[Node]:
         """
         Convert a content object into a node for traversal.
 
@@ -336,31 +331,52 @@ class _Traversal:
         Returns
         -------
         :
-            The newly created node.
+            The newly created nodes.
         """
-        # Determine incoming/outgoing edges.
-        edges = self.edge_function(content)
+        # Determine which contents to include.
+        content_dict = {c.id: c for c in contents if self._node_tracker._not_visited(c)}
 
-        # Compute the depth
-        if depth is None:
-            depth = min(
-                [
-                    d
-                    for e in edges.incoming
-                    if (d := self._edge_depths.get(e, None)) is not None
-                ],
-                default=0,
+        # Compute scores (as needed).
+        if any(c.score is None for c in content_dict.values()):
+            scores = cosine_similarity(
+                [self.strategy._query_embedding],
+                [c.embedding for c in content_dict.values() if c.score is None],
+            )[0]
+        else:
+            scores = []
+
+        # Create the nodes
+        scores_it = iter(scores)
+        nodes = []
+        for content in content_dict.values():
+            # Determine incoming/outgoing edges.
+            edges = self.edge_function(content)
+
+            # Compute the depth
+            if depth is None:
+                depth = min(
+                    [
+                        d
+                        for e in edges.incoming
+                        if (d := self._edge_depths.get(e, None)) is not None
+                    ],
+                    default=0,
+                )
+
+            score = content.score or next(scores_it)
+            nodes.append(
+                Node(
+                    id=content.id,
+                    content=content.content,
+                    depth=depth,
+                    embedding=content.embedding,
+                    similarity_score=score,
+                    metadata=content.metadata,
+                    incoming_edges=edges.incoming,
+                    outgoing_edges=edges.outgoing,
+                )
             )
-
-        return Node(
-            id=content.id,
-            content=content.content,
-            depth=depth,
-            embedding=content.embedding,
-            metadata=content.metadata,
-            incoming_edges=edges.incoming,
-            outgoing_edges=edges.outgoing,
-        )
+        return nodes
 
     def select_next_edges(self, nodes: dict[str, Node]) -> set[Edge]:
         """

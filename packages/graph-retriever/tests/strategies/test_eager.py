@@ -1,3 +1,4 @@
+import pytest
 from graph_retriever import Content
 from graph_retriever.adapters import Adapter
 from graph_retriever.adapters.in_memory import InMemory
@@ -118,6 +119,41 @@ async def test_animals_habitat(animals: Adapter, sync_or_async: SyncOrAsync):
         "fox",
         "mongoose",
     ]
+
+
+async def test_animals_populates_metrics(animals: Adapter, sync_or_async: SyncOrAsync):
+    """Test that score and depth are populated."""
+    results = await sync_or_async.traverse(
+        store=animals,
+        query=ANIMALS_QUERY,
+        edges=[("habitat", "habitat")],
+        strategy=Eager(select_k=100, start_k=2, max_depth=2),
+    )()
+
+    expected_similarity_scores = {
+        "mongoose": 0.578682,
+        "bobcat": 0.02297939,
+        "cobra": 0.01365448699,
+        "deer": 0.1869947,
+        "elk": 0.02876833,
+        "fox": 0.533316,
+    }
+    expected_depths = {
+        "mongoose": 0,
+        "bobcat": 1,
+        "cobra": 1,
+        "deer": 1,
+        "elk": 1,
+        "fox": 0,
+    }
+
+    for n in results:
+        assert n.extra_metadata["_similarity_score"] == pytest.approx(
+            expected_similarity_scores[n.id]
+        ), f"incorrect similarity score for {n.id}"
+        assert n.extra_metadata["_depth"] == expected_depths[n.id], (
+            f"incorrect depth for {n.id}"
+        )
 
 
 async def test_animals_habitat_to_keywords(

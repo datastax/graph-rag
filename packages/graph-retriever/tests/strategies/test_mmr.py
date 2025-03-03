@@ -1,3 +1,4 @@
+import pytest
 from graph_retriever.adapters.base import Adapter
 from graph_retriever.adapters.in_memory import InMemory
 from graph_retriever.content import Content
@@ -19,16 +20,16 @@ async def test_animals_keywords(animals: Adapter, sync_or_async: SyncOrAsync):
 
     assert await traversal(select_k=4, max_depth=0) == ANIMALS_DEPTH_0_EXPECTED
     assert await traversal(select_k=4, max_depth=1) == [
+        "cat",
         "fox",
         "gazelle",
-        "jackal",
         "mongoose",
     ]
     assert await traversal(select_k=6, max_depth=2) == [
-        "cockroach",
-        "dingo",
+        "cat",
         "fox",
         "gazelle",
+        "hyena",
         "jackal",
         "mongoose",
     ]
@@ -60,6 +61,63 @@ async def test_animals_habitat(animals: Adapter, sync_or_async: SyncOrAsync):
         "fox",
         "mongoose",
     ]
+
+
+async def test_animals_populates_metrics(animals: Adapter, sync_or_async: SyncOrAsync):
+    """Test that score and depth are populated."""
+    results = await sync_or_async.traverse(
+        store=animals,
+        query=ANIMALS_QUERY,
+        edges=[("habitat", "habitat")],
+        strategy=Mmr(start_k=2),
+    )(select_k=10, max_depth=2)
+
+    expected_similarity_scores = {
+        "mongoose": 0.578682,
+        "bobcat": 0.02297939,
+        "cobra": 0.01365448699,
+        "deer": 0.1869947,
+        "elk": 0.02876833,
+        "fox": 0.533316,
+    }
+    expected_mmr_scores = {
+        "mongoose": 0.28934083735912275,
+        "fox": 0.11235363166682244,
+        "deer": 0.03904356616509902,
+        "bobcat": 0.0031420490138288626,
+        "cobra": -0.11165876337613051,
+        "elk": -0.22759302101291784,
+    }
+    expected_redundancy = {
+        "mongoose": 0.0,
+        "fox": 0.30860872491035307,
+        "deer": 0.10890754955985982,
+        "bobcat": 0.016695295174737335,
+        "cobra": 0.24437328139277636,
+        "elk": 0.4839543733764524,
+    }
+    expected_depths = {
+        "mongoose": 0,
+        "bobcat": 1,
+        "cobra": 1,
+        "deer": 1,
+        "elk": 1,
+        "fox": 0,
+    }
+
+    for n in results:
+        assert n.extra_metadata["_similarity_score"] == pytest.approx(
+            expected_similarity_scores[n.id]
+        ), f"incorrect similarity score for {n.id}"
+        assert n.extra_metadata["_mmr_score"] == pytest.approx(
+            expected_mmr_scores[n.id]
+        ), f"incorrect score for {n.id}"
+        assert n.extra_metadata["_redundancy"] == pytest.approx(
+            expected_redundancy[n.id]
+        ), f"incorrect redundancy for {n.id}"
+        assert n.extra_metadata["_depth"] == expected_depths[n.id], (
+            f"incorrect depth for {n.id}"
+        )
 
 
 async def test_animals_habitat_to_keywords(

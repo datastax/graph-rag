@@ -227,10 +227,10 @@ class Mmr(Strategy):
 
         # Create the selected result node.
         selected_node = selected.node
-        selected_node.extra_metadata = {
-            "_similarity_score": selected.similarity,
-            "_mmr_score": self._best_score,
-        }
+        selected_node.extra_metadata["_mmr_score"] = selected.score
+        selected_node.extra_metadata["_redundancy"] = (
+            selected.weighted_redundancy / self._lambda_mult_complement
+        )
 
         # Reset the best score / best ID.
         self._best_score = NEG_INF
@@ -242,7 +242,9 @@ class Mmr(Strategy):
                 self._candidate_embeddings, np.expand_dims(selected_embedding, axis=0)
             )
             for index, candidate in enumerate(self._candidates):
-                candidate.update_redundancy(similarity[index][0])
+                candidate.update_redundancy(
+                    self._lambda_mult_complement * similarity[index][0]
+                )
                 if candidate.score > self._best_score:
                     self._best_score = candidate.score
                     self._best_id = candidate.node.id

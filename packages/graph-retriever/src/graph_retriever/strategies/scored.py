@@ -36,5 +36,7 @@ class Scored(Strategy):
             limit = min(limit, self.per_iteration_limit)
 
         while limit > 0 and self._nodes:
-            node = heapq.heappop(self._nodes).node
+            highest = heapq.heappop(self._nodes)
+            node = highest.node
+            node.extra_metadata["_score"] = highest.score
             limit -= tracker.select_and_traverse([node])

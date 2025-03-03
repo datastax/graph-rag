@@ -32,6 +32,22 @@ class SyncOrAsync(abc.ABC):
             strategy=strategy,
         )
 
+    def traverse(
+        self,
+        store: Adapter,
+        query: str | None = None,
+        edges: list[EdgeSpec] | EdgeFunction | None = None,
+        strategy: Strategy | None = None,
+    ) -> TraversalCall[list[Node]]:
+        return TraversalCall(
+            transform=lambda nodes: nodes,
+            sync_or_async=self,
+            store=store,
+            query=query,
+            edges=edges,
+            strategy=strategy,
+        )
+
 
 class SyncTraversal(SyncOrAsync):
     async def _traverse(self, **kwargs):
