@@ -299,10 +299,7 @@ class Mmr(Strategy):
                 )
             )
 
-        while True:
-            if tracker.num_remaining == 0:
-                break
-
+        while tracker.num_remaining > 0:
             next = self._next()
             if next is None:
                 break

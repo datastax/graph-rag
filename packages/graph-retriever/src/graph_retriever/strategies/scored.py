@@ -35,9 +35,6 @@ class Scored(Strategy):
         if self.per_iteration_limit and self.per_iteration_limit < limit:
             limit = self.per_iteration_limit
 
-        for _x in range(limit):
-            if not self._nodes:
-                break
-
+        while limit > 0 and self._nodes:
             node = heapq.heappop(self._nodes).node
-            tracker.select_and_traverse([node])
+            limit -= tracker.select_and_traverse([node])

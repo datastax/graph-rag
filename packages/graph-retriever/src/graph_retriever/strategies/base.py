@@ -31,7 +31,14 @@ class NodeTracker:
         self.selected.extend(nodes)
 
     def traverse(self, nodes: Iterable[Node]) -> int:
-        """Select nodes to be included in the next traversal."""
+        """
+        Select nodes to be included in the next traversal.
+
+        Returns
+        -------
+        Number of nodes added for traversal.
+        """
+        before = len(self.to_traverse)
         for node in nodes:
             if node.id in self._visited_node_ids:
                 continue
@@ -39,10 +46,16 @@ class NodeTracker:
                 continue
             self.to_traverse.add(node)
             self._visited_node_ids.add(node.id)
-        return len(self.to_traverse)
+        return len(self.to_traverse) - before
 
     def select_and_traverse(self, nodes: Iterable[Node]) -> int:
-        """Select nodes to be included in the result set and the next traversal."""
+        """
+        Select nodes to be included in the result set and the next traversal.
+
+        Returns
+        -------
+        Number of nodes added for traversal.
+        """
         self.select(nodes)
         return self.traverse(nodes)
 
@@ -100,7 +113,9 @@ class Strategy(abc.ABC):
         Parameters
         ----------
         nodes :
-            The newly discovered nodes.
+            The newly discovered nodes. These are nodes which have not been visited before
+            which have an incoming edge which has not been visited before from a node which
+            is newly traversed in the previous iteration.
         """
         ...
 
