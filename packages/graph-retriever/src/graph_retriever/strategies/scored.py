@@ -32,8 +32,8 @@ class Scored(Strategy):
             heapq.heappush(self._nodes, _ScoredNode(self.scorer(node), node))
 
         limit = tracker.num_remaining
-        if self.per_iteration_limit and self.per_iteration_limit < limit:
-            limit = self.per_iteration_limit
+        if self.per_iteration_limit:
+            limit = min(limit, self.per_iteration_limit)
 
         while limit > 0 and self._nodes:
             node = heapq.heappop(self._nodes).node

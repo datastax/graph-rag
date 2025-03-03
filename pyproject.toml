@@ -203,7 +203,8 @@ help = "Runs tests and reports coverage."
 sequence = [
     {cmd = "uv run coverage run -m pytest packages/graph-retriever" },
     {cmd = "uv run coverage run -a -m pytest packages/langchain-graph-retriever --stores=all" },
-    {cmd = "uv run coverage report" },
+    {cmd = "uv run coverage html" },   # make htmlcov/index.html
+    {cmd = "uv run coverage report" }, # print terminal summary
 ]
 
 [tool.poe.tasks.help]

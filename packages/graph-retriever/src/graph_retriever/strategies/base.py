@@ -40,7 +40,7 @@ class NodeTracker:
         """
         before = len(self.to_traverse)
         for node in nodes:
-            if node.id in self._visited_node_ids:
+            if self._not_visited(node):
                 continue
             if self._max_depth is not None and node.depth >= self._max_depth:
                 continue
