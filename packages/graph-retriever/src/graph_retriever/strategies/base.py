@@ -39,10 +39,12 @@ class NodeTracker:
         -------
         Number of nodes added for traversal.
         """
-        new_nodes = { n.id: n
-                      for n in nodes
-                      if self._not_visited(n)
-                      if self._max_depth is None or n.depth < self._max_depth }
+        new_nodes = {
+            n.id: n
+            for n in nodes
+            if self._not_visited(n)
+            if self._max_depth is None or n.depth < self._max_depth
+        }
         self.to_traverse.update(new_nodes)
         self._visited_node_ids.update(new_nodes.keys())
         return len(new_nodes)
