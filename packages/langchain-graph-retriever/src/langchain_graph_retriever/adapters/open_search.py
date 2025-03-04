@@ -49,7 +49,7 @@ class OpenSearchAdapter(LangchainAdapter[OpenSearchVectorSearch]):
         super().__init__(vector_store)
 
         if vector_store.is_aoss:
-            self._id_filed = "id"
+            self._id_field = "id"
         else:
             self._id_field = "_id"
 
