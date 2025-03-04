@@ -124,6 +124,8 @@ nav:
         - guide/adapters.md
         - guide/transformers.md
         - guide/migration.md
+    - FAQs:
+        - faqs/index.md
     - Examples:
         - examples/index.md
         - examples/lazy-graph-rag.ipynb
