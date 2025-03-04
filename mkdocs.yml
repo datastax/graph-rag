@@ -123,6 +123,7 @@ nav:
         - guide/strategies.md
         - guide/adapters.md
         - guide/transformers.md
+        - guide/migration.md
     - Examples:
         - examples/index.md
         - examples/lazy-graph-rag.ipynb
