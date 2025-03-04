@@ -28,4 +28,8 @@ Graph databases are excellent for operating on academic knowledge graphs, where 
 
 However, the best knowledge graph for Graph RAG is a vector store containing unstructured content with structured metadata first, and support traversal of those structured relationships second. This means that any vector store with metadata filtering capabilities (all or nearly all) can be used for traversal.
 
+!!! important
+
+    Traditional graph databases require materializing edges during ingestion, making them inflexible and costly to maintain as data evolves. Our approach operates on relationships present in the metadata without materializing them, eliminating the need to decide on the graph relationships during ingestion and enabling each query to operate on a different set of relationships. This makes it easy to add your structured metadata to the documents and traverse it for enhanced retrieval in RAG applications and adapts effortlessly to changing data.
+
 There are some things a vector store can support that make the kinds of metadata queries needed for traversal more efficient. See the support matrix in the [Adapters guide](../guide/adapters.md) for more information.
