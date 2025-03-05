@@ -68,7 +68,7 @@ class Mmr(Strategy):
         Only nodes with a score greater than or equal to this value will be
         selected.
     k:
-        Depreciated: Use `select_k` instead.
+        Deprecated: Use `select_k` instead.
         Maximum number of nodes to select and return during traversal.
     """
 

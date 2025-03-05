@@ -98,7 +98,7 @@ class Strategy(abc.ABC):
     max_depth :
         Maximum traversal depth. If `None`, there is no limit.
     k:
-        Depreciated: Use `select_k` instead.
+        Deprecated: Use `select_k` instead.
         Maximum number of nodes to select and return during traversal.
     """
 
@@ -112,6 +112,7 @@ class Strategy(abc.ABC):
     _query_embedding: list[float] = dataclasses.field(default_factory=list)
 
     def __post_init__(self):
+        """Allow passing the deprecated 'k' value instead of 'select_k'."""
         if self.select_k == DEFAULT_SELECT_K and self.k != DEFAULT_SELECT_K:
             self.select_k = self.k
         else:

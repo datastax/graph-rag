@@ -103,6 +103,7 @@ def test_build_strategy_base_override_mmr():
             base_strategy=override_strategy, strategy=base_strategy, lambda_mult=0.2
         )
 
+
 def test_setting_k_sets_select_k():
     assert Eager(select_k=4) == Eager(k=4)
     assert Mmr(select_k=3) == Mmr(k=3)

@@ -43,7 +43,7 @@ class Scored(Strategy):
         Maximum number of nodes to select and traverse during a single
         iteration.
     k:
-        Depreciated: Use `select_k` instead.
+        Deprecated: Use `select_k` instead.
         Maximum number of nodes to select and return during traversal.
     """
 

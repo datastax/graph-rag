@@ -31,7 +31,7 @@ class Eager(Strategy):
     max_depth :
         Maximum traversal depth. If `None`, there is no limit.
     k:
-        Depreciated: Use `select_k` instead.
+        Deprecated: Use `select_k` instead.
         Maximum number of nodes to select and return during traversal.
     """
 
