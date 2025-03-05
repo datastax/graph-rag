@@ -19,7 +19,33 @@ class _ScoredNode:
 
 @dataclasses.dataclass
 class Scored(Strategy):
-    """Strategy selecting nodes using a scoring function."""
+    """
+    Scored traversal strategy.
+
+    This strategy uses a scoring function to select nodes using a local maximum
+    approach. In each iteration, it chooses the top scoring nodes available and
+    then traverses the connected nodes.
+
+    Parameters
+    ----------
+    scorer:
+        A callable function that returns the score of a node.
+    select_k :
+        Maximum number of nodes to retrieve during traversal.
+    start_k :
+        Number of documents to fetch via similarity for starting the traversal.
+        Added to any initial roots provided to the traversal.
+    adjacent_k :
+        Number of documents to fetch for each outgoing edge.
+    max_depth :
+        Maximum traversal depth. If `None`, there is no limit.
+    per_iteration_limit:
+        Maximum number of nodes to select and traverse during a single
+        iteration.
+    k:
+        Depreciated: Use `select_k` instead.
+        Maximum number of nodes to select and return during traversal.
+    """
 
     scorer: Callable[[Node], float]
     _nodes: list[_ScoredNode] = dataclasses.field(default_factory=list)

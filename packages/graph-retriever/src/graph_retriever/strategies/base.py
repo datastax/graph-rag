@@ -10,6 +10,8 @@ from typing import Any
 from graph_retriever.content import Content
 from graph_retriever.types import Node
 
+DEFAULT_SELECT_K = 5
+
 
 class NodeTracker:
     """Helper class for tracking traversal progress."""
@@ -95,15 +97,25 @@ class Strategy(abc.ABC):
         If `None`, there is no limit.
     max_depth :
         Maximum traversal depth. If `None`, there is no limit.
+    k:
+        Depreciated: Use `select_k` instead.
+        Maximum number of nodes to select and return during traversal.
     """
 
-    select_k: int = 5
+    select_k: int = dataclasses.field(default=DEFAULT_SELECT_K)
     start_k: int = 4
     adjacent_k: int = 10
     max_traverse: int | None = None
     max_depth: int | None = None
+    k: int = dataclasses.field(default=DEFAULT_SELECT_K, repr=False)
 
     _query_embedding: list[float] = dataclasses.field(default_factory=list)
+
+    def __post_init__(self):
+        if self.select_k == DEFAULT_SELECT_K and self.k != DEFAULT_SELECT_K:
+            self.select_k = self.k
+        else:
+            self.k = self.select_k
 
     @abc.abstractmethod
     def iteration(self, *, nodes: Iterable[Node], tracker: NodeTracker) -> None:

@@ -30,6 +30,9 @@ class Eager(Strategy):
         Number of documents to fetch for each outgoing edge.
     max_depth :
         Maximum traversal depth. If `None`, there is no limit.
+    k:
+        Depreciated: Use `select_k` instead.
+        Maximum number of nodes to select and return during traversal.
     """
 
     @override
