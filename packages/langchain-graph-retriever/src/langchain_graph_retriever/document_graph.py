@@ -4,7 +4,7 @@ from collections.abc import Sequence
 
 import networkx as nx
 from graph_retriever import Content
-from graph_retriever.edges import Edge, EdgeFunction, EdgeSpec, MetadataEdgeFunction
+from graph_retriever.edges import Edge, EdgeFunction, MetadataEdgeFunction
 from langchain_core.documents import Document
 
 
@@ -48,7 +48,7 @@ def _best_communities(graph: nx.DiGraph) -> list[list[str]]:
 def create_graph(
     documents: Sequence[Document],
     *,
-    edges: list[EdgeSpec] | EdgeFunction,
+    edges: list[tuple[str, str]] | EdgeFunction,
 ) -> nx.DiGraph:
     """
     Create a directed graph from a sequence of documents.
@@ -82,7 +82,9 @@ def create_graph(
     elif callable(edges):
         edge_function = edges
     else:
-        raise ValueError(f"Expected `list[EdgeSpec] | EdgeFunction` but got: {edges}")
+        raise ValueError(
+            f"Expected `list[tuple[str, str]] | EdgeFunction` but got: {edges}"
+        )
 
     # First pass -- index documents based on "to_fields" so we can navigate to them.
     documents_by_incoming: dict[Edge, set[str]] = {}

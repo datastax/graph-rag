@@ -1,7 +1,6 @@
 import copy
 from collections.abc import Iterable
 
-from graph_retriever.edges.metadata import Id
 from graph_retriever.strategies import Mmr
 from langchain_core.documents import Document
 from langchain_core.embeddings import FakeEmbeddings
@@ -62,7 +61,7 @@ async def test_invoke() -> None:
     )
     store = InMemoryVectorStore.from_documents([doc1, doc2], FakeEmbeddings(size=8))
 
-    retriever = GraphRetriever(store=store, edges=[("mentions", Id())])
+    retriever = GraphRetriever(store=store, edges=[("mentions", "$id")])
 
     assert sorted_ids(retriever.invoke("lorem")) == ["doc1", "doc2"]
     assert sorted_ids(await retriever.ainvoke("lorem")) == [

@@ -9,7 +9,7 @@ from typing import (
 
 from graph_retriever import atraverse, traverse
 from graph_retriever.adapters import Adapter
-from graph_retriever.edges import EdgeFunction, EdgeSpec
+from graph_retriever.edges import EdgeFunction
 from graph_retriever.strategies import Eager, Strategy
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
@@ -37,7 +37,7 @@ class GraphRetriever(BaseRetriever):
     store :
         The adapter or vector store used for document retrieval.
     edges :
-        A list of [EdgeSpec][graph_retriever.edges.EdgeSpec] for use in creating a
+        A list of tuple[str,str] for use in creating a
         [MetadataEdgeFunction][graph_retriever.edges.MetadataEdgeFunction],
         or an [EdgeFunction][graph_retriever.edges.EdgeFunction].
     strategy :
@@ -45,7 +45,7 @@ class GraphRetriever(BaseRetriever):
     """
 
     store: Adapter | VectorStore
-    edges: list[EdgeSpec] | EdgeFunction = []
+    edges: list[tuple[str, str]] | EdgeFunction = []
     strategy: Strategy = Eager()
 
     # Capture the extra fields in `self.model_extra` rather than ignoring.
@@ -83,7 +83,7 @@ class GraphRetriever(BaseRetriever):
         self,
         query: str,
         *,
-        edges: list[EdgeSpec] | EdgeFunction | None = None,
+        edges: list[tuple[str, str]] | EdgeFunction | None = None,
         initial_roots: Sequence[str] = (),
         filter: dict[str, Any] | None = None,
         store_kwargs: dict[str, Any] = {},
@@ -144,7 +144,7 @@ class GraphRetriever(BaseRetriever):
         self,
         query: str,
         *,
-        edges: list[EdgeSpec] | EdgeFunction | None = None,
+        edges: list[tuple[str, str]] | EdgeFunction | None = None,
         initial_roots: Sequence[str] = (),
         filter: dict[str, Any] | None = None,
         store_kwargs: dict[str, Any] = {},

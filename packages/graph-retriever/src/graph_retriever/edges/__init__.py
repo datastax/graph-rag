@@ -6,7 +6,7 @@ that the adapters can implement.
 """
 
 from ._base import Edge, EdgeFunction, Edges, IdEdge, MetadataEdge
-from .metadata import EdgeSpec, Id, MetadataEdgeFunction
+from .metadata import MetadataEdgeFunction
 
 __all__ = [
     "Edge",
@@ -14,7 +14,5 @@ __all__ = [
     "IdEdge",
     "Edges",
     "EdgeFunction",
-    "EdgeSpec",
-    "Id",
     "MetadataEdgeFunction",
 ]

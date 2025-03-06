@@ -34,8 +34,8 @@ The following example shows how edges can be defined using metadata from an exam
     1. `("keywords", "keywords")` connects to other articles about GPT and GenAI.
     2. `("authors", "authors")` connects to other articles by any of the same authors.
     3. `("authors", "primary_author")` connects to other articles whose primary author was Ben or Eric.
-    4. `("cites", Id())` connects to the articles cited (by ID).
-    5. `(Id(), "cites")` connects to articles which cite this one.
+    4. `("cites", "$id")` connects to the articles cited (by ID).
+    5. `("$id", "cites")` connects to articles which cite this one.
     6. `("cites", "cites")` connects to other articles with citations in common.
 
 ## Edge Functions

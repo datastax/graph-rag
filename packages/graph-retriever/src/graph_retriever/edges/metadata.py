@@ -2,7 +2,7 @@
 
 import warnings
 from collections.abc import Iterable
-from typing import Any, TypeAlias
+from typing import Any
 
 from graph_retriever.content import Content
 
@@ -14,31 +14,6 @@ BASIC_TYPES = (str, bool, int, float, complex, bytes)
 # between present but `None` (returns `None`) and absent (returns `SENTINEL`)
 # elements.
 SENTINEL = object()
-
-
-class Id:
-    """Place-holder type indicating that the ID should be used."""
-
-    pass
-
-
-EdgeSpec: TypeAlias = tuple[str | Id, str | Id]
-"""
-The definition of an edge for traversal, represented as a pair of fields
-representing the source and target of the edge. Each may be:
-
-- A string, `key`, indicating `doc.metadata[key]` as the value.
-- The placeholder [Id][graph_retriever.edges.Id], indicating `doc.id` as the value.
-
-Examples
---------
-```
-url_to_href_edge          = ("url", "href")
-keywords_to_keywords_edge = ("keywords", "keywords")
-mentions_to_id_edge       = ("mentions", Id())
-id_to_mentions_edge       = (Id(), "mentions)
-```
-"""
 
 
 def _nested_get(metadata: dict[str, Any], key: str) -> Any:
@@ -72,14 +47,14 @@ class MetadataEdgeFunction:
 
     def __init__(
         self,
-        edges: list[EdgeSpec],
+        edges: list[tuple[str, str]],
     ) -> None:
         self.edges = edges
         for source, target in edges:
-            if not isinstance(source, str | Id):
-                raise ValueError(f"Expected 'str | Id' but got: {source}")
-            if not isinstance(target, str | Id):
-                raise ValueError(f"Expected 'str | Id' but got: {target}")
+            if not isinstance(source, str):
+                raise ValueError(f"Expected 'str' but got: {source}")
+            if not isinstance(target, str):
+                raise ValueError(f"Expected 'str' but got: {target}")
 
     def _edges_from_dict(
         self,
@@ -113,7 +88,7 @@ class MetadataEdgeFunction:
             if incoming:
                 source_key = target_key
 
-            if isinstance(target_key, Id):
+            if target_key == "$id":
 
                 def mk_edge(v) -> Edge:
                     return IdEdge(id=str(v))
@@ -122,7 +97,7 @@ class MetadataEdgeFunction:
                 def mk_edge(v) -> Edge:
                     return MetadataEdge(incoming_field=target_key, value=v)
 
-            if isinstance(source_key, Id):
+            if source_key == "$id":
                 edges.add(mk_edge(id))
             else:
                 value = _nested_get(metadata, source_key)

@@ -8,7 +8,7 @@ from typing import Any, Generic, TypeVar
 import pytest
 from graph_retriever import Node, atraverse, traverse
 from graph_retriever.adapters import Adapter
-from graph_retriever.edges import EdgeFunction, EdgeSpec
+from graph_retriever.edges import EdgeFunction
 from graph_retriever.strategies import Strategy
 
 
@@ -20,7 +20,7 @@ class SyncOrAsync(abc.ABC):
         self,
         store: Adapter,
         query: str | None = None,
-        edges: list[EdgeSpec] | EdgeFunction | None = None,
+        edges: list[tuple[str, str]] | EdgeFunction | None = None,
         strategy: Strategy | None = None,
     ) -> TraversalCall[list[str]]:
         return TraversalCall(
@@ -36,7 +36,7 @@ class SyncOrAsync(abc.ABC):
         self,
         store: Adapter,
         query: str | None = None,
-        edges: list[EdgeSpec] | EdgeFunction | None = None,
+        edges: list[tuple[str, str]] | EdgeFunction | None = None,
         strategy: Strategy | None = None,
     ) -> TraversalCall[list[Node]]:
         return TraversalCall(
@@ -76,7 +76,7 @@ class TraversalCall(Generic[T]):
         sync_or_async: SyncOrAsync,
         store: Adapter,
         query: str | None = None,
-        edges: list[EdgeSpec] | EdgeFunction | None = None,
+        edges: list[tuple[str, str]] | EdgeFunction | None = None,
         strategy: Strategy | None = None,
     ) -> None:
         self.transform = transform
@@ -89,7 +89,7 @@ class TraversalCall(Generic[T]):
     async def __call__(
         self,
         query: str | None = None,
-        edges: list[EdgeSpec] | EdgeFunction | None = None,
+        edges: list[tuple[str, str]] | EdgeFunction | None = None,
         strategy: Strategy | None = None,
         metadata_filter: dict[str, Any] | None = None,
         initial_root_ids: Sequence[str] = (),

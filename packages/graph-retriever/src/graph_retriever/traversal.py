@@ -6,7 +6,7 @@ from typing import Any
 
 from graph_retriever.adapters import Adapter
 from graph_retriever.content import Content
-from graph_retriever.edges import Edge, EdgeFunction, EdgeSpec, MetadataEdgeFunction
+from graph_retriever.edges import Edge, EdgeFunction, MetadataEdgeFunction
 from graph_retriever.strategies import Strategy
 from graph_retriever.strategies.base import NodeTracker
 from graph_retriever.types import Node
@@ -16,7 +16,7 @@ from graph_retriever.utils.math import cosine_similarity
 def traverse(
     query: str,
     *,
-    edges: list[EdgeSpec] | EdgeFunction,
+    edges: list[tuple[str, str]] | EdgeFunction,
     strategy: Strategy,
     store: Adapter,
     metadata_filter: dict[str, Any] | None = None,
@@ -31,7 +31,7 @@ def traverse(
     query :
         The query string for the traversal.
     edges :
-        A list of [EdgeSpec][graph_retriever.edges.EdgeSpec] for use in creating a
+        A list of tuple[str,str] for use in creating a
         [MetadataEdgeFunction][graph_retriever.edges.MetadataEdgeFunction],
         or an [EdgeFunction][graph_retriever.edges.EdgeFunction].
     strategy :
@@ -67,7 +67,7 @@ def traverse(
 async def atraverse(
     query: str,
     *,
-    edges: list[EdgeSpec] | EdgeFunction,
+    edges: list[tuple[str, str]] | EdgeFunction,
     strategy: Strategy,
     store: Adapter,
     metadata_filter: dict[str, Any] | None = None,
@@ -82,7 +82,7 @@ async def atraverse(
     query :
         The query string for the traversal.
     edges :
-        A list of [EdgeSpec][graph_retriever.edges.EdgeSpec] for use in creating a
+        A list of tuple[str,str] for use in creating a
         [MetadataEdgeFunction][graph_retriever.edges.MetadataEdgeFunction],
         or an [EdgeFunction][graph_retriever.edges.EdgeFunction].
     strategy :
@@ -131,7 +131,7 @@ class _Traversal:
         self,
         query: str,
         *,
-        edges: list[EdgeSpec] | EdgeFunction,
+        edges: list[tuple[str, str]] | EdgeFunction,
         strategy: Strategy,
         store: Adapter,
         metadata_filter: dict[str, Any] | None = None,
