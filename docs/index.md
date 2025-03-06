@@ -53,11 +53,10 @@ These retrievers are implemented using the metadata search functionality of exis
 
 ```python
 from langchain_graph_retriever import GraphRetriever
-from graph_retriever.edges import Id
 
 retriever = GraphRetriever(
     store = store,
-    edges = [("mentions", Id()), ("entities", "entities")], # (1)!
+    edges = [("mentions", "$id"), ("entities", "entities")], # (1)!
 )
 
 retriever.invoke("where is Santa Clara?")

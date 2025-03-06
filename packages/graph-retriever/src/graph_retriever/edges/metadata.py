@@ -15,9 +15,15 @@ BASIC_TYPES = (str, bool, int, float, complex, bytes)
 # elements.
 SENTINEL = object()
 
+ID_MAGIC_STRING = "$id"
+
 
 class Id:
-    """Place-holder type indicating that the ID should be used."""
+    """
+    Place-holder type indicating that the ID should be used.
+
+    Deprecated: Use "$id" instead.
+    """
 
     pass
 
@@ -28,15 +34,15 @@ The definition of an edge for traversal, represented as a pair of fields
 representing the source and target of the edge. Each may be:
 
 - A string, `key`, indicating `doc.metadata[key]` as the value.
-- The placeholder [Id][graph_retriever.edges.Id], indicating `doc.id` as the value.
+- The magic string `"$id"`, indicating `doc.id` as the value.
 
 Examples
 --------
 ```
 url_to_href_edge          = ("url", "href")
 keywords_to_keywords_edge = ("keywords", "keywords")
-mentions_to_id_edge       = ("mentions", Id())
-id_to_mentions_edge       = (Id(), "mentions)
+mentions_to_id_edge       = ("mentions", "$id")
+id_to_mentions_edge       = ("$id", "mentions)
 ```
 """
 
@@ -113,7 +119,7 @@ class MetadataEdgeFunction:
             if incoming:
                 source_key = target_key
 
-            if isinstance(target_key, Id):
+            if target_key == ID_MAGIC_STRING or isinstance(target_key, Id):
 
                 def mk_edge(v) -> Edge:
                     return IdEdge(id=str(v))
@@ -122,7 +128,7 @@ class MetadataEdgeFunction:
                 def mk_edge(v) -> Edge:
                     return MetadataEdge(incoming_field=target_key, value=v)
 
-            if isinstance(source_key, Id):
+            if source_key == ID_MAGIC_STRING or isinstance(source_key, Id):
                 edges.add(mk_edge(id))
             else:
                 value = _nested_get(metadata, source_key)

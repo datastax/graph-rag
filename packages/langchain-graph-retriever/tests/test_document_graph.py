@@ -2,7 +2,6 @@ from typing import cast
 
 import networkx as nx
 import pytest
-from graph_retriever.edges import Id
 from langchain_core.documents import Document
 from langchain_graph_retriever.document_graph import create_graph, group_by_community
 
@@ -72,7 +71,7 @@ def test_create_graph(docs: list[Document]):
 
     graph = create_graph(
         docs,
-        edges=[("mentions", Id())],
+        edges=[("mentions", "$id")],
     )
     assert sorted(nx.to_edgelist(graph)) == [
         ("doc1", "doc0", {}),

@@ -2,7 +2,7 @@ from typing import Any
 
 import pytest
 from graph_retriever import Node
-from graph_retriever.edges import Edges, Id, IdEdge, MetadataEdge, MetadataEdgeFunction
+from graph_retriever.edges import Edges, IdEdge, MetadataEdge, MetadataEdgeFunction
 
 
 def mk_node(metadata: dict[str, Any]) -> Node:
@@ -48,7 +48,7 @@ def test_nested_edge():
 
 
 def test_link_to_id():
-    edge_function = MetadataEdgeFunction([("mentions", Id())])
+    edge_function = MetadataEdgeFunction([("mentions", "$id")])
     result = edge_function(mk_node({"mentions": ["a", "c"]}))
 
     assert result.incoming == {IdEdge("id")}
@@ -56,7 +56,7 @@ def test_link_to_id():
 
 
 def test_link_from_id():
-    edge_function = MetadataEdgeFunction([(Id(), "mentions")])
+    edge_function = MetadataEdgeFunction([("$id", "mentions")])
     result = edge_function(mk_node({"mentions": ["a", "c"]}))
 
     assert result.incoming == {
