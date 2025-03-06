@@ -2,7 +2,7 @@ import pytest
 from graph_retriever import Content
 from graph_retriever.adapters import Adapter
 from graph_retriever.adapters.in_memory import InMemory
-from graph_retriever.edges import Edges, Id, MetadataEdge
+from graph_retriever.edges import Edges, MetadataEdge
 from graph_retriever.strategies import (
     Eager,
 )
@@ -304,7 +304,7 @@ async def test_ids(sync_or_async: SyncOrAsync):
         store=store,
         query="+0.249",
         strategy=Eager(start_k=1),
-        edges=[("mentions", Id())],
+        edges=[("mentions", "$id")],
     )
     assert await mentions_to_id(max_depth=0) == ["v2"]
     assert await mentions_to_id(max_depth=1) == ["v1", "v2", "v3"]
@@ -314,7 +314,7 @@ async def test_ids(sync_or_async: SyncOrAsync):
         store=store,
         query="-0.125",
         strategy=Eager(start_k=1),
-        edges=[(Id(), "mentions")],
+        edges=[("$id", "mentions")],
     )
     assert await id_to_mentions(max_depth=0) == ["v0"]
     assert await id_to_mentions(max_depth=1) == ["v0", "v1"]
