@@ -42,6 +42,7 @@ dependencies = [
     "astrapy>=1.5.2",
     "backoff>=2.2.1",
     "graph-retriever",
+    "griffe>=1.5.7",
     "httpx>=0.28.1",
     "langchain-core>=0.3.29",
     "python-dotenv>=1.0.1",
@@ -54,6 +55,7 @@ dependencies = [
 astrapy = "astrapy"
 backoff = "backoff"
 graph-retriever = "graph_retriever"
+griffe = "griffe"
 httpx = "httpx"
 langchain-core = "langchain_core"
 mypy = "mypy"

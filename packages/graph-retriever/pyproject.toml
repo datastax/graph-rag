@@ -59,6 +59,7 @@ testing = [
 ]
 
 [tool.deptry.package_module_name_map]
+immutabledict = "immutabledict"
 numpy = "numpy"
 pytest = "pytest"
 simsimd = "simsimd"
