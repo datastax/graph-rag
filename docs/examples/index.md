@@ -10,4 +10,13 @@
     It loads Wikipedia articles and traverses based on links ("mentions") and named entities (extracted from the content). It retrieves a large number of articles, groups them by community, and extracts claims from each community. The best claims are used to answer the question.
 
     [:material-fast-forward: Lazy Graph RAG Example](lazy-graph-rag.ipynb)
+
+-   :material-code-braces-box:{ .lg .middle } __Code Generation__
+
+    ---
+
+    Uses a custom Strategy to traverse astra-py documentation in order to improve
+    LLM generated code output.
+
+    [:material-fast-forward: Code Generation Example](code-generation.ipynb)
 </div>
