@@ -14,7 +14,8 @@ DEFAULT_SELECT_K = 5
 
 
 class NodeTracker:
-    """Helper class initiating node selection and traversal.
+    """
+    Helper class initiating node selection and traversal.
 
     Call .select(nodes) to add nodes to the result set.
     Call .traverse(nodes) to add nodes to the next traversal.
@@ -189,10 +190,9 @@ class Strategy(abc.ABC):
 
         Notes
         -----
-        - The default implementation returns the first `self.select_k` selected nodes without
-        any additional processing.
+        - The default implementation returns the first `self.select_k` selected nodes
+        without any additional processing.
         """
-
         return list(selected)[: self.select_k]
 
     @staticmethod

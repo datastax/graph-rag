@@ -57,6 +57,7 @@ async def test_earth(sync_or_async: SyncOrAsync):
     assert await traversal(start_k=2, max_depth=0) == ["doc1", "doc2"]
     assert await traversal(start_k=1, max_depth=1) == ["doc1", "doc2", "greetings"]
 
+
 async def test_animals_select_k(animals: Adapter, sync_or_async: SyncOrAsync):
     """Test traversing a bi-directional field with lists."""
     traversal = sync_or_async.traverse_sorted_ids(
@@ -67,6 +68,7 @@ async def test_animals_select_k(animals: Adapter, sync_or_async: SyncOrAsync):
     )
     assert len(await traversal(select_k=5)) == 5
     assert len(await traversal(select_k=3)) == 3
+
 
 async def test_animals_keywords(animals: Adapter, sync_or_async: SyncOrAsync):
     """Test traversing a bi-directional field with lists."""
