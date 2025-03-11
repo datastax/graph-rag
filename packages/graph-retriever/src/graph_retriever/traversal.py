@@ -7,8 +7,7 @@ from typing import Any
 from graph_retriever.adapters import Adapter
 from graph_retriever.content import Content
 from graph_retriever.edges import Edge, EdgeFunction, EdgeSpec, MetadataEdgeFunction
-from graph_retriever.strategies import Strategy
-from graph_retriever.strategies.base import NodeTracker
+from graph_retriever.strategies import NodeTracker, Strategy
 from graph_retriever.types import Node
 from graph_retriever.utils.math import cosine_similarity
 
