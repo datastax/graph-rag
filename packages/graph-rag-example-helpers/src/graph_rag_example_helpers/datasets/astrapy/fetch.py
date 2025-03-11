@@ -3,7 +3,9 @@ import json
 import requests
 from langchain_core.documents import Document
 
-ASTRAPY_JSONL_URL = "https://raw.githubusercontent.com/datastax/graph-rag/refs/heads/main/data/astrapy.jsonl"
+# TODO: revert to main branch before code generation is merged
+# ASTRAPY_JSONL_URL = "https://raw.githubusercontent.com/datastax/graph-rag/refs/heads/main/data/astrapy.jsonl"
+ASTRAPY_JSONL_URL = "https://raw.githubusercontent.com/datastax/graph-rag/refs/heads/code_generation/data/astrapy.jsonl"
 
 
 def fetch_documents() -> list[Document]:
