@@ -20,7 +20,7 @@ Make sure you have > 0.5.0 of UV installed.
 
 * Use `uv python install` to install the project python version
 * Use `uv sync` to create a virtual environment and install the dev dependencies
-* Use `uv run poe install` to install all the dependencies for all the packages
+* Use `uv run poe sync` to install all the dependencies for all the packages
 
 ## Helpers
 
@@ -42,7 +42,7 @@ Then you can run `urp lint` instead.
 
 ### Installing
 
-* `install`: Install dependencies from all packages and all extras
+* `sync`: Install dependencies from all packages and all extras
 * `lock-check`: Runs `uv lock --locked` to check uv.lock file consistency (fix with `lock-fix`)
 * `lock-fix`: Runs `uv lock` to fix uv.lock file consistency
 

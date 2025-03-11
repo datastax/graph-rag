@@ -14,7 +14,13 @@ DEFAULT_SELECT_K = 5
 
 
 class NodeTracker:
-    """Helper class for tracking traversal progress."""
+    """Helper class initiating node selection and traversal.
+
+    Call .select(nodes) to add nodes to the result set.
+    Call .traverse(nodes) to add nodes to the next traversal.
+    Call .select_and_traverse(nodes) to add nodes to the result set and the next
+        traversal.
+    """
 
     def __init__(self, select_k: int, max_depth: int | None) -> None:
         self._select_k: int = select_k
@@ -43,6 +49,15 @@ class NodeTracker:
         Returns
         -------
         Number of nodes added for traversal.
+
+        Notes
+        -----
+        - Nodes are only added if they have not been visited before.
+        - Nodes are only added if they do not exceed the maximum depth.
+        - If no new nodes are chosen for traversal, or selected for output, then
+            the traversal will stop.
+        - Traversal will also stop if the number of selected nodes reaches the select_k
+            limit.
         """
         new_nodes = {
             n.id: n
@@ -61,6 +76,15 @@ class NodeTracker:
         Returns
         -------
         Number of nodes added for traversal.
+
+        Notes
+        -----
+        - Nodes are only added for traversal if they have not been visited before.
+        - Nodes are only added for traversal if they do not exceed the maximum depth.
+        - If no new nodes are chosen for traversal, or selected for output, then
+            the traversal will stop.
+        - Traversal will also stop if the number of selected nodes reaches the select_k
+            limit.
         """
         self.select(nodes)
         return self.traverse(nodes)
@@ -123,7 +147,7 @@ class Strategy(abc.ABC):
         """
         Process the newly discovered nodes on each iteration.
 
-        This method should call `traverse` and/or `select` on the tracker
+        This method should call `tracker.traverse()` and/or `tracker.select()`
         as appropriate to update the nodes that need to be traversed in this iteration
         or selected at the end of the retrieval, respectively.
 
@@ -134,6 +158,14 @@ class Strategy(abc.ABC):
             visited before which have an incoming edge which has not been
             visited before from a node which is newly traversed in the previous
             iteration.
+        tracker :
+            The tracker object to manage the traversal and selection of nodes.
+
+        Notes
+        -----
+        - This method is called once for each iteration of the traversal.
+        - In order to stop iterating either choose to not traverse any additional nodes
+        or don't select any additional nodes for output.
         """
         ...
 
@@ -141,15 +173,26 @@ class Strategy(abc.ABC):
         """
         Finalize the selected nodes.
 
-        This method is called before returning the final set of nodes.
+        This method is called before returning the final set of nodes. It allows
+        the strategy to perform any final processing or re-ranking of the selected
+        nodes.
+
+        Parameters
+        ----------
+        selected :
+            The selected nodes to be finalized
 
         Returns
         -------
         :
             Finalized nodes.
+
+        Notes
+        -----
+        - The default implementation returns the first `self.select_k` selected nodes without
+        any additional processing.
         """
-        # Take the first `self.k` selected items.
-        # Strategies may override finalize to perform reranking if needed.
+
         return list(selected)[: self.select_k]
 
     @staticmethod
