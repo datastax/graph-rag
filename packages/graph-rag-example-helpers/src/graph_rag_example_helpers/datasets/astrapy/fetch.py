@@ -34,7 +34,7 @@ def fetch_documents() -> list[Document]:
     response.raise_for_status()  # Ensure we got a valid response
 
     return [
-        Document(id=data["id"], page_content=data["page_content"], metadata=data["metadata"])
+        Document(id=data["id"], page_content=data["text"], metadata=data["metadata"])
         for line in response.text.splitlines()
         if (data := json.loads(line))
     ]
