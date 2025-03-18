@@ -34,16 +34,10 @@ def format_document(doc: Document, debug: bool = False) -> str:
 
     text += f"path: \n\t{metadata['path']}\n\n"
 
-    if "bases" in metadata:
-        text += f"bases: \n\t{add_tabs('\n'.join(metadata['bases']))}\n\n"
-
-    if "exports" in metadata:
-        text += f"exports: \n\t{add_tabs('\n'.join(metadata['exports']))}\n\n"
-
-    if "implemented_by" in metadata:
-        text += (
-            f"implemented_by: \n\t{add_tabs('\n'.join(metadata['implemented_by']))}\n\n"
-        )
+    for key in ["bases", "exports", "implemented_by"]:
+        if key in metadata:
+            values = '\n'.join(metadata[key])
+            text += f"{key}: \n\t{add_tabs(values)}\n\n"
 
     if "properties" in metadata:
         props = [f"{k}: {v}" for k, v in metadata["properties"].items()]
@@ -54,27 +48,18 @@ def format_document(doc: Document, debug: bool = False) -> str:
     elif "value" in metadata:
         text += f"{metadata['value']}\n\n"
 
-    if "attributes" in metadata:
-        attributes = [_format_parameter(a) for a in metadata["attributes"]]
-        text += f"attributes: \n\t{add_tabs('\n\n'.join(attributes))}\n\n"
+    for key in ["attributes", "parameters"]:
+        if key in metadata:
+            values = '\n\n'.join([_format_parameter(v) for v in metadata[key]])
+            text += f"{key}: \n\t{add_tabs(values)}\n\n"
 
-    if "parameters" in metadata:
-        parameters = [_format_parameter(p) for p in metadata["parameters"]]
-        text += f"parameters: \n\t{add_tabs('\n\n'.join(parameters))}\n\n"
+    for key in ["returns", "yields"]:
+        if key in metadata:
+            values = '\n\n'.join([_format_return(v) for v in metadata[key]])
+            text += f"{key}: \n\t{add_tabs(values)}\n\n"
 
-    if "returns" in metadata:
-        returns = [_format_return(r) for r in metadata["returns"]]
-        text += f"returns: \n\t{add_tabs('\n\n'.join(returns))}\n\n"
-
-    if "yields" in metadata:
-        yields = [_format_return(y) for y in metadata["yields"]]
-        text += f"yields: \n\t{add_tabs('\n\n'.join(yields))}\n\n"
-
-    if "note" in metadata:
-        text += f"note: \n\t{add_tabs(metadata['note'])}\n\n"
-
-    if "example" in metadata:
-        text += f"example: \n\t{add_tabs(metadata['example'])}\n\n"
+    for key in ["note", "example"]:
+        text += f"{key}: \n\t{add_tabs(metadata[key])}\n\n"
 
     if debug:
         if "imports" in metadata:
@@ -84,13 +69,13 @@ def format_document(doc: Document, debug: bool = False) -> str:
                     imports.append(real_name)
                 else:
                     imports.append(f"{real_name} as {as_name}")
-            text += f"imports: \n\t{add_tabs('\n'.join(imports))}\n\n"
+            values = "\n".join(imports)
+            text += f"imports: \n\t{add_tabs(values)}\n\n"
 
-        if "references" in metadata:
-            text += f"references: \n\t{add_tabs('\n'.join(metadata['references']))}\n\n"
-
-        if "gathered_types" in metadata:
-            text += f"gathered_types: \n\t{add_tabs('\n'.join(metadata['gathered_types']))}\n\n"  # noqa: E501
+        for key in ["references", "gathered_types"]:
+            if key in metadata:
+                values = "\n".join(metadata[key])
+                text += f"{key}: \n\t{add_tabs(values)}\n\n"
 
         if "parent" in metadata:
             text += f"parent: {metadata['parent']}\n\n"
