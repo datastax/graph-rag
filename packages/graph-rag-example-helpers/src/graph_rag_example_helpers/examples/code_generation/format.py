@@ -1,6 +1,10 @@
+from textwrap import indent
+
 from langchain_core.documents import Document
 
-from graph_rag_example_helpers.utils import add_tabs
+
+def _add_tabs(text: str) -> str:
+    return indent(text, "\t")
 
 
 def _format_parameter(el: dict[str, str]) -> str:
@@ -13,7 +17,7 @@ def _format_parameter(el: dict[str, str]) -> str:
     if "default" in el:
         text += f" = {el['default']}"
     if "description" in el:
-        desc = add_tabs(el["description"])
+        desc = _add_tabs(el["description"])
         text += f"\n\t{desc}"
     return text
 
@@ -23,7 +27,7 @@ def _format_return(el: dict[str, str]) -> str:
     if "type" in el:
         items.append(el["type"])
     if "description" in el:
-        items.append(add_tabs(el["description"]))
+        items.append(_add_tabs(el["description"]))
     return "\n\t".join(items)
 
 
@@ -36,30 +40,32 @@ def format_document(doc: Document, debug: bool = False) -> str:
 
     for key in ["bases", "exports", "implemented_by"]:
         if key in metadata:
-            values = '\n'.join(metadata[key])
-            text += f"{key}: \n\t{add_tabs(values)}\n\n"
+            values = "\n".join(metadata[key])
+            text += f"{key}: \n\t{_add_tabs(values)}\n\n"
 
     if "properties" in metadata:
         props = [f"{k}: {v}" for k, v in metadata["properties"].items()]
-        text += f"properties: \n\t{add_tabs('\n'.join(props))}\n\n"
+        values = "\n".join(props)
+        text += f"properties: \n\t{_add_tabs(values)}\n\n"
 
     if doc.page_content != "":
-        text += f"description: \n\t{add_tabs(doc.page_content)}\n\n"
+        text += f"description: \n\t{_add_tabs(doc.page_content)}\n\n"
     elif "value" in metadata:
         text += f"{metadata['value']}\n\n"
 
     for key in ["attributes", "parameters"]:
         if key in metadata:
-            values = '\n\n'.join([_format_parameter(v) for v in metadata[key]])
-            text += f"{key}: \n\t{add_tabs(values)}\n\n"
+            values = "\n\n".join([_format_parameter(v) for v in metadata[key]])
+            text += f"{key}: \n\t{_add_tabs(values)}\n\n"
 
     for key in ["returns", "yields"]:
         if key in metadata:
-            values = '\n\n'.join([_format_return(v) for v in metadata[key]])
-            text += f"{key}: \n\t{add_tabs(values)}\n\n"
+            values = "\n\n".join([_format_return(v) for v in metadata[key]])
+            text += f"{key}: \n\t{_add_tabs(values)}\n\n"
 
     for key in ["note", "example"]:
-        text += f"{key}: \n\t{add_tabs(metadata[key])}\n\n"
+        if key in metadata:
+            text += f"{key}: \n\t{_add_tabs(metadata[key])}\n\n"
 
     if debug:
         if "imports" in metadata:
@@ -70,12 +76,12 @@ def format_document(doc: Document, debug: bool = False) -> str:
                 else:
                     imports.append(f"{real_name} as {as_name}")
             values = "\n".join(imports)
-            text += f"imports: \n\t{add_tabs(values)}\n\n"
+            text += f"imports: \n\t{_add_tabs(values)}\n\n"
 
         for key in ["references", "gathered_types"]:
             if key in metadata:
                 values = "\n".join(metadata[key])
-                text += f"{key}: \n\t{add_tabs(values)}\n\n"
+                text += f"{key}: \n\t{_add_tabs(values)}\n\n"
 
         if "parent" in metadata:
             text += f"parent: {metadata['parent']}\n\n"

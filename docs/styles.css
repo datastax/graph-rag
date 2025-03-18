@@ -13,3 +13,8 @@
 .colab {
     color:  #F9AB00;
 }
+
+/* hide cell tags */
+.jp-Cell .celltoolbar {
+    display: none !important;
+}

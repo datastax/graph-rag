@@ -18,12 +18,12 @@
     vector store so that it can be used to provide context to an LLM for code generation.
 
     It uses LangChain and `langchain-graph-retriever` with a custom traversal Strategy
-    to in order to improve LLM generated code output. It shows that using GraphRAG can
-    provide a significant increase in quality over using either a LLM alone or standard
+    in order to improve LLM generated code output. It shows that using GraphRAG can
+    provide a significant increase in quality over using either an LLM alone or standard
     RAG.
 
-    GraphRAG is traverses through the documentation in a way similar to how a
-    software engineer would, in order to determine how to solve a coding problem.
+    GraphRAG traverses cross references in the documentation like a software engineer
+    would, in order to determine how to solve a coding problem.
 
     [:material-fast-forward: Code Generation Example](code-generation.ipynb)
 </div>

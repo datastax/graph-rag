@@ -129,6 +129,7 @@ nav:
     - Examples:
         - examples/index.md
         - examples/lazy-graph-rag.ipynb
+        - examples/code-generation.ipynb
     - Reference:
         - reference/index.md
         - graph-retriever:

@@ -2,11 +2,10 @@ import ast
 import json
 import os
 import typing
+from textwrap import indent
 from typing import Any
 
 import griffe
-
-from graph_rag_example_helpers.utils import add_tabs
 
 
 def convert(
@@ -165,7 +164,7 @@ class _Converter:
         if "default" in el:
             text += f" = {el['default']}"
         if "description" in el:
-            desc = add_tabs(el["description"])
+            desc = indent(el["description"], "\t")
             text += f"\n\t{desc}"
         return text
 
@@ -174,7 +173,7 @@ class _Converter:
         if "type" in el:
             items.append(el["type"])
         if "description" in el:
-            items.append(add_tabs(el["description"]))
+            items.append(indent(el["description"], "\t"))
         return "\n\t".join(items)
 
     def _extract_common(self, obj: griffe.Object) -> dict[str, Any]:
