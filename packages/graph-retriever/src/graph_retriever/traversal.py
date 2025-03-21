@@ -156,6 +156,7 @@ class _Traversal:
         self._used = False
         self._visited_edges: set[Edge] = set()
         self._edge_depths: dict[Edge, int] = {}
+        self._discovered_node_ids: set[str] = set()
         self._node_tracker: NodeTracker = NodeTracker(
             select_k=strategy.select_k, max_depth=strategy.max_depth
         )
@@ -182,7 +183,7 @@ class _Traversal:
         initial_content = self._fetch_initial_candidates()
         if self.initial_root_ids:
             initial_content.extend(self.store.get(self.initial_root_ids))
-        nodes = self._contents_to_nodes(initial_content, depth=0)
+        nodes = self._contents_to_new_nodes(initial_content, depth=0)
 
         while True:
             self.strategy.iteration(nodes=nodes, tracker=self._node_tracker)
@@ -192,7 +193,7 @@ class _Traversal:
 
             next_outgoing_edges = self.select_next_edges(self._node_tracker.to_traverse)
             new_content = self._fetch_adjacent(next_outgoing_edges)
-            nodes = self._contents_to_nodes(new_content)
+            nodes = self._contents_to_new_nodes(new_content)
 
             self._node_tracker.to_traverse.clear()
 
@@ -216,17 +217,17 @@ class _Traversal:
         initial_content = await self._afetch_initial_candidates()
         if self.initial_root_ids:
             initial_content.extend(await self.store.aget(self.initial_root_ids))
-        nodes = self._contents_to_nodes(initial_content, depth=0)
+        new_nodes = self._contents_to_new_nodes(initial_content, depth=0)
 
         while True:
-            self.strategy.iteration(nodes=nodes, tracker=self._node_tracker)
+            self.strategy.iteration(nodes=new_nodes, tracker=self._node_tracker)
 
             if self._node_tracker._should_stop_traversal():
                 break
 
             next_outgoing_edges = self.select_next_edges(self._node_tracker.to_traverse)
-            new_content = await self._afetch_adjacent(next_outgoing_edges)
-            nodes = self._contents_to_nodes(new_content)
+            next_content = await self._afetch_adjacent(next_outgoing_edges)
+            new_nodes = self._contents_to_new_nodes(next_content)
 
             self._node_tracker.to_traverse.clear()
 
@@ -310,7 +311,7 @@ class _Traversal:
             **self.store_kwargs,
         )
 
-    def _contents_to_nodes(
+    def _contents_to_new_nodes(
         self, contents: Iterable[Content], *, depth: int | None = None
     ) -> Iterable[Node]:
         """
@@ -321,8 +322,8 @@ class _Traversal:
 
         Parameters
         ----------
-        content :
-            The content to convert into a node.
+        contents :
+            The contents to convert into a node.
         depth :
             The depth of the node. If None, the depth is calculated based on the
             incoming edges.
@@ -330,10 +331,17 @@ class _Traversal:
         Returns
         -------
         :
-            The newly created nodes.
+            The newly discovered nodes.
         """
         # Determine which contents to include.
-        content_dict = {c.id: c for c in contents if self._node_tracker._not_visited(c)}
+
+        # TODO: We could push this filtering down into the `adjacent` calls,
+        # which could allow some stores to avoid retrieving/decoding already
+        # discovered contents. This would complicate the implementation, so we
+        # should only do so if the cost of retrieving/decoding is significant.
+        content_dict = {
+            c.id: c for c in contents if c.id not in self._discovered_node_ids
+        }
 
         # Compute scores (as needed).
         if any(c.score is None for c in content_dict.values()):
@@ -375,6 +383,7 @@ class _Traversal:
                     outgoing_edges=edges.outgoing,
                 )
             )
+        self._discovered_node_ids.update(content_dict.keys())
         return nodes
 
     def select_next_edges(self, nodes: dict[str, Node]) -> set[Edge]:

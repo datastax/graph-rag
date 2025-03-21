@@ -35,6 +35,26 @@ async def test_animals_keywords(animals: Adapter, sync_or_async: SyncOrAsync):
     ]
 
 
+async def test_rediscovering(animals: Adapter, sync_or_async: SyncOrAsync):
+    """Test for https://github.com/datastax/graph-rag/issues/167.
+
+    The issue was nodes were being "rediscovered" and readded to the candidates
+    list in MMR. This violates the contract of the traversal. This test runs MMR
+    with a high number of iterations (select 97 nodes, 1 at a time) and a high
+    adjacent K (100) nodes at each iteration. This ensures that some nodes will
+    be rediscovered.
+    """
+    traversal = sync_or_async.traverse_sorted_ids(
+        store=animals,
+        edges=[("habitat", "habitat")],
+    )
+    result = await traversal(
+        query="cat",
+        strategy=Mmr(select_k=97, adjacent_k=100, start_k=100, lambda_mult=0.9),
+    )
+    assert len(result) == 97
+
+
 async def test_animals_habitat(animals: Adapter, sync_or_async: SyncOrAsync):
     """Test traversing a bi-directional field with singular values."""
     traversal = sync_or_async.traverse_sorted_ids(
