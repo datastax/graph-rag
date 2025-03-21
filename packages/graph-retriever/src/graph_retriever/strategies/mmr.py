@@ -257,7 +257,8 @@ class Mmr(Strategy):
     @override
     def iteration(self, nodes: Iterable[Node], tracker: NodeTracker) -> None:
         """Add candidates to the consideration set."""
-        node_count = len(list(nodes))
+        nodes = list(nodes)
+        node_count = len(nodes)
         if node_count > 0:
             # Build up a matrix of the remaining candidate embeddings.
             # And add them to the candidate set
@@ -306,6 +307,7 @@ class Mmr(Strategy):
 
         while tracker.num_remaining > 0:
             next = self._next()
+
             if next is None:
                 break
 

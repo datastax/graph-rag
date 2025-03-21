@@ -7,7 +7,6 @@ import dataclasses
 from collections.abc import Iterable
 from typing import Any
 
-from graph_retriever.content import Content
 from graph_retriever.types import Node
 
 DEFAULT_SELECT_K = 5
@@ -63,7 +62,7 @@ class NodeTracker:
         new_nodes = {
             n.id: n
             for n in nodes
-            if self._not_visited(n)
+            if self._not_visited(n.id)
             if self._max_depth is None or n.depth < self._max_depth
         }
         self.to_traverse.update(new_nodes)
@@ -90,9 +89,9 @@ class NodeTracker:
         self.select(nodes)
         return self.traverse(nodes)
 
-    def _not_visited(self, item: Content | Node):
-        """Return true if the content or node has not been visited."""
-        return item.id not in self._visited_node_ids
+    def _not_visited(self, id: str):
+        """Return true if the node has not been visited."""
+        return id not in self._visited_node_ids
 
     def _should_stop_traversal(self):
         """Return true if traversal should be stopped."""
