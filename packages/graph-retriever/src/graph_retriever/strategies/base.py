@@ -154,10 +154,9 @@ class Strategy(abc.ABC):
         Parameters
         ----------
         nodes :
-            The newly discovered nodes. These are nodes which have not been
-            visited before which have an incoming edge which has not been
-            visited before from a node which is newly traversed in the previous
-            iteration.
+            The newly discovered nodes found from either:
+            - the initial vector store retrieval
+            - incoming edges from nodes chosen for traversal in the previous iteration
         tracker :
             The tracker object to manage the traversal and selection of nodes.
 
