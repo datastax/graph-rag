@@ -441,6 +441,4 @@ class AstraAdapter(Adapter):
             content=hit[codec.content_field],
             embedding=embedding,
             metadata=hit["metadata"],
-            # We may not have `$similarity` depending on the query.
-            score=hit.get("$similarity", None),
         )

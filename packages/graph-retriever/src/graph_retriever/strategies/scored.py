@@ -66,3 +66,10 @@ class Scored(Strategy):
             node = highest.node
             node.extra_metadata["_score"] = highest.score
             limit -= tracker.select_and_traverse([node])
+
+    @override
+    def finalize_nodes(self, selected):
+        selected = sorted(
+            selected, key=lambda node: node.extra_metadata["_score"], reverse=True
+        )
+        return super().finalize_nodes(selected)

@@ -147,6 +147,7 @@ class OpenSearchAdapter(LangchainAdapter[OpenSearchVectorSearch]):
             },
             index=self.vector_store.index_name,
             _source_includes=["text", "metadata", "vector_field"],
+            size=len(ids),
             **kwargs,
         )
 

@@ -6,6 +6,7 @@ from graph_retriever.edges import Edges, MetadataEdge
 from graph_retriever.strategies import (
     Eager,
 )
+from graph_retriever.testing.adapter_tests import cosine_similarity_scores
 from graph_retriever.testing.embeddings import (
     ParserEmbeddings,
     angular_2d_embedding,
@@ -133,8 +134,10 @@ async def test_animals_habitat(animals: Adapter, sync_or_async: SyncOrAsync):
     ]
 
 
-async def test_animals_populates_metrics(animals: Adapter, sync_or_async: SyncOrAsync):
-    """Test that score and depth are populated."""
+async def test_animals_populates_metrics_and_order(
+    animals: Adapter, sync_or_async: SyncOrAsync
+):
+    """Test that score and depth are populated and results are returned in order."""
     results = await sync_or_async.traverse(
         store=animals,
         query=ANIMALS_QUERY,
@@ -142,14 +145,6 @@ async def test_animals_populates_metrics(animals: Adapter, sync_or_async: SyncOr
         strategy=Eager(select_k=100, start_k=2, max_depth=2),
     )()
 
-    expected_similarity_scores = {
-        "mongoose": 0.578682,
-        "bobcat": 0.02297939,
-        "cobra": 0.01365448699,
-        "deer": 0.1869947,
-        "elk": 0.02876833,
-        "fox": 0.533316,
-    }
     expected_depths = {
         "mongoose": 0,
         "bobcat": 1,
@@ -159,6 +154,10 @@ async def test_animals_populates_metrics(animals: Adapter, sync_or_async: SyncOr
         "fox": 0,
     }
 
+    expected_similarity_scores = cosine_similarity_scores(
+        animals, ANIMALS_QUERY, list(expected_depths.keys())
+    )
+
     for n in results:
         assert n.extra_metadata["_similarity_score"] == pytest.approx(
             expected_similarity_scores[n.id]
@@ -166,6 +165,15 @@ async def test_animals_populates_metrics(animals: Adapter, sync_or_async: SyncOr
         assert n.extra_metadata["_depth"] == expected_depths[n.id], (
             f"incorrect depth for {n.id}"
         )
+
+    expected_ids_in_order = sorted(
+        expected_similarity_scores.keys(),
+        key=lambda id: expected_similarity_scores[id],
+        reverse=True,
+    )
+    assert [n.id for n in results] == expected_ids_in_order, (
+        "incorrect order of results"
+    )
 
 
 async def test_animals_habitat_to_keywords(

@@ -8,6 +8,7 @@ import pytest
 from graph_retriever import Content
 from graph_retriever.adapters import Adapter
 from graph_retriever.edges import Edge, IdEdge, MetadataEdge
+from graph_retriever.utils.math import cosine_similarity
 
 
 def assert_valid_result(content: Content):
@@ -38,6 +39,48 @@ def assert_ids_any_order(
 
     result_ids = [r.id for r in results]
     assert set(result_ids) == set(expected), "should contain exactly expected IDs"
+
+
+def cosine_similarity_scores(
+    adapter: Adapter, query_or_embedding: str | list[float], ids: list[str]
+) -> dict[str, float]:
+    """Return the cosine similarity scores for the given IDs and query embedding."""
+    if len(ids) == 0:
+        return {}
+
+    docs = adapter.get(ids)
+    found_ids = (d.id for d in docs)
+    assert set(ids) == set(found_ids), "can't find all IDs"
+
+    if isinstance(query_or_embedding, str):
+        query_embedding = adapter.search_with_embedding(query_or_embedding, k=0)[0]
+    else:
+        query_embedding = query_or_embedding
+
+    scores: list[float] = cosine_similarity(
+        [query_embedding],
+        [d.embedding for d in docs],
+    )[0]
+
+    return {doc.id: score for doc, score in zip(docs, scores)}
+
+
+def assert_ids_in_cosine_similarity_order(
+    results: Iterable[Content],
+    expected: list[str],
+    query_embedding: list[float],
+    adapter: Adapter,
+) -> None:
+    """Assert the results are valid and in cosine similarity order."""
+    assert_valid_results(results)
+    result_ids = [r.id for r in results]
+
+    similarity_scores = cosine_similarity_scores(adapter, query_embedding, expected)
+    expected = sorted(expected, key=lambda id: similarity_scores[id], reverse=True)
+
+    assert result_ids == expected, (
+        "should contain expected IDs in cosine similarity order"
+    )
 
 
 @dataclass(kw_only=True)
@@ -410,7 +453,7 @@ class AdapterComplianceSuite(abc.ABC):
 
         Generally, this should *not* change the expected results, unless the the
         adapter being tested uses wildly different distance metrics or a
-        different embedding. The `AnimalsEmbedding` is deterimistic and the
+        different embedding. The `AnimalsEmbedding` is deterministic and the
         results across vector stores should generally be deterministic and
         consistent.
 
@@ -469,7 +512,7 @@ class AdapterComplianceSuite(abc.ABC):
             search_case.query, **search_case.kwargs
         )
         assert_is_embedding(embedding)
-        assert_ids_any_order(results, expected)
+        assert_ids_in_cosine_similarity_order(results, expected, embedding, adapter)
 
     async def test_asearch_with_embedding(
         self, adapter: Adapter, search_case: SearchCase
@@ -480,21 +523,21 @@ class AdapterComplianceSuite(abc.ABC):
             search_case.query, **search_case.kwargs
         )
         assert_is_embedding(embedding)
-        assert_ids_any_order(results, expected)
+        assert_ids_in_cosine_similarity_order(results, expected, embedding, adapter)
 
     def test_search(self, adapter: Adapter, search_case: SearchCase) -> None:
         """Run tests for `search`."""
         expected = self.expected("search", search_case)
         embedding, _ = adapter.search_with_embedding(search_case.query, k=0)
         results = adapter.search(embedding, **search_case.kwargs)
-        assert_ids_any_order(results, expected)
+        assert_ids_in_cosine_similarity_order(results, expected, embedding, adapter)
 
     async def test_asearch(self, adapter: Adapter, search_case: SearchCase) -> None:
         """Run tests for `asearch`."""
         expected = self.expected("asearch", search_case)
         embedding, _ = await adapter.asearch_with_embedding(search_case.query, k=0)
         results = await adapter.asearch(embedding, **search_case.kwargs)
-        assert_ids_any_order(results, expected)
+        assert_ids_in_cosine_similarity_order(results, expected, embedding, adapter)
 
     def test_adjacent(self, adapter: Adapter, adjacent_case: AdjacentCase) -> None:
         """Run tests for `adjacent."""
@@ -506,7 +549,7 @@ class AdapterComplianceSuite(abc.ABC):
             k=adjacent_case.k,
             filter=adjacent_case.filter,
         )
-        assert_ids_any_order(results, expected)
+        assert_ids_in_cosine_similarity_order(results, expected, embedding, adapter)
 
     async def test_aadjacent(
         self, adapter: Adapter, adjacent_case: AdjacentCase
@@ -520,4 +563,4 @@ class AdapterComplianceSuite(abc.ABC):
             k=adjacent_case.k,
             filter=adjacent_case.filter,
         )
-        assert_ids_any_order(results, expected)
+        assert_ids_in_cosine_similarity_order(results, expected, embedding, adapter)

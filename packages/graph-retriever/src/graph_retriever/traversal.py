@@ -343,19 +343,18 @@ class _Traversal:
             c.id: c for c in contents if c.id not in self._discovered_node_ids
         }
 
-        # Compute scores (as needed).
-        if any(c.score is None for c in content_dict.values()):
-            scores = cosine_similarity(
-                [self.strategy._query_embedding],
-                [c.embedding for c in content_dict.values() if c.score is None],
-            )[0]
-        else:
-            scores = []
+        if len(content_dict) == 0:
+            return []
+
+        # Compute scores.
+        scores: list[float] = cosine_similarity(
+            [self.strategy._query_embedding],
+            [c.embedding for c in content_dict.values()],
+        )[0]
 
         # Create the nodes
-        scores_it = iter(scores)
         nodes = []
-        for content in content_dict.values():
+        for content, score in zip(content_dict.values(), scores):
             # Determine incoming/outgoing edges.
             edges = self.edge_function(content)
 
@@ -370,7 +369,6 @@ class _Traversal:
                     default=0,
                 )
 
-            score = content.score or next(scores_it)
             nodes.append(
                 Node(
                     id=content.id,

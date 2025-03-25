@@ -1,5 +1,4 @@
 from collections.abc import Iterable
-from typing import cast
 
 from graph_retriever.content import Content
 from graph_retriever.utils.math import cosine_similarity_top_k
@@ -12,7 +11,7 @@ def top_k(
     k: int,
 ) -> list[Content]:
     """
-    Select the top-k contents from the given contet.
+    Select the top-k contents from the given content.
 
     Parameters
     ----------
@@ -26,35 +25,32 @@ def top_k(
     Returns
     -------
     list[Content]
-        Top-K by similarity. All results will have their `score` set.
+        Top-K by similarity.
     """
     # TODO: Consider handling specially cases of already-sorted batches (merge).
     # TODO: Consider passing threshold here to limit results.
 
     # Use dicts to de-duplicate by ID. This ensures we choose the top K distinct
     # content (rather than K copies of the same content).
-    scored = {c.id: c for c in contents if c.score is not None}
-    unscored = {c.id: c for c in contents if c.score is None if c.id not in scored}
+    unscored = {c.id: c for c in contents}
 
-    if unscored:
-        top_unscored = _similarity_sort_top_k(
-            list(unscored.values()), embedding=embedding, k=k
-        )
-        scored.update(top_unscored)
+    top_scored = _similarity_sort_top_k(
+        list(unscored.values()), embedding=embedding, k=k
+    )
 
-    sorted = list(scored.values())
+    sorted = list(top_scored.values())
     sorted.sort(key=_score, reverse=True)
 
-    return sorted[:k]
+    return [c[0] for c in sorted]
 
 
-def _score(content: Content) -> float:
-    return cast(float, content.score)
+def _score(content_with_score: tuple[Content, float]) -> float:
+    return content_with_score[1]
 
 
 def _similarity_sort_top_k(
     contents: list[Content], *, embedding: list[float], k: int
-) -> dict[str, Content]:
+) -> dict[str, tuple[Content, float]]:
     # Flatten the content and use a dict to deduplicate.
     # We need to do this *before* selecting the top_k to ensure we don't
     # get duplicates (and fail to produce `k`).
@@ -65,6 +61,5 @@ def _similarity_sort_top_k(
     results = {}
     for (_x, y), score in zip(top_k, scores):
         c = contents[y]
-        c.score = score
-        results[c.id] = c
+        results[c.id] = (c, score)
     return results

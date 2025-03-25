@@ -1,16 +1,15 @@
 import pytest
 from graph_retriever.adapters.base import Adapter
 from graph_retriever.strategies.scored import Scored
+from graph_retriever.testing.adapter_tests import cosine_similarity_scores
 from graph_retriever.types import Node
 
-from tests.testing.adapters import (
-    ANIMALS_QUERY,
-)
+from tests.testing.adapters import ANIMALS_QUERY
 from tests.testing.invoker import SyncOrAsync
 
 
 def score_animals(node: Node) -> float:
-    return 20 - len(node.id)
+    return (20 - len(node.id)) + ((ord(node.id[0]) - ord("a")) / 100)
 
 
 async def test_animals_keywords(animals: Adapter, sync_or_async: SyncOrAsync):
@@ -43,12 +42,14 @@ async def test_animals_keywords(animals: Adapter, sync_or_async: SyncOrAsync):
         "cat",
         "fox",
         "hyena",
-        "mongoose",
+        "jackal",
     ]
 
 
-async def test_animals_populates_metrics(animals: Adapter, sync_or_async: SyncOrAsync):
-    """Test that score and depth are populated."""
+async def test_animals_populates_metrics_and_order(
+    animals: Adapter, sync_or_async: SyncOrAsync
+):
+    """Test that score and depth are populated and results are returned in order."""
     results = await sync_or_async.traverse(
         store=animals,
         query=ANIMALS_QUERY,
@@ -56,21 +57,13 @@ async def test_animals_populates_metrics(animals: Adapter, sync_or_async: SyncOr
         strategy=Scored(scorer=score_animals, start_k=2),
     )(select_k=8, max_depth=2)
 
-    expected_similarity_scores = {
-        "mongoose": 0.578682,
-        "bobcat": 0.02297939,
-        "cobra": 0.01365448699,
-        "deer": 0.1869947,
-        "elk": 0.02876833,
-        "fox": 0.533316,
-    }
     expected_scores = {
-        "mongoose": 12,
-        "bobcat": 14,
-        "cobra": 15,
-        "deer": 16,
-        "elk": 17,
-        "fox": 17,
+        "mongoose": 12.12,
+        "bobcat": 14.01,
+        "cobra": 15.02,
+        "deer": 16.03,
+        "elk": 17.04,
+        "fox": 17.05,
     }
     expected_depths = {
         "mongoose": 0,
@@ -80,6 +73,10 @@ async def test_animals_populates_metrics(animals: Adapter, sync_or_async: SyncOr
         "elk": 1,
         "fox": 0,
     }
+
+    expected_similarity_scores = cosine_similarity_scores(
+        animals, ANIMALS_QUERY, list(expected_depths.keys())
+    )
 
     for n in results:
         assert n.extra_metadata["_similarity_score"] == pytest.approx(
@@ -91,3 +88,10 @@ async def test_animals_populates_metrics(animals: Adapter, sync_or_async: SyncOr
         assert n.extra_metadata["_depth"] == expected_depths[n.id], (
             f"incorrect depth for {n.id}"
         )
+
+    expected_ids_in_order = sorted(
+        expected_scores.keys(), key=lambda id: expected_scores[id], reverse=True
+    )
+    assert [n.id for n in results] == expected_ids_in_order, (
+        "incorrect order of results"
+    )
