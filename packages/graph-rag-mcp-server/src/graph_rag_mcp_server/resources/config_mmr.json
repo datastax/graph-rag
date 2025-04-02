@@ -1,0 +1,52 @@
+{
+    "query": {
+      "type": "str",
+      "description": "Natural language query used for initial vector search. Ignored if start_k = 0.",
+      "default": ""
+    },
+    "edges": {
+      "type": "List[Tuple[str, str]]",
+      "description": "Metadata fields used to form graph edges.",
+      "default": []
+    },
+    "select_k": {
+      "type": "int",
+      "description": "Number of documents to return. Equivalent to k in most retrievers.",
+      "default": 10
+    },
+    "start_k": {
+      "type": "int",
+      "description": "Number of vector search results to use as traversal roots. Set to 0 to disable vector search.",
+      "default": 5
+    },
+    "initial_roots": {
+      "type": "List[str]",
+      "description": "Document IDs to start traversal from. Used only if traversal is enabled.",
+      "default": []
+    },
+    "adjacent_k": {
+      "type": "int",
+      "description": "Max number of adjacent nodes considered per traversal step.",
+      "default": 5
+    },
+    "max_depth": {
+      "type": "int",
+      "description": "Maximum traversal depth. 0 disables traversal (vector-only behavior).",
+      "default": 1
+    },
+    "lambda_mult": {
+      "type": "float",
+      "description": "(MMR only) Trade-off between relevance (1.0) and diversity (0.0).",
+      "default": 0.5
+    },
+    "min_mmr_score": {
+      "type": "float",
+      "description": "(MMR only) Filter: only include nodes with MMR score ≥ this threshold.",
+      "default": 0.0
+    },
+    "metadata_filter": {
+      "type": "dict[str, Any]",
+      "description": "Optional: restrict traversal to nodes whose metadata matches this filter.",
+      "default": null
+    }
+  }

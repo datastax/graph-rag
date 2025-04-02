@@ -42,6 +42,7 @@ docstring-code-format = true
 graph-retriever = { workspace = true }
 langchain-graph-retriever = { workspace = true }
 graph-rag-example-helpers = { workspace = true }
+graph-rag-mcp-server = { workspace = true }
 
 [tool.uv.workspace]
 members = ["packages/*"]

@@ -1,0 +1,103 @@
+[project]
+name = "graph-rag-mcp-server"
+version = "0.1.0"
+description = "Graph RAG - Model Context Protocol (MCP) Server."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+
+keywords = [
+    "graph RAG",
+    "RAG",
+    "MCP",
+    "MCP server",
+    "model context protocol",
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+
+    # Supported Python Versions
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+
+    # Topic
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+
+    # Intended Audience(s)
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+
+    # License
+    "License :: OSI Approved :: Apache Software License",
+
+    # Other Details
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "langchain-graph-retriever",
+    "mcp[cli]>=1.6.0",
+]
+
+[tool.deptry.package_module_name_map]
+astrapy = "astrapy"
+backoff = "backoff"
+graph-retriever = "graph_retriever"
+griffe = "griffe"
+httpx = "httpx"
+langchain-core = "langchain_core"
+mypy = "mypy"
+networkx-stubs = "networkx_stubs"
+pytest = "pytest"
+pytest-asyncio = "pytest_asyncio"
+pytest-cov = "pytest_cov"
+python-dotenv = "dotenv"
+requests = "requests"
+simsimd = "simsimd"
+tqdm = "tqdm"
+types-requests = "types_requests"
+
+[tool.deptry.per_rule_ignores]
+DEP001 = ["google"]
+DEP002 = ["simsimd"]
+
+[tool.uv.sources]
+graph-retriever = { workspace = true }
+
+[project.urls]
+"Homepage" = "https://datastax.github.io/graph-rag"
+"GitHub" = "https://github.com/datastax/graph-rag"
+"Bug Reports" = "https://github.com/datastax/graph-rag/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build]
+include = [
+    "src/graph_rag_mcp_server/resources/**/*",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/graph_rag_mcp_server"]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.14.1",
+    "networkx-stubs>=0.0.1",
+    "pytest>=8.3.4",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.25.2",
+    "types-requests>=2.32.0.20241016",
+]
+
