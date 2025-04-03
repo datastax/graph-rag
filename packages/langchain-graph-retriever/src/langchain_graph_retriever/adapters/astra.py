@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import warnings
-from collections.abc import Iterable, Iterator, Sequence
-from typing import Any, cast
+from collections.abc import AsyncIterable, AsyncIterator, Iterable, Iterator, Sequence
+from typing import Any, Literal, cast, overload
 
 import backoff
 from graph_retriever import Content
@@ -17,9 +16,7 @@ from typing_extensions import override
 
 try:
     from langchain_astradb import AstraDBVectorStore
-    from langchain_astradb.utils.vector_store_codecs import (
-        _AstraDBVectorStoreDocumentCodec,
-    )
+    from langchain_astradb.vectorstores import AstraDBQueryResult
 except (ImportError, ModuleNotFoundError):
     raise ImportError("please `pip install langchain-astradb`")
 
@@ -29,7 +26,6 @@ except (ImportError, ModuleNotFoundError):
     raise ImportError("please `pip install astrapy")
 import httpx
 from graph_retriever.adapters import Adapter
-from langchain_core.documents import Document
 
 _EXCEPTIONS_TO_RETRY = (
     httpx.TransportError,
@@ -53,60 +49,41 @@ def _extract_queries(edges: set[Edge]) -> tuple[dict[str, Iterable[Any]], set[st
     return (cast(dict[str, Iterable[Any]], metadata), ids)
 
 
-def _queries(
-    codec: _AstraDBVectorStoreDocumentCodec,
+def _metadata_queries(
     user_filters: dict[str, Any] | None,
-    *,
     metadata: dict[str, Iterable[Any]] = {},
-    ids: Iterable[str] = (),
 ) -> Iterator[dict[str, Any]]:
     """
     Generate queries for matching all user_filters and any `metadata`.
 
     The results of the queries can be merged to produce the results.
 
-    Results will match at least one metadata value in one of the metadata fields
-    or one of the IDs.
+    Results will match at least one metadata value in one of the metadata fields.
 
     Results will also match all of the `user_filters`.
 
     Parameters
     ----------
-    codec :
-        Codec to use for encoding the queries.
     user_filters :
         User filters that all results must match.
     metadata :
         An item matches the queries if it matches all user filters, and
         there exists a `key` such that `metadata[key]` has a non-empty
         intersection with the actual values of `item.metadata[key]`.
-    ids :
-        An item matches the queries if it matches all user filters, and
-        it has an `item.id` in `ids`.
 
     Yields
     ------
     :
-        Queries corresponding to `user_filters AND (metadata OR ids)`.
+        Queries corresponding to `user_filters AND metadata`.
     """
     if user_filters:
-        encoded_user_filters = codec.encode_filter(user_filters) if user_filters else {}
 
-        def with_user_filters(
-            filter: dict[str, Any], *, encoded: bool
-        ) -> dict[str, Any]:
-            return {
-                "$and": [
-                    filter if encoded else codec.encode_filter(filter),
-                    encoded_user_filters,
-                ]
-            }
+        def with_user_filters(filter: dict[str, Any]) -> dict[str, Any]:
+            return {"$and": [filter, user_filters]}
     else:
 
-        def with_user_filters(
-            filter: dict[str, Any], *, encoded: bool
-        ) -> dict[str, Any]:
-            return filter if encoded else codec.encode_filter(filter)
+        def with_user_filters(filter: dict[str, Any]) -> dict[str, Any]:
+            return filter
 
     def process_value(v: Any) -> Any:
         if isinstance(v, immutabledict):
@@ -119,24 +96,22 @@ def _queries(
             batch = [process_value(v) for v in v_batch]
             if isinstance(batch[0], dict):
                 if len(batch) == 1:
-                    yield with_user_filters({k: {"$all": [batch[0]]}}, encoded=False)
+                    yield with_user_filters({k: {"$all": [batch[0]]}})
                 else:
                     yield with_user_filters(
-                        {"$or": [{k: {"$all": [v]}} for v in batch]}, encoded=False
+                        {"$or": [{k: {"$all": [v]}} for v in batch]}
                     )
             else:
                 if len(batch) == 1:
-                    yield (with_user_filters({k: batch[0]}, encoded=False))
+                    yield (with_user_filters({k: batch[0]}))
                 else:
-                    yield (with_user_filters({k: {"$in": batch}}, encoded=False))
+                    yield (with_user_filters({k: {"$in": batch}}))
 
-    for id_batch in batched(ids, 100):
-        ids = list(id_batch)
-        if len(ids) == 1:
-            yield with_user_filters({"_id": ids[0]}, encoded=True)
-        else:
-            assert len(ids) > 1 and len(ids) <= 100
-            yield with_user_filters({"_id": {"$in": ids}}, encoded=True)
+
+async def empty_async_iterable() -> AsyncIterable[AstraDBQueryResult]:
+    """Create an empty async iterable."""
+    if False:
+        yield
 
 
 class AstraAdapter(Adapter):
@@ -158,24 +133,175 @@ class AstraAdapter(Adapter):
             component_name="langchain_graph_retriever"
         )
 
-    def _build_contents(
-        self, docs_with_embeddings: list[tuple[Document, list[float]]]
-    ) -> list[Content]:
-        contents = []
-        for doc, embedding in docs_with_embeddings:
-            assert doc.id is not None
-            contents.append(
-                Content(
-                    id=doc.id,
-                    content=doc.page_content,
-                    metadata=doc.metadata,
-                    embedding=embedding,
-                )
+    def _build_content(self, result: AstraDBQueryResult) -> Content:
+        assert result.embedding is not None
+        return Content(
+            id=result.id,
+            content=result.document.page_content,
+            metadata=result.document.metadata,
+            embedding=result.embedding,
+        )
+
+    def _build_content_iter(
+        self, results: Iterable[AstraDBQueryResult]
+    ) -> Iterable[Content]:
+        for result in results:
+            yield self._build_content(result)
+
+    async def _abuild_content_iter(
+        self, results: AsyncIterable[AstraDBQueryResult]
+    ) -> AsyncIterable[Content]:
+        async for result in results:
+            yield self._build_content(result)
+
+    @overload
+    def _run_query(
+        self,
+        *,
+        n: int,
+        include_sort_vector: Literal[False] = False,
+        ids: list[str] | None = None,
+        filter: dict[str, Any] | None = None,
+        sort: dict[str, Any] | None = None,
+    ) -> Iterable[Content]: ...
+
+    @overload
+    def _run_query(
+        self,
+        *,
+        n: int,
+        include_sort_vector: Literal[True],
+        ids: list[str] | None = None,
+        filter: dict[str, Any] | None = None,
+        sort: dict[str, Any] | None = None,
+    ) -> tuple[list[float], Iterable[Content]]: ...
+
+    @backoff.on_exception(backoff.expo, _EXCEPTIONS_TO_RETRY, max_tries=_MAX_RETRIES)
+    def _run_query(
+        self,
+        *,
+        n: int,
+        ids: list[str] | None = None,
+        filter: dict[str, Any] | None = None,  # noqa: A002
+        sort: dict[str, Any] | None = None,
+        include_sort_vector: bool = False,
+    ) -> tuple[list[float], Iterable[Content]] | Iterable[Content]:
+        if include_sort_vector:
+            # Work around the fact that `k == 0` is rejected by Astra.
+            # AstraDBVectorStore has a similar work around for non-vectorize path, but
+            # we want it to apply in both cases.
+            query_n = n if n > 0 else 1
+
+            query_embedding, results = self.vector_store.run_query(
+                n=query_n,
+                ids=ids,
+                filter=filter,
+                sort=sort,
+                include_sort_vector=True,
+                include_embeddings=True,
+                include_similarity=False,
             )
-        return contents
+            assert query_embedding is not None
+            if n == 0:
+                return query_embedding, self._build_content_iter([])
+            return query_embedding, self._build_content_iter(results)
+        else:
+            results = self.vector_store.run_query(
+                n=n,
+                ids=ids,
+                filter=filter,
+                sort=sort,
+                include_sort_vector=False,
+                include_embeddings=True,
+                include_similarity=False,
+            )
+            return self._build_content_iter(results)
+
+    @overload
+    async def _arun_query(
+        self,
+        *,
+        n: int,
+        include_sort_vector: Literal[False] = False,
+        ids: list[str] | None = None,
+        filter: dict[str, Any] | None = None,
+        sort: dict[str, Any] | None = None,
+    ) -> AsyncIterable[Content]: ...
+
+    @overload
+    async def _arun_query(
+        self,
+        *,
+        n: int,
+        include_sort_vector: Literal[True],
+        ids: list[str] | None = None,
+        filter: dict[str, Any] | None = None,
+        sort: dict[str, Any] | None = None,
+    ) -> tuple[list[float], AsyncIterable[Content]]: ...
+
+    @backoff.on_exception(backoff.expo, _EXCEPTIONS_TO_RETRY, max_tries=_MAX_RETRIES)
+    async def _arun_query(
+        self,
+        *,
+        n: int,
+        ids: list[str] | None = None,
+        filter: dict[str, Any] | None = None,  # noqa: A002
+        sort: dict[str, Any] | None = None,
+        include_sort_vector: bool = False,
+    ) -> tuple[list[float], AsyncIterable[Content]] | AsyncIterable[Content]:
+        if include_sort_vector:
+            # Work around the fact that `k == 0` is rejected by Astra.
+            # AstraDBVectorStore has a similar work around for non-vectorize path, but
+            # we want it to apply in both cases.
+            query_n = n if n > 0 else 1
+
+            query_embedding, results = await self.vector_store.arun_query(
+                n=query_n,
+                ids=ids,
+                filter=filter,
+                sort=sort,
+                include_sort_vector=True,
+                include_embeddings=True,
+                include_similarity=False,
+            )
+            assert query_embedding is not None
+            if n == 0:
+                return query_embedding, self._abuild_content_iter(
+                    empty_async_iterable()
+                )
+            return query_embedding, self._abuild_content_iter(results)
+        else:
+            results = await self.vector_store.arun_query(
+                n=n,
+                ids=ids,
+                filter=filter,
+                sort=sort,
+                include_sort_vector=False,
+                include_embeddings=True,
+                include_similarity=False,
+            )
+            return self._abuild_content_iter(results)
+
+    def _vector_sort_from_embedding(
+        self,
+        embedding: list[float],
+    ) -> dict[str, Any]:
+        return self.vector_store.document_codec.encode_vector_sort(vector=embedding)
+
+    def _get_sort_and_optional_embedding(
+        self, query: str, k: int
+    ) -> tuple[None | list[float], dict[str, Any] | None]:
+        if self.vector_store.document_codec.server_side_embeddings:
+            sort = self.vector_store.document_codec.encode_vectorize_sort(query)
+            return None, sort
+        else:
+            embedding = self.vector_store._get_safe_embedding().embed_query(query)
+            if k == 0:
+                return embedding, None  # signal that we should short-circuit
+            sort = self._vector_sort_from_embedding(embedding)
+            return embedding, sort
 
     @override
-    @backoff.on_exception(backoff.expo, _EXCEPTIONS_TO_RETRY, max_tries=_MAX_RETRIES)
     def search_with_embedding(
         self,
         query: str,
@@ -183,27 +309,16 @@ class AstraAdapter(Adapter):
         filter: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> tuple[list[float], list[Content]]:
-        # Work around the fact that `k == 0` is rejected by Astra.
-        # AstraDBVectorStore has a similar work around for non-vectorize path, but
-        # we want it to apply in both cases.
-        query_k = k
-        if query_k == 0:
-            query_k = 1
-        query_embedding, docs_with_embeddings = (
-            self.vector_store.similarity_search_with_embedding(
-                query=query,
-                k=query_k,
-                filter=filter,
-                **kwargs,
-            )
-        )
-        if k == 0:
+        query_embedding, sort = self._get_sort_and_optional_embedding(query, k)
+        if sort is None and query_embedding is not None:
             return query_embedding, []
 
-        return query_embedding, self._build_contents(docs_with_embeddings)
+        query_embedding, results = self._run_query(
+            n=k, filter=filter, sort=sort, include_sort_vector=True
+        )
+        return query_embedding, list(results)
 
     @override
-    @backoff.on_exception(backoff.expo, _EXCEPTIONS_TO_RETRY, max_tries=_MAX_RETRIES)
     async def asearch_with_embedding(
         self,
         query: str,
@@ -211,27 +326,16 @@ class AstraAdapter(Adapter):
         filter: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> tuple[list[float], list[Content]]:
-        # Work around the fact that `k == 0` is rejected by Astra.
-        # AstraDBVectorStore has a similar work around for non-vectorize path, but
-        # we want it to apply in both cases.
-        query_k = k
-        if query_k == 0:
-            query_k = 1
-        (
-            query_embedding,
-            docs_with_embeddings,
-        ) = await self.vector_store.asimilarity_search_with_embedding(
-            query=query,
-            k=query_k,
-            filter=filter,
-            **kwargs,
-        )
-        if k == 0:
+        query_embedding, sort = self._get_sort_and_optional_embedding(query, k)
+        if sort is None and query_embedding is not None:
             return query_embedding, []
-        return query_embedding, self._build_contents(docs_with_embeddings)
+
+        query_embedding, results = await self._arun_query(
+            n=k, filter=filter, sort=sort, include_sort_vector=True
+        )
+        return query_embedding, [r async for r in results]
 
     @override
-    @backoff.on_exception(backoff.expo, _EXCEPTIONS_TO_RETRY, max_tries=_MAX_RETRIES)
     def search(
         self,
         embedding: list[float],
@@ -241,19 +345,11 @@ class AstraAdapter(Adapter):
     ) -> list[Content]:
         if k == 0:
             return []
-
-        docs_with_embeddings = (
-            self.vector_store.similarity_search_with_embedding_by_vector(
-                embedding=embedding,
-                k=k,
-                filter=filter,
-                **kwargs,
-            )
-        )
-        return self._build_contents(docs_with_embeddings)
+        sort = self._vector_sort_from_embedding(embedding)
+        results = self._run_query(n=k, filter=filter, sort=sort)
+        return list(results)
 
     @override
-    @backoff.on_exception(backoff.expo, _EXCEPTIONS_TO_RETRY, max_tries=_MAX_RETRIES)
     async def asearch(
         self,
         embedding: list[float],
@@ -263,40 +359,23 @@ class AstraAdapter(Adapter):
     ) -> list[Content]:
         if k == 0:
             return []
-
-        docs_with_embeddings = (
-            await self.vector_store.asimilarity_search_with_embedding_by_vector(
-                embedding=embedding,
-                k=k,
-                filter=filter,
-                **kwargs,
-            )
-        )
-        return self._build_contents(docs_with_embeddings)
+        sort = self._vector_sort_from_embedding(embedding)
+        results = await self._arun_query(n=k, filter=filter, sort=sort)
+        return [r async for r in results]
 
     @override
     def get(
         self, ids: Sequence[str], filter: dict[str, Any] | None = None, **kwargs: Any
     ) -> list[Content]:
-        return self._execute_and_merge(
-            _queries(
-                codec=self.vector_store.document_codec,
-                user_filters=filter,
-                ids=set(ids),
-            )
-        )
+        results = self._run_query(n=len(ids), ids=list(ids), filter=filter)
+        return list(results)
 
     @override
     async def aget(
         self, ids: Sequence[str], filter: dict[str, Any] | None = None, **kwargs: Any
     ) -> list[Content]:
-        return await self._aexecute_and_merge(
-            _queries(
-                codec=self.vector_store.document_codec,
-                user_filters=filter,
-                ids=set(ids),
-            )
-        )
+        results = await self._arun_query(n=len(ids), ids=list(ids), filter=filter)
+        return [r async for r in results]
 
     @override
     def adjacent(
@@ -307,21 +386,24 @@ class AstraAdapter(Adapter):
         filter: dict[str, Any] | None,
         **kwargs: Any,
     ) -> Iterable[Content]:
-        sort = self.vector_store.document_codec.encode_vector_sort(query_embedding)
+        sort = self._vector_sort_from_embedding(query_embedding)
         metadata, ids = _extract_queries(edges)
-        filters = _queries(
-            codec=self.vector_store.document_codec,
-            user_filters=filter,
-            metadata=metadata,
-            ids=ids,
-        )
 
-        results = self._execute_and_merge(
-            filters=filters,
-            sort=sort,
-            limit=k,
-        )
-        return top_k(results, embedding=query_embedding, k=k)
+        metadata_queries = _metadata_queries(user_filters=filter, metadata=metadata)
+
+        results: dict[str, Content] = {}
+        for metadata_query in metadata_queries:
+            # TODO: Look at a thread-pool for this.
+            for result in self._run_query(n=k, filter=metadata_query, sort=sort):
+                results[result.id] = result
+
+        for id_batch in batched(ids, 100):
+            for result in self._run_query(
+                n=k, ids=list(id_batch), filter=filter, sort=sort
+            ):
+                results[result.id] = result
+
+        return top_k(results.values(), embedding=query_embedding, k=k)
 
     @override
     async def aadjacent(
@@ -332,113 +414,27 @@ class AstraAdapter(Adapter):
         filter: dict[str, Any] | None,
         **kwargs: Any,
     ) -> Iterable[Content]:
-        sort = self.vector_store.document_codec.encode_vector_sort(query_embedding)
+        sort = self._vector_sort_from_embedding(query_embedding)
         metadata, ids = _extract_queries(edges)
-        filters = _queries(
-            codec=self.vector_store.document_codec,
-            user_filters=filter,
-            metadata=metadata,
-            ids=ids,
-        )
 
-        results = await self._aexecute_and_merge(
-            filters=filters,
-            sort=sort,
-            limit=k,
-        )
-        return top_k(results, embedding=query_embedding, k=k)
+        metadata_queries = _metadata_queries(user_filters=filter, metadata=metadata)
 
-    def _execute_and_merge(
-        self,
-        filters: Iterator[dict[str, Any]],
-        limit: int | None = None,
-        sort: dict[str, Any] | None = None,
-    ) -> list[Content]:
-        astra_env = self.vector_store.astra_env
-        astra_env.ensure_db_setup()
-
-        # Similarity can only be included if we are sorting by vector.
-        # Ideally, we could request the `$similarity` projection even
-        # without vector sort. And it can't be `False`. It needs to be
-        # `None` or it will cause an assertion error.
-        include_similarity = None
-        if not (sort or {}).keys().isdisjoint({"$vector", "$vectorize"}):
-            include_similarity = True
-
-        results: dict[str, Content] = {}
-        for filter in filters:
-            # TODO: Look at a thread-pool for this.
-            hits = astra_env.collection.find(
-                filter=filter,
-                projection=self.vector_store.document_codec.full_projection,
-                limit=limit,
-                include_sort_vector=True,
-                include_similarity=include_similarity,
-                sort=sort,
+        iterables = []
+        for metadata_query in metadata_queries:
+            iterables.append(
+                await self._arun_query(n=k, filter=metadata_query, sort=sort)
             )
-
-            for hit in hits:
-                if (
-                    hit["_id"] not in results
-                    and (content := self._decode_hit(hit)) is not None
-                ):
-                    results[content.id] = content
-
-        return list(results.values())
-
-    async def _aexecute_and_merge(
-        self,
-        filters: Iterator[dict[str, Any]],
-        limit: int | None = None,
-        sort: dict[str, Any] | None = None,
-    ) -> list[Content]:
-        astra_env = self.vector_store.astra_env
-        await astra_env.aensure_db_setup()
-
-        # Similarity can only be included if we are sorting by vector.
-        # Ideally, we could request the `$similarity` projection even
-        # without vector sort. And it can't be `False`. It needs to be
-        # `None` or it will cause an assertion error.
-        include_similarity = None
-        if not (sort or {}).keys().isdisjoint({"$vector", "$vectorize"}):
-            include_similarity = True
-
-        cursors = []
-        for filter in filters:
-            cursors.append(
-                astra_env.async_collection.find(
-                    filter=filter,
-                    limit=limit,
-                    projection=self.vector_store.document_codec.full_projection,
-                    include_sort_vector=True,
-                    include_similarity=include_similarity,
-                    sort=sort,
+        for id_batch in batched(ids, 100):
+            iterables.append(
+                await self._arun_query(
+                    n=k, ids=list(id_batch), filter=filter, sort=sort
                 )
             )
 
+        iterators: list[AsyncIterator[Content]] = [it.__aiter__() for it in iterables]
+
         results: dict[str, Content] = {}
-        async for hit in merge.amerge(*cursors):
-            if (
-                hit["_id"] not in results
-                and (content := self._decode_hit(hit)) is not None
-            ):
-                results[content.id] = content
+        async for result in merge.amerge(*iterators):
+            results[result.id] = result
 
-        return list(results.values())
-
-    def _decode_hit(self, hit: dict[str, Any]) -> Content | None:
-        codec = self.vector_store.document_codec
-        if "metadata" not in hit or codec.content_field not in hit:
-            id = hit.get("_id", "(no _id)")
-            warnings.warn(
-                f"Ignoring document with _id = {id}. Reason: missing required fields."
-            )
-            return None
-        embedding = self.vector_store.document_codec.decode_vector(hit)
-        assert embedding is not None
-        return Content(
-            id=hit["_id"],
-            content=hit[codec.content_field],
-            embedding=embedding,
-            metadata=hit["metadata"],
-        )
+        return top_k(results.values(), embedding=query_embedding, k=k)
