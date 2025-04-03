@@ -128,15 +128,16 @@ async def aload_2wikimultihop(
         max_tries=MAX_RETRIES,
     )
     async def add_docs(batch_docs, offset) -> None:
-        from astrapy.exceptions import InsertManyException
+        from astrapy.exceptions import CollectionInsertManyException
 
         try:
             await store.aadd_documents(batch_docs)
             persistence.ack(offset)
-        except InsertManyException as err:
-            for err_desc in err.error_descriptors:
-                if err_desc.error_code != "DOCUMENT_ALREADY_EXISTS":
-                    print(err_desc)  # noqa: T201
+        except CollectionInsertManyException as err:
+            for exp in err.exceptions:
+                exp_desc = str(exp)
+                if "DOCUMENT_ALREADY_EXISTS" not in exp_desc:
+                    print(exp_desc)  # noqa: T201
             raise
 
     # We can't use asyncio.TaskGroup in 3.10. This would be simpler with that.

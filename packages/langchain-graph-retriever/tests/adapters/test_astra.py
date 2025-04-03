@@ -5,7 +5,6 @@ from collections.abc import Iterable, Iterator
 from typing import Any
 
 import pytest
-from astrapy.authentication import StaticTokenProvider
 from graph_retriever.testing.adapter_tests import (
     AdapterComplianceCase,
     AdapterComplianceSuite,
@@ -16,7 +15,9 @@ from langchain_core.embeddings import Embeddings
 from langchain_graph_retriever.adapters.astra import AstraAdapter, _queries
 from typing_extensions import override
 
-TEST_CODEC = _DefaultVSDocumentCodec("page_content", ignore_invalid_documents=True)
+TEST_CODEC = _DefaultVSDocumentCodec(
+    "page_content", ignore_invalid_documents=True, has_lexical=False
+)
 
 
 def create_queries(
@@ -172,7 +173,7 @@ def test_create_metadata_query_user() -> None:
 
 @dataclasses.dataclass
 class _AstraConfig:
-    token: StaticTokenProvider
+    token: str
     keyspace: str
     api_endpoint: str
 
@@ -183,16 +184,17 @@ def astra_config(enabled_stores: set[str]) -> Iterator[_AstraConfig | None]:
         pytest.skip("Pass --stores=astra to test Astra")
         return
 
-    from astrapy import AstraDBDatabaseAdmin
+    from astrapy import DataAPIClient
     from dotenv import load_dotenv
 
     load_dotenv()
 
-    token = StaticTokenProvider(os.environ["ASTRA_DB_APPLICATION_TOKEN"])
+    token = os.environ["ASTRA_DB_APPLICATION_TOKEN"]
     keyspace = os.environ.get("ASTRA_DB_KEYSPACE", "default_keyspace")
     api_endpoint = os.environ["ASTRA_DB_API_ENDPOINT"]
 
-    admin = AstraDBDatabaseAdmin(api_endpoint=api_endpoint, token=token)
+    my_client = DataAPIClient(token=token)
+    admin = my_client.get_admin().get_database_admin(api_endpoint)
     admin.create_keyspace(keyspace)
 
     # Sometimes the creation of the store fails because the keyspace isn't
@@ -281,17 +283,17 @@ class TestAstraVectorizeAdapter(AdapterComplianceSuite):
         animal_docs: list[Document],
         astra_config: _AstraConfig,
     ) -> Iterator["AstraAdapter"]:
-        from astrapy.info import CollectionVectorServiceOptions
+        from astrapy.info import VectorServiceOptions
         from langchain_astradb import AstraDBVectorStore
 
-        service = CollectionVectorServiceOptions(
+        service_options = VectorServiceOptions(
             provider="nvidia",
             model_name="NV-Embed-QA",
         )
 
         store = AstraDBVectorStore(
             collection_name="animals_vectorize",
-            collection_vector_service_options=service,
+            collection_vector_service_options=service_options,
             namespace=astra_config.keyspace,
             token=astra_config.token,
             api_endpoint=astra_config.api_endpoint,

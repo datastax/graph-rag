@@ -95,9 +95,9 @@ graph-retriever = { workspace = true }
 
 [project.optional-dependencies]
 astra = [
-    "astrapy>=1.5.2",
+    "astrapy>=2.0.0",
     "httpx>=0.28.1",
-    "langchain-astradb>=0.5.3",
+    "langchain-astradb>=0.6.0",
 ]
 html = [
     "beautifulsoup4>=4.12.3",
