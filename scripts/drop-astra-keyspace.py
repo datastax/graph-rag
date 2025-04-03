@@ -1,10 +1,9 @@
 import os
 import sys
 
-from astrapy import AstraDBDatabaseAdmin
-from astrapy.authentication import StaticTokenProvider
+from astrapy import DataAPIClient
 
-token = StaticTokenProvider(os.environ["ASTRA_DB_APPLICATION_TOKEN"])
+token = os.environ["ASTRA_DB_APPLICATION_TOKEN"]
 keyspace = os.environ.get("ASTRA_DB_KEYSPACE")
 if keyspace is None:
     print("No keyspace to drop.")  # noqa: T201
@@ -12,7 +11,8 @@ if keyspace is None:
 
 api_endpoint = os.environ["ASTRA_DB_API_ENDPOINT"]
 
-admin = AstraDBDatabaseAdmin(api_endpoint=api_endpoint, token=token)
+my_client = DataAPIClient(token=token)
+admin = my_client.get_admin().get_database_admin(api_endpoint)
 keyspaces = admin.list_keyspaces()
 if keyspace in keyspaces:
     print(f"Dropping keyspace '{keyspace}'")  # noqa: T201
