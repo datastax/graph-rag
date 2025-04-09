@@ -132,7 +132,7 @@ The following shows how to populate a variety of vector stores with the animal d
     vector_store = Chroma.from_documents(
         documents=list(shredder.transform_documents(animals)),
         embedding=OpenAIEmbeddings(),
-        collection_name_name="animals",
+        collection_name="animals",
     )
     ```
 
