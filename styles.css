@@ -1,0 +1,20 @@
+.grid.two {
+    grid-template-columns: 1fr 1fr;
+}
+.yellow {
+    color: #EED202;
+}
+.green {
+    color: #228B22;
+}
+.red {
+    color: #c83131;
+}
+.colab {
+    color:  #F9AB00;
+}
+
+/* hide cell tags */
+.jp-Cell .celltoolbar {
+    display: none !important;
+}
